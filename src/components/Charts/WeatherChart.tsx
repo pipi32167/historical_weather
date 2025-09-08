@@ -16,6 +16,7 @@ import {
 import { WeatherDataPoint } from '../../types/weather';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { TemperatureDisplayMode } from './ChartContainer';
 
 interface WeatherChartProps {
   data: WeatherDataPoint[];
@@ -25,6 +26,7 @@ interface WeatherChartProps {
   height?: number;
   showGrid?: boolean;
   showLegend?: boolean;
+  temperatureMode?: TemperatureDisplayMode;
 }
 
 const WeatherChart: React.FC<WeatherChartProps> = ({
@@ -35,26 +37,44 @@ const WeatherChart: React.FC<WeatherChartProps> = ({
   height = 400,
   showGrid = true,
   showLegend = true,
+  temperatureMode = 'maxMin',
 }) => {
-  // 处理和格式化数据
+  // 处理和格式化数据 - 按年份从旧到新排序
   const chartData = useMemo(() => {
-    return data.map(item => {
+    // 首先按年份从旧到新排序
+    const sortedData = [...data].sort((a, b) => 
+      new Date(a.date).getFullYear() - new Date(b.date).getFullYear()
+    );
+
+    // 检查是否是历史同期数据
+    const isHistoricalSameDate = sortedData.length > 1 && 
+      sortedData.every(d => {
+        const dDate = new Date(d.date);
+        const firstDate = new Date(sortedData[0].date);
+        return dDate.getMonth() === firstDate.getMonth() && 
+               dDate.getDate() === firstDate.getDate();
+      });
+
+    return sortedData.map(item => {
       const itemDate = new Date(item.date);
-      // 如果是历史同期数据（相同月日不同年份），显示年份
-      const isHistoricalSameDate = data.length > 1 && 
-        data.every(d => {
-          const dDate = new Date(d.date);
-          const firstDate = new Date(data[0].date);
-          return dDate.getMonth() === firstDate.getMonth() && 
-                 dDate.getDate() === firstDate.getDate();
-        });
+      const year = itemDate.getFullYear();
+      
+      // 设定温度显示值（最高/最低模式）
+      const temperatureValue = item.temperature; // 主线还是平均温度
+      const maxTemp = item.temperatureMax;
+      const minTemp = item.temperatureMin;
       
       return {
         ...item,
-        date: isHistoricalSameDate 
-          ? format(itemDate, 'yyyy年', { locale: zhCN })
+        displayDate: isHistoricalSameDate 
+          ? `${year}年`
           : format(itemDate, 'MM-dd', { locale: zhCN }),
-        fullDate: item.date,
+        fullDate: format(itemDate, 'yyyy年MM月dd日', { locale: zhCN }),
+        year: year,
+        temperature: temperatureValue,
+        temperatureMax: maxTemp,
+        temperatureMin: minTemp,
+        originalTemperature: item.temperature,
       };
     });
   }, [data]);
@@ -68,28 +88,48 @@ const WeatherChart: React.FC<WeatherChartProps> = ({
     precipitation: { name: '降水 (mm)', color: colors[4] },
   };
 
+
   // 自定义 Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      const data = payload[0]?.payload;
       return (
         <div className="bg-primary border border-custom rounded-lg p-3 shadow-lg">
           <p className="text-sm font-medium text-primary mb-2">
-            {payload[0]?.payload?.fullDate && 
-              format(new Date(payload[0].payload.fullDate), 'yyyy年MM月dd日', { locale: zhCN })
-            }
+            {data?.fullDate}
           </p>
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center space-x-2 text-sm">
-              <div 
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: entry.color }}
-              />
-              <span className="text-secondary">{entry.name}:</span>
-              <span className="font-medium text-primary">
-                {typeof entry.value === 'number' ? entry.value.toFixed(1) : entry.value}
-              </span>
+          
+          {/* 温度显示 */}
+          <div className="space-y-1 text-sm">
+            {data && (
+              <>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500" />
+                  <span className="text-secondary">最高温度:</span>
+                  <span className="font-medium text-primary">{data.temperatureMax?.toFixed(1)}°C</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-500" />
+                  <span className="text-secondary">最低温度:</span>
+                  <span className="font-medium text-primary">{data.temperatureMin?.toFixed(1)}°C</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                  <span className="text-secondary">平均温度:</span>
+                  <span className="font-medium text-primary">{data.originalTemperature?.toFixed(1)}°C</span>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* 其他指标 */}
+          {data && (
+            <div className="mt-2 pt-2 border-t border-custom text-xs text-secondary">
+              <div>湿度: {data.humidity}%</div>
+              <div>降水: {data.precipitation > 0 ? `${data.precipitation.toFixed(1)}mm` : '无'}</div>
+              <div>风速: {data.windSpeed.toFixed(1)} km/h</div>
             </div>
-          ))}
+          )}
         </div>
       );
     }
@@ -104,7 +144,7 @@ const WeatherChart: React.FC<WeatherChartProps> = ({
     };
 
     const xAxisProps = {
-      dataKey: 'date',
+      dataKey: 'displayDate',
       tick: { fontSize: 12, fill: 'var(--text-secondary)' },
       axisLine: { stroke: 'var(--border-color)' },
       tickLine: { stroke: 'var(--border-color)' },
@@ -125,14 +165,38 @@ const WeatherChart: React.FC<WeatherChartProps> = ({
             <YAxis {...yAxisProps} />
             <Tooltip content={<CustomTooltip />} />
             {showLegend && <Legend />}
-            {metrics.map((metric, index) => (
+            {/* 显示最高/最低温度区域 */}
+            <Area
+              key="temperatureMax"
+              type="monotone"
+              dataKey="temperatureMax"
+              stackId="temp"
+              stroke="#ef4444"
+              fill="#ef4444"
+              fillOpacity={0.3}
+              strokeWidth={2}
+              name="最高温度 (°C)"
+            />
+            <Area
+              key="temperatureMin"
+              type="monotone"
+              dataKey="temperatureMin"
+              stackId="temp"
+              stroke="#3b82f6"
+              fill="#3b82f6"
+              fillOpacity={0.3}
+              strokeWidth={2}
+              name="最低温度 (°C)"
+            />
+            {/* 其他指标 */}
+            {metrics.filter(metric => metric !== 'temperature').map((metric, index) => (
               <Area
                 key={metric}
                 type="monotone"
                 dataKey={metric}
                 stackId="1"
-                stroke={metricConfig[metric as keyof typeof metricConfig]?.color || colors[index]}
-                fill={metricConfig[metric as keyof typeof metricConfig]?.color || colors[index]}
+                stroke={metricConfig[metric as keyof typeof metricConfig]?.color || colors[index + 1]}
+                fill={metricConfig[metric as keyof typeof metricConfig]?.color || colors[index + 1]}
                 fillOpacity={0.6}
                 strokeWidth={2}
                 name={metricConfig[metric as keyof typeof metricConfig]?.name || metric}
@@ -149,11 +213,27 @@ const WeatherChart: React.FC<WeatherChartProps> = ({
             <YAxis {...yAxisProps} />
             <Tooltip content={<CustomTooltip />} />
             {showLegend && <Legend />}
-            {metrics.map((metric, index) => (
+            {/* 显示最高/最低温度柱状图 */}
+            <Bar
+              key="temperatureMax"
+              dataKey="temperatureMax"
+              fill="#ef4444"
+              name="最高温度 (°C)"
+              radius={[2, 2, 0, 0]}
+            />
+            <Bar
+              key="temperatureMin"
+              dataKey="temperatureMin"
+              fill="#3b82f6"
+              name="最低温度 (°C)"
+              radius={[2, 2, 0, 0]}
+            />
+            {/* 其他指标 */}
+            {metrics.filter(metric => metric !== 'temperature').map((metric, index) => (
               <Bar
                 key={metric}
                 dataKey={metric}
-                fill={metricConfig[metric as keyof typeof metricConfig]?.color || colors[index]}
+                fill={metricConfig[metric as keyof typeof metricConfig]?.color || colors[index + 1]}
                 name={metricConfig[metric as keyof typeof metricConfig]?.name || metric}
                 radius={[2, 2, 0, 0]}
               />
@@ -169,15 +249,48 @@ const WeatherChart: React.FC<WeatherChartProps> = ({
             <YAxis {...yAxisProps} />
             <Tooltip content={<CustomTooltip />} />
             {showLegend && <Legend />}
-            {metrics.map((metric, index) => (
+            {/* 显示最高/最低温度线 */}
+            <Line
+              key="temperatureMax"
+              type="monotone"
+              dataKey="temperatureMax"
+              stroke="#ef4444"
+              strokeWidth={2}
+              dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, stroke: '#ef4444', strokeWidth: 2 }}
+              name="最高温度 (°C)"
+            />
+            <Line
+              key="temperatureMin"
+              type="monotone"
+              dataKey="temperatureMin"
+              stroke="#3b82f6"
+              strokeWidth={2}
+              dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
+              name="最低温度 (°C)"
+            />
+            <Line
+              key="temperature"
+              type="monotone"
+              dataKey="originalTemperature"
+              stroke="#10b981"
+              strokeWidth={1}
+              strokeDasharray="5 5"
+              dot={{ fill: '#10b981', strokeWidth: 1, r: 2 }}
+              activeDot={{ r: 4, stroke: '#10b981', strokeWidth: 1 }}
+              name="平均温度 (°C)"
+            />
+            {/* 其他指标 */}
+            {metrics.filter(metric => metric !== 'temperature').map((metric, index) => (
               <Line
                 key={metric}
                 type="monotone"
                 dataKey={metric}
-                stroke={metricConfig[metric as keyof typeof metricConfig]?.color || colors[index]}
+                stroke={metricConfig[metric as keyof typeof metricConfig]?.color || colors[index + 1]}
                 strokeWidth={2}
-                dot={{ fill: metricConfig[metric as keyof typeof metricConfig]?.color || colors[index], strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: metricConfig[metric as keyof typeof metricConfig]?.color || colors[index], strokeWidth: 2 }}
+                dot={{ fill: metricConfig[metric as keyof typeof metricConfig]?.color || colors[index + 1], strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: metricConfig[metric as keyof typeof metricConfig]?.color || colors[index + 1], strokeWidth: 2 }}
                 name={metricConfig[metric as keyof typeof metricConfig]?.name || metric}
               />
             ))}

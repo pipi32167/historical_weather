@@ -8,6 +8,8 @@ import {
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
+export type TemperatureDisplayMode = 'maxMin';
+
 interface ChartContainerProps {
   title: string;
   subtitle?: string;
@@ -20,6 +22,8 @@ interface ChartContainerProps {
   onSettings?: () => void;
   chartType?: 'line' | 'area' | 'bar' | 'heatmap';
   onChartTypeChange?: (type: 'line' | 'area' | 'bar' | 'heatmap') => void;
+  // 温度显示模式相关
+  showTemperatureMode?: boolean;
 }
 
 const ChartContainer: React.FC<ChartContainerProps> = ({
@@ -34,6 +38,7 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
   onSettings,
   chartType = 'line',
   onChartTypeChange,
+  showTemperatureMode = false,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -48,6 +53,7 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
     { type: 'bar' as const, icon: ChartBarIcon, label: '柱状图' },
     { type: 'heatmap' as const, icon: ChartBarIcon, label: '热力图' },
   ];
+
 
   return (
     <div className={clsx(
@@ -72,6 +78,15 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
 
         {/* Right section - Actions */}
         <div className="flex items-center space-x-2 ml-4">
+          {/* Temperature mode indicator */}
+          {showTemperatureMode && (
+            <div className="flex items-center bg-primary border border-custom rounded-lg px-3 py-1.5">
+              <span className="text-sm font-medium text-primary">
+                最高/最低温度
+              </span>
+            </div>
+          )}
+
           {/* Chart type selector */}
           {onChartTypeChange && (
             <div className="flex items-center bg-primary border border-custom rounded-lg p-1">

@@ -4,6 +4,7 @@ import ChartContainer from './components/Charts/ChartContainer';
 import WeatherChart from './components/Charts/WeatherChart';
 import NaturalLanguageQuery from './components/Query/NaturalLanguageQuery';
 import HistoricalControlsPanel from './components/Controls/HistoricalControlsPanel';
+import HistoricalDataTable from './components/Tables/HistoricalDataTable';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAppStore } from './store/appStore';
 import { useWeatherData } from './hooks/useWeatherData';
@@ -137,6 +138,7 @@ function App(): React.ReactElement {
           subtitle={chartSubtitle}
           chartType={chartType}
           onChartTypeChange={setChartType}
+          showTemperatureMode={showHistoricalControls}
           onDownload={() => {
             // TODO: 实现数据导出功能
             console.log('Download data:', chartData);
@@ -273,6 +275,14 @@ function App(): React.ReactElement {
               </p>
             </div>
           </div>
+        )}
+
+        {/* Historical Data Table - 只在历史数据模式下显示 */}
+        {showHistoricalControls && chartData.length > 0 && !dataError && (
+          <HistoricalDataTable
+            data={chartData}
+            targetDate={currentDate}
+          />
         )}
 
         {/* Network Status Banner */}

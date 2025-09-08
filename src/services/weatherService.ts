@@ -440,7 +440,7 @@ export class WeatherService {
   }
 
   /**
-   * Get historical data for the same date over multiple years
+   * Get historical data for the same date over multiple years using optimized range queries
    */
   async getSameDateHistoricalData(
     location: Location, 
@@ -458,85 +458,142 @@ export class WeatherService {
     }
     
     const currentYear = targetDate.getFullYear();
+    const today = new Date();
+    const results: WeatherDataPoint[] = [];
     
-    // Split into batches to avoid overwhelming the API
-    const batchSize = 3; // 减少批次大小以减少API压力
-    const batches: Promise<WeatherDataPoint[]>[] = [];
-    const maxBatches = 5; // 限制最大批次数
-
-    for (let i = 0; i < years && batches.length < maxBatches; i += batchSize) {
-      const batch = async () => {
-        // 检查是否被取消
-        if (signal?.aborted) {
-          throw new Error('Request was aborted');
-        }
-        
-        const batchPromises: Promise<WeatherDataPoint[]>[] = [];
-        
-        for (let j = i; j < Math.min(i + batchSize, years); j++) {
-          const historicalYear = currentYear - j; // 从当前年份开始
-          
-          // 跳过太远的历史数据（超过50年）
-          if (currentYear - historicalYear > 50) {
-            continue;
-          }
-          
-          // 确保不会请求未来的日期
-          const today = new Date();
-          const historicalDate = new Date(historicalYear, targetDate.getMonth(), targetDate.getDate());
-          
-          // 如果历史日期晚于今天，跳过这个年份
-          if (historicalDate > today) {
-            continue;
-          }
-          
-          // Get data for a small range around the target date to ensure we get the exact date
-          const startDate = subDays(historicalDate, 1);
-          const endDate = new Date(historicalDate.getTime() + 24 * 60 * 60 * 1000); // Add 1 day
-          
-          // 确保结束日期不超过今天
-          const maxEndDate = new Date(today.getTime() - 24 * 60 * 60 * 1000); // 至少是昨天
-          if (endDate > maxEndDate) {
-            continue;
-          }
-          
-          batchPromises.push(
-            this.getHistoricalWeather(location, startDate, endDate, signal)
-              .then(data => data.filter(d => d.date === format(historicalDate, 'yyyy-MM-dd')))
-              .catch(error => {
-                // 不记录被取消的错误
-                if (error instanceof Error && error.name === 'AbortError') {
-                  throw error;
-                }
-                console.warn(`Failed to get data for year ${historicalYear}:`, error);
-                return [];
-              })
-          );
-        }
-        
-        if (batchPromises.length === 0) {
-          return [];
-        }
-        
-        const results = await Promise.all(batchPromises);
-        return results.reduce((acc, batch) => acc.concat(batch), []);
-      };
-
-      batches.push(batch());
-    }
-
-    try {
-      const allResults = await Promise.all(batches);
-      const flatResults = allResults.reduce((acc, batch) => acc.concat(batch), []);
+    // 构建需要获取的日期列表，按API类型分组
+    const recentDates: Date[] = []; // 使用 forecast API (最近92天)
+    const archiveDates: Date[] = []; // 使用 archive API (更早的日期)
+    
+    for (let j = 0; j < years; j++) {
+      const historicalYear = currentYear - j;
       
-      // Sort by year (newest first) and return
-      return flatResults.sort((a: WeatherDataPoint, b: WeatherDataPoint) => 
-        new Date(b.date).getFullYear() - new Date(a.date).getFullYear()
-      );
-    } catch (error) {
-      console.error('Failed to fetch historical data:', error);
-      throw error;
+      // 跳过太远的历史数据（超过50年）
+      if (currentYear - historicalYear > 50) {
+        continue;
+      }
+      
+      const historicalDate = new Date(historicalYear, targetDate.getMonth(), targetDate.getDate());
+      
+      // 如果历史日期晚于今天，跳过这个年份
+      if (historicalDate > today) {
+        continue;
+      }
+      
+      // 判断使用哪个API
+      const daysFromToday = Math.ceil((today.getTime() - historicalDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysFromToday <= 92) {
+        recentDates.push(historicalDate);
+      } else {
+        archiveDates.push(historicalDate);
+      }
     }
+    
+    // 处理最近的日期（使用 forecast API）
+    if (recentDates.length > 0) {
+      try {
+        const oldestRecentDate = recentDates[recentDates.length - 1];
+        const newestRecentDate = recentDates[0];
+        
+        const recentData = await this.getRecentWeather(
+          location, 
+          oldestRecentDate, 
+          newestRecentDate, 
+          signal
+        );
+        
+        // 筛选出目标日期的数据
+        const targetDates = recentDates.map(d => format(d, 'yyyy-MM-dd'));
+        const filteredRecentData = recentData.filter(d => targetDates.includes(d.date));
+        results.push(...filteredRecentData);
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw error;
+        }
+        console.warn('Failed to get recent weather data:', error);
+      }
+    }
+    
+    // 处理历史日期（使用 archive API）- 优化为更少的API调用
+    if (archiveDates.length > 0) {
+      // 尝试使用连续年份范围来最小化API调用
+      const sortedArchiveDates = archiveDates.sort((a, b) => b.getTime() - a.getTime()); // 按时间降序排列
+      const batchSize = 5; // 每次最多处理5年的数据
+      
+      const batches: Promise<WeatherDataPoint[]>[] = [];
+      
+      for (let i = 0; i < sortedArchiveDates.length; i += batchSize) {
+        const batchDates = sortedArchiveDates.slice(i, i + batchSize);
+        
+        batches.push((async () => {
+          try {
+            // 计算这一批日期的范围
+            const oldestDate = batchDates[batchDates.length - 1];
+            const newestDate = batchDates[0];
+            
+            // 扩展范围以确保包含目标日期
+            const startDate = subDays(oldestDate, 1);
+            const endDate = new Date(newestDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+            
+            // 检查日期范围是否合理（不超过100天）
+            const daysDiff = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+            
+            if (daysDiff <= 100) {
+              // 单次API调用获取整个范围的数据
+              const batchData = await this.getHistoricalWeather(location, startDate, endDate, signal);
+              
+              // 筛选出目标日期的数据
+              const targetDateStrs = batchDates.map(d => format(d, 'yyyy-MM-dd'));
+              return batchData.filter(d => targetDateStrs.includes(d.date));
+            } else {
+              // 如果范围太大，按年份单独处理
+              const yearPromises = batchDates.map(async (date) => {
+                const year = date.getFullYear();
+                try {
+                  const yearStartDate = subDays(date, 1);
+                  const yearEndDate = new Date(date.getTime() + 2 * 24 * 60 * 60 * 1000);
+                  
+                  const yearData = await this.getHistoricalWeather(location, yearStartDate, yearEndDate, signal);
+                  const targetDateStr = format(date, 'yyyy-MM-dd');
+                  return yearData.filter(d => d.date === targetDateStr);
+                } catch (error) {
+                  if (error instanceof Error && error.name === 'AbortError') {
+                    throw error;
+                  }
+                  console.warn(`Failed to get data for year ${year}:`, error);
+                  return [];
+                }
+              });
+              
+              const yearResults = await Promise.all(yearPromises);
+              return yearResults.reduce((acc, batch) => acc.concat(batch), []);
+            }
+          } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+              throw error;
+            }
+            console.warn('Failed to get batch archive data:', error);
+            return [];
+          }
+        })());
+      }
+      
+      try {
+        const batchResults = await Promise.all(batches);
+        const flattenedResults = batchResults.reduce((acc, batch) => acc.concat(batch), []);
+        results.push(...flattenedResults);
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw error;
+        }
+        console.warn('Some archive API requests failed:', error);
+      }
+    }
+    
+    // Sort by year (newest first) and return
+    return results.sort((a: WeatherDataPoint, b: WeatherDataPoint) => 
+      new Date(b.date).getFullYear() - new Date(a.date).getFullYear()
+    );
   }
 
   /**
