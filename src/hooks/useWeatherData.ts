@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { WeatherDataPoint, Location } from '../types/weather';
 import { weatherService } from '../services/weatherService';
 import { generateSameDateHistoricalData } from '../utils/historicalDataGenerator';
@@ -27,16 +27,24 @@ export const useWeatherData = ({
   const [data, setData] = useState<WeatherDataPoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // 使用 ref 来避免组件重新创建对象导致的无限循环
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const retryCountRef = useRef(0);
+  const lastFetchTimeRef = useRef(0);
+  const maxRetries = 3;
+  const retryDelay = 1000;
+  const minFetchInterval = 1000; // 最小请求间隔，防止过于频繁的请求
 
-  // Shanghai location fallback
-  const defaultLocation: Location = {
+  // Shanghai location fallback - 使用 useMemo 避免每次渲染都创建新对象
+  const defaultLocation = useMemo<Location>(() => ({
     id: 'shanghai',
     name: '上海',
     latitude: 31.2304,
     longitude: 121.4737,
     country: 'China',
     timezone: 'Asia/Shanghai'
-  };
+  }), []);
 
   const searchLocations = useCallback(async (query: string): Promise<Location[]> => {
     if (!useRealData) {
@@ -60,7 +68,28 @@ export const useWeatherData = ({
     }
   }, [useRealData]);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isRetry = false) => {
+    // 防止过于频繁的请求
+    const now = Date.now();
+    if (now - lastFetchTimeRef.current < minFetchInterval) {
+      console.log('Request throttled - too frequent');
+      return;
+    }
+    lastFetchTimeRef.current = now;
+    
+    // 取消之前的请求
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    // 创建新的 AbortController
+    abortControllerRef.current = new AbortController();
+    
+    // 如果不是重试，重置重试计数
+    if (!isRetry) {
+      retryCountRef.current = 0;
+    }
+    
     setLoading(true);
     setError(null);
 
@@ -138,13 +167,35 @@ export const useWeatherData = ({
 
       setData(weatherData);
     } catch (err) {
+      // 检查是否是由于 AbortController 取消的请求
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('Request was aborted');
+        return;
+      }
+      
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather data';
-      setError(errorMessage);
       console.error('Error fetching weather data:', err);
       
-      // Fallback to mock data on error
+      // 实现重试逻辑，但有最大重试次数限制
+      if (useRealData && retryCountRef.current < maxRetries) {
+        retryCountRef.current += 1;
+        console.warn(`Retrying request (${retryCountRef.current}/${maxRetries})...`);
+        
+        setTimeout(() => {
+          if (!abortControllerRef.current?.signal.aborted) {
+            fetchData(true); // 标记为重试
+          }
+        }, retryDelay * retryCountRef.current); // 指数退避
+        
+        return;
+      }
+      
+      // 达到最大重试次数或其他情况，设置错误状态
+      setError(errorMessage);
+      
+      // Fallback to mock data on final error
       if (useRealData) {
-        console.warn('Falling back to mock data due to API error');
+        console.warn('Falling back to mock data after retries failed');
         const fallbackLocation = selectedLocations.length > 0 ? selectedLocations[0] : defaultLocation;
         const fallbackData = generateSameDateHistoricalData(fallbackLocation, targetDate, years);
         setData(fallbackData);
@@ -153,12 +204,31 @@ export const useWeatherData = ({
       setLoading(false);
     }
   }, [useRealData, selectedLocations, targetDate, years, defaultLocation]);
+  
+  // 清理函数，组件卸载时取消请求
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
+  // 使用稳定的依赖数组避免无限循环
+  const stableDeps = useMemo(() => ({
+    useRealData,
+    selectedLocations: JSON.stringify(selectedLocations.map(loc => ({ id: loc.id, name: loc.name }))),
+    targetDate: targetDate.toISOString().split('T')[0], // 只取日期部分
+    years
+  }), [useRealData, selectedLocations, targetDate, years]);
+  
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stableDeps.useRealData, stableDeps.selectedLocations, stableDeps.targetDate, stableDeps.years]);
 
   const refetch = useCallback(() => {
+    retryCountRef.current = 0; // 重置重试计数
     fetchData();
   }, [fetchData]);
 

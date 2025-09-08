@@ -3,26 +3,47 @@ import MainLayout from './components/Layout/MainLayout';
 import ChartContainer from './components/Charts/ChartContainer';
 import WeatherChart from './components/Charts/WeatherChart';
 import NaturalLanguageQuery from './components/Query/NaturalLanguageQuery';
+import HistoricalControlsPanel from './components/Controls/HistoricalControlsPanel';
+import ErrorBoundary from './components/ErrorBoundary';
 import { useAppStore } from './store/appStore';
 import { useWeatherData } from './hooks/useWeatherData';
+import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { calculateHistoricalStats, generateHistoricalInsights } from './utils/historicalDataGenerator';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { Location } from './types/weather';
 
 function App(): React.ReactElement {
   const { selectedLocations } = useAppStore();
   const [chartType, setChartType] = useState<'line' | 'area' | 'bar' | 'heatmap'>('line');
   const [isNLQueryLoading, setIsNLQueryLoading] = useState(false);
   const [currentMetrics] = useState(['temperature']);
-  const [currentDate] = useState(new Date());
+  
+  // 历史数据控制状态
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentLocation, setCurrentLocation] = useState<Location>({
+    id: 'shanghai',
+    name: '上海',
+    latitude: 31.2304,
+    longitude: 121.4737,
+    country: 'China',
+    timezone: 'Asia/Shanghai'
+  });
+  const [historicalYears, setHistoricalYears] = useState(20);
+  
   const [useRealData] = useState(true); // Toggle for real vs mock data
+  const { isOnline, isSlowConnection } = useNetworkStatus();
+
+  // 使用历史数据控制面板的设置，如果没有选中地点就使用当前地点
+  const effectiveLocations = selectedLocations.length > 0 ? selectedLocations : [currentLocation];
+  const showHistoricalControls = selectedLocations.length === 0;
 
   // Use the weather data hook
   const { data: chartData, loading: isDataLoading, error: dataError, refetch, searchLocations } = useWeatherData({
     useRealData,
-    selectedLocations,
+    selectedLocations: effectiveLocations,
     targetDate: currentDate,
-    years: 20
+    years: historicalYears
   });
 
   const isLoading = isDataLoading || isNLQueryLoading;
@@ -73,18 +94,37 @@ function App(): React.ReactElement {
 
   // 图表标题和副标题
   const chartTitle = selectedLocations.length === 0 
-    ? `上海历史同期数据 - ${format(currentDate, 'MM月dd日', { locale: zhCN })}` 
+    ? `${currentLocation.name}历史同期数据 - ${format(currentDate, 'MM月dd日', { locale: zhCN })}` 
     : selectedLocations.length === 1
     ? `${selectedLocations[0].name}天气数据概览`
     : `${selectedLocations.map(loc => loc.name).join(' vs ')} 数据对比`;
 
   const chartSubtitle = selectedLocations.length === 0 
-    ? `过去20年 ${format(currentDate, 'MM月dd日', { locale: zhCN })} 的温度变化 • ${chartData.length} 个数据点`
+    ? `过去${historicalYears}年 ${format(currentDate, 'MM月dd日', { locale: zhCN })} 的温度变化 • ${chartData.length} 个数据点`
     : `过去两年数据趋势 • ${chartData.length} 个数据点`;
 
+  const handleError = (error: Error, errorInfo: any) => {
+    console.error('App Error:', error, errorInfo);
+    // 这里可以添加错误上报逻辑
+  };
+
   return (
-    <MainLayout>
+    <ErrorBoundary onError={handleError}>
+      <MainLayout>
       <div className="space-y-6">
+        {/* Historical Controls Panel - 只在历史数据模式下显示 */}
+        {showHistoricalControls && (
+          <HistoricalControlsPanel
+            selectedDate={currentDate}
+            selectedLocation={currentLocation}
+            selectedRange={historicalYears}
+            onDateChange={setCurrentDate}
+            onLocationChange={setCurrentLocation}
+            onRangeChange={setHistoricalYears}
+            isLoading={isLoading}
+          />
+        )}
+
         {/* Natural Language Query Interface */}
         <NaturalLanguageQuery 
           onSubmit={handleNLQuery}
@@ -235,6 +275,39 @@ function App(): React.ReactElement {
           </div>
         )}
 
+        {/* Network Status Banner */}
+        {!isOnline && (
+          <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="text-xl">📡</div>
+              <div>
+                <h4 className="text-sm font-semibold text-orange-800 dark:text-orange-200">
+                  网络连接已断开
+                </h4>
+                <p className="text-xs text-orange-700 dark:text-orange-300">
+                  应用将使用缓存数据，连接恢复后自动更新
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isOnline && isSlowConnection && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="text-xl">🐌</div>
+              <div>
+                <h4 className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
+                  网络连接较慢
+                </h4>
+                <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                  数据加载可能需要更长时间
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Error Message */}
         {dataError && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
@@ -246,12 +319,14 @@ function App(): React.ReactElement {
             </div>
             <p className="text-red-700 dark:text-red-300 text-sm mb-4">
               {dataError}
+              {!isOnline && ' (网络连接不可用)'}
             </p>
             <button
               onClick={refetch}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium"
+              disabled={!isOnline}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-md text-sm font-medium transition-colors"
             >
-              重新加载
+              {isOnline ? '重新加载' : '网络连接后重试'}
             </button>
           </div>
         )}
@@ -261,12 +336,12 @@ function App(): React.ReactElement {
           <div className="bg-primary border border-custom rounded-lg p-6 text-center">
             <div className="text-4xl mb-4">🌤️</div>
             <h3 className="text-lg font-semibold text-primary mb-2">
-              {isDataLoading ? '正在加载上海历史数据...' : '上海历史天气数据'}
+              {isDataLoading ? `正在加载${currentLocation.name}历史数据...` : `${currentLocation.name}历史天气数据`}
             </h3>
             <p className="text-secondary mb-4">
               {isDataLoading 
-                ? `正在分析${format(currentDate, 'MM月dd日', { locale: zhCN })}过去20年的天气变化`
-                : `显示${format(currentDate, 'MM月dd日', { locale: zhCN })}过去20年的真实天气数据`
+                ? `正在分析${format(currentDate, 'MM月dd日', { locale: zhCN })}过去${historicalYears}年的天气变化`
+                : `显示${format(currentDate, 'MM月dd日', { locale: zhCN })}过去${historicalYears}年的真实天气数据`
               }
             </p>
             {useRealData && (
@@ -276,6 +351,9 @@ function App(): React.ReactElement {
                 </span>
                 <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
                   📡 Open-Meteo API
+                </span>
+                <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 px-2 py-1 rounded">
+                  🎛️ 可自定义设置
                 </span>
               </div>
             )}
@@ -298,7 +376,8 @@ function App(): React.ReactElement {
           </div>
         )}
       </div>
-    </MainLayout>
+      </MainLayout>
+    </ErrorBoundary>
   );
 }
 

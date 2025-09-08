@@ -24,6 +24,8 @@ export interface Location {
   longitude: number;
   country: string;
   timezone: string;
+  admin1?: string;
+  admin2?: string;
 }
 
 // 查询参数
