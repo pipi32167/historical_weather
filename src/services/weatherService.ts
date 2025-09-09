@@ -105,10 +105,13 @@ export class WeatherService {
     return Date.now() - cacheItem.timestamp < this.cacheTimeout;
   }
 
-  private async fetchWithCache<T>(url: string, cacheKey: string, signal?: AbortSignal): Promise<T> {
-    const cached = this.cache.get(cacheKey);
-    if (cached && this.isValidCache(cached)) {
-      return cached.data;
+  private async fetchWithCache<T>(url: string, cacheKey: string, signal?: AbortSignal, skipCache: boolean = false): Promise<T> {
+    // 如果skipCache为true，跳过缓存检查
+    if (!skipCache) {
+      const cached = this.cache.get(cacheKey);
+      if (cached && this.isValidCache(cached)) {
+        return cached.data;
+      }
     }
 
     try {
@@ -142,7 +145,10 @@ export class WeatherService {
         throw new Error('Received null or undefined data from API');
       }
       
-      this.cache.set(cacheKey, { data, timestamp: Date.now() });
+      // 只有在不跳过缓存时才存储数据
+      if (!skipCache) {
+        this.cache.set(cacheKey, { data, timestamp: Date.now() });
+      }
       return data;
     } catch (error) {
       // 不要记录被取消的请求
@@ -181,7 +187,7 @@ export class WeatherService {
     const url = `${OPEN_METEO_BASE_URL}/forecast?${params}`;
     const cacheKey = this.getCacheKey('current', { lat: location.latitude, lon: location.longitude });
     
-    const data: OpenMeteoCurrentResponse = await this.fetchWithCache(url, cacheKey, signal);
+    const data: OpenMeteoCurrentResponse = await this.fetchWithCache(url, cacheKey, signal, true); // 跳过缓存，确保获取最新数据
     
     // 验证响应数据
     if (!data.current) {
