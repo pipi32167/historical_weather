@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './components/Layout/MainLayout';
 import CityIndex from './components/CityIndex';
 import CityWeather from './components/CityWeather';
+import DynamicLocationWeather from './components/DynamicLocationWeather';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App(): React.ReactElement {
@@ -17,6 +18,9 @@ function App(): React.ReactElement {
           <Routes>
             {/* 首页 - 显示支持的城市列表 */}
             <Route path="/" element={<CityIndex />} />
+            
+            {/* 动态位置页面 - 使用坐标显示历史天气数据 */}
+            <Route path="/location/:coordinates" element={<DynamicLocationWeather />} />
             
             {/* 城市页面 - 显示特定城市的历史天气数据 */}
             <Route path="/:cityName" element={<CityWeather />} />

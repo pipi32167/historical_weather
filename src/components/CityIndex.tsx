@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSupportedCities } from '../data/cityMappings';
 import { Location } from '../types/weather';
+import CitySearchBox from './CitySearchBox';
 
 const CityIndex: React.FC = () => {
   const navigate = useNavigate();
@@ -30,8 +31,24 @@ const CityIndex: React.FC = () => {
         </h1>
         <p className="text-lg text-secondary max-w-2xl mx-auto leading-relaxed">
           通过URL访问不同城市的历史同期天气数据，支持多种图表展示和数据分析功能。
-          只需在网址后添加城市名称即可查看对应数据。
+          支持搜索全球任意城市或使用预设城市列表。
         </p>
+      </div>
+
+      {/* 城市搜索框 */}
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border border-custom rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-primary mb-4 text-center">
+            🔍 搜索任意城市
+          </h3>
+          <CitySearchBox 
+            placeholder="输入城市名称（如：北京、New York、London）..."
+            className="mb-3"
+          />
+          <p className="text-xs text-secondary text-center">
+            💡 支持中文和英文搜索，数据来源：Open-Meteo 免费API（80年历史数据）
+          </p>
+        </div>
       </div>
 
       {/* URL Format Example */}
@@ -40,13 +57,18 @@ const CityIndex: React.FC = () => {
           <h3 className="text-lg font-semibold text-primary mb-3">
             🔗 URL访问格式
           </h3>
-          <div className="font-mono text-lg bg-primary border border-custom rounded-lg px-4 py-3 inline-block">
-            https://[base_url]/<span className="text-blue-600 font-bold">[city]</span>
+          <div className="space-y-2">
+            <div className="font-mono text-sm bg-primary border border-custom rounded-lg px-3 py-2 inline-block">
+              预设城市：https://[base_url]/<span className="text-blue-600 font-bold">[city]</span>
+            </div>
+            <div className="font-mono text-sm bg-primary border border-custom rounded-lg px-3 py-2 inline-block">
+              任意城市：https://[base_url]/location/<span className="text-green-600 font-bold">[lat,lon]</span>?name=<span className="text-purple-600 font-bold">[name]</span>
+            </div>
           </div>
           <p className="text-sm text-secondary mt-3">
-            例如：<code className="bg-secondary px-2 py-1 rounded">/shanghai</code>、
-            <code className="bg-secondary px-2 py-1 rounded mx-1">/beijing</code>、
-            <code className="bg-secondary px-2 py-1 rounded">/newyork</code>
+            预设城市示例：<code className="bg-secondary px-2 py-1 rounded">/shanghai</code>、
+            <code className="bg-secondary px-2 py-1 rounded mx-1">/beijing</code><br/>
+            搜索功能支持全球任意城市，无需手动输入坐标
           </p>
         </div>
       </div>
