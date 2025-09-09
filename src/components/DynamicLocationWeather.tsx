@@ -23,8 +23,12 @@ const DynamicLocationWeather: React.FC = () => {
   const [isNLQueryLoading, setIsNLQueryLoading] = useState(false);
   const [currentMetrics] = useState(['temperature']);
 
-  // 历史数据控制状态
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // 历史数据控制状态 - 默认使用昨天的日期，因为历史API不包含当日数据
+  const [currentDate, setCurrentDate] = useState(() => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return yesterday;
+  });
   const [historicalYears, setHistoricalYears] = useState(20);
 
   // 数据状态
@@ -146,56 +150,89 @@ const DynamicLocationWeather: React.FC = () => {
     setDataError(null);
 
     try {
-      console.log('开始获取历史天气数据...', {
-        location: currentLocation.name,
-        coordinates: [currentLocation.latitude, currentLocation.longitude],
-        date: currentDate,
-        years: historicalYears
-      });
-
-      // 获取多年同期数据
-      const historicalData = await openMeteoService.getHistoricalSamePeriod(
-        currentLocation.latitude,
-        currentLocation.longitude,
-        currentDate,
-        historicalYears,
-        currentLocation.timezone
-      );
-
-      console.log('收到历史天气数据:', historicalData);
+      // 并行获取历史数据和当前天气
+      const [historicalData, currentWeather] = await Promise.all([
+        // 获取多年同期数据
+        openMeteoService.getHistoricalSamePeriod(
+          currentLocation.latitude,
+          currentLocation.longitude,
+          currentDate,
+          historicalYears,
+          currentLocation.timezone
+        ),
+        // 获取当前天气
+        openMeteoService.getCurrentWeather(
+          currentLocation.latitude,
+          currentLocation.longitude,
+          currentLocation.timezone
+        ).catch(error => {
+          console.warn('获取当前天气失败，将跳过:', error);
+          return null; // 如果获取当前天气失败，不影响历史数据展示
+        })
+      ]);
 
       // 转换为应用内部格式
-      const transformedData: WeatherDataPoint[] = historicalData.map(({ year, data }) => {
-        const firstDay = data.daily.time[0];
-        const maxTemp = data.daily.temperature_2m_max[0] || 0;
-        const minTemp = data.daily.temperature_2m_min[0] || 0;
-        const avgTemp = (maxTemp + minTemp) / 2;
-        const precipitation = data.daily.precipitation_sum?.[0] || 0;
+      const transformedData: WeatherDataPoint[] = historicalData
+        .filter(({ data }) => {
+          // 过滤掉没有有效温度数据的记录
+          const maxTemp = data.daily.temperature_2m_max[0];
+          const minTemp = data.daily.temperature_2m_min[0];
+          return maxTemp !== null && minTemp !== null && !isNaN(maxTemp) && !isNaN(minTemp);
+        })
+        .map(({ year, data }) => {
+          const firstDay = data.daily.time[0];
+          const maxTemp = data.daily.temperature_2m_max[0]!; // 已经过滤过null，可以安全使用!
+          const minTemp = data.daily.temperature_2m_min[0]!;
+          const avgTemp = (maxTemp + minTemp) / 2;
+          const precipitation = data.daily.precipitation_sum?.[0] || 0;
 
-        return {
-          timestamp: firstDay,
-          date: firstDay,
-          temperature: avgTemp,
-          temperatureMax: maxTemp,
-          temperatureMin: minTemp,
-          humidity: 50, // Open-Meteo历史数据默认不包含湿度，使用默认值
+          return {
+            timestamp: firstDay,
+            date: firstDay,
+            temperature: avgTemp,
+            temperatureMax: maxTemp,
+            temperatureMin: minTemp,
+            humidity: 50, // Open-Meteo历史数据默认不包含湿度，使用默认值
+            pressure: 1013.25, // 默认海平面气压
+            windSpeed: 0, // 默认无风
+            windDirection: 0, // 默认风向
+            precipitation: precipitation,
+            weatherCondition: `${year}年历史数据`, // 显示具体年份
+            location: currentLocation.name,
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude
+          };
+        })
+        .filter(point => point.date); // 过滤掉无效日期
+
+      // 如果成功获取当前天气，添加到数据中
+      if (currentWeather) {
+        const currentWeatherPoint: WeatherDataPoint = {
+          timestamp: currentWeather.current_weather.time,
+          date: currentWeather.current_weather.time,
+          temperature: currentWeather.current_weather.temperature,
+          temperatureMax: currentWeather.current_weather.temperature, // 当前温度作为最高温度
+          temperatureMin: currentWeather.current_weather.temperature, // 当前温度作为最低温度
+          humidity: 50, // 默认值，因为current_weather不包含湿度
           pressure: 1013.25, // 默认海平面气压
-          windSpeed: 0, // 默认无风
-          windDirection: 0, // 默认风向
-          precipitation: precipitation,
-          weatherCondition: '历史数据', // 默认天气状况
+          windSpeed: currentWeather.current_weather.windspeed,
+          windDirection: currentWeather.current_weather.winddirection,
+          precipitation: 0, // 当前天气不包含降水量
+          weatherCondition: `当前实况 (${openMeteoService.getWeatherDescription(currentWeather.current_weather.weathercode)})`,
           location: currentLocation.name,
           latitude: currentLocation.latitude,
           longitude: currentLocation.longitude
         };
-      }).filter(point => point.date); // 过滤掉无效数据
 
-      console.log('转换后的数据:', transformedData);
+        // 将当前天气添加到数据数组的开头（最新数据）
+        transformedData.unshift(currentWeatherPoint);
+      }
 
       setChartData(transformedData);
 
       if (transformedData.length === 0) {
-        setDataError('暂无该日期的历史数据');
+        const dateStr = format(currentDate, 'MM月dd日', { locale: zhCN });
+        setDataError(`暂无${dateStr}的历史数据。建议选择更早的日期，因为历史天气API不包含近期数据。`);
       }
     } catch (error) {
       console.error('获取历史天气数据失败:', error);
@@ -249,8 +286,13 @@ const DynamicLocationWeather: React.FC = () => {
   }, [chartData, historicalStats, currentDate]);
 
   // 图表标题和副标题
-  const chartTitle = currentLocation ? `${currentLocation.name}历史同期数据 - ${format(currentDate, 'MM月dd日', { locale: zhCN })}` : '历史同期数据';
-  const chartSubtitle = currentLocation ? `过去${historicalYears}年 ${format(currentDate, 'MM月dd日', { locale: zhCN })} 的温度变化 • ${chartData.length} 个数据点` : '';
+  const hasCurrentWeather = chartData.length > 0 && chartData[0].weatherCondition.includes('当前实况');
+  const chartTitle = currentLocation 
+    ? `${currentLocation.name}${hasCurrentWeather ? '实时天气 + ' : ''}历史同期数据 - ${format(currentDate, 'MM月dd日', { locale: zhCN })}`
+    : '历史同期数据';
+  const chartSubtitle = currentLocation 
+    ? `${hasCurrentWeather ? '当前实况 + ' : ''}过去${historicalYears}年 ${format(currentDate, 'MM月dd日', { locale: zhCN })} 的温度变化 • ${chartData.length} 个数据点`
+    : '';
 
   const handleError = (error: Error, errorInfo: any) => {
     console.error('DynamicLocationWeather Error:', error, errorInfo);
@@ -373,6 +415,13 @@ const DynamicLocationWeather: React.FC = () => {
         {/* Data Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {historicalStats && [
+            // 如果有当前天气数据，显示当前温度卡片
+            ...(hasCurrentWeather ? [{
+              title: '当前实况温度',
+              value: `${chartData[0].temperature.toFixed(1)}°C`,
+              change: `风速 ${chartData[0].windSpeed}km/h`,
+              changeType: 'current' as const
+            }] : []),
             {
               title: '历史平均温度',
               value: `${historicalStats.avgTemperature}°C`,
@@ -406,11 +455,13 @@ const DynamicLocationWeather: React.FC = () => {
                 <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
               </div>
               <div className="text-2xl font-bold text-primary mb-1">{stat.value}</div>
-              <div className={`text-xs flex items-center ${stat.changeType === 'positive' ? 'text-green-600' :
-                stat.changeType === 'negative' ? 'text-red-600' : 'text-secondary'
+              <div className={`text-xs flex items-center ${
+                stat.changeType === 'positive' ? 'text-green-600' :
+                stat.changeType === 'negative' ? 'text-red-600' :
+                stat.changeType === 'current' ? 'text-blue-600' : 'text-secondary'
                 }`}>
                 <span>{stat.change}</span>
-                <span className="ml-1">较去年同期</span>
+                {stat.changeType !== 'current' && <span className="ml-1">较去年同期</span>}
               </div>
             </div>
           ))}
