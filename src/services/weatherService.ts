@@ -112,15 +112,16 @@ export class WeatherService {
     }
 
     try {
+      console.log('Fetching URL:', url);
       const response = await fetch(url, {
         signal,
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        // 设置超时时间，避免请求卡住
-        ...(signal && { signal })
+          'User-Agent': 'HistoricalWeatherApp/1.0'
+        }
       });
+      
+      console.log('Response status:', response.status, response.statusText);
       
       if (!response.ok) {
         // 区分不同类型的HTTP错误
@@ -147,6 +148,13 @@ export class WeatherService {
       // 不要记录被取消的请求
       if (error instanceof Error && error.name === 'AbortError') {
         throw error;
+      }
+      
+      // 增强网络错误处理
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        const networkError = new Error(`Network error: Unable to connect to ${url}. Please check your internet connection.`);
+        console.error('Network fetch error:', error);
+        throw networkError;
       }
       
       console.error(`Failed to fetch weather data from ${url}:`, error);
@@ -620,6 +628,8 @@ export class WeatherService {
     const url = `https://geocoding-api.open-meteo.com/v1/search?${params}`;
     const cacheKey = this.getCacheKey('search', { query: query.trim() });
 
+    console.log('Searching locations with URL:', url);
+
     try {
       const data = await this.fetchWithCache<GeocodingResponse>(url, cacheKey, signal);
       
@@ -639,6 +649,12 @@ export class WeatherService {
       }));
     } catch (error) {
       console.error('Failed to search locations:', error);
+      console.error('Query was:', query);
+      console.error('URL was:', url);
+      if (error instanceof Error) {
+        console.error('Error type:', error.constructor.name);
+        console.error('Error message:', error.message);
+      }
       return [];
     }
   }
