@@ -17,15 +17,15 @@ import { Location } from '../types/weather';
 const CityWeather: React.FC = () => {
   const { cityName } = useParams<{ cityName: string }>();
   const navigate = useNavigate();
-  
+
   const [chartType, setChartType] = useState<'line' | 'area' | 'bar' | 'heatmap'>('line');
   const [isNLQueryLoading, setIsNLQueryLoading] = useState(false);
   const [currentMetrics] = useState(['temperature']);
-  
+
   // 历史数据控制状态
   const [currentDate, setCurrentDate] = useState(new Date());
   const [historicalYears, setHistoricalYears] = useState(20);
-  
+
   const [useRealData] = useState(true);
   const { isOnline, isSlowConnection } = useNetworkStatus();
 
@@ -70,12 +70,12 @@ const CityWeather: React.FC = () => {
   // 处理自然语言查询
   const handleNLQuery = async (query: string) => {
     setIsNLQueryLoading(true);
-    
+
     // 模拟 AI 处理延迟
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
+
     console.log('Processing query:', query);
-    
+
     setIsNLQueryLoading(false);
   };
 
@@ -117,7 +117,7 @@ const CityWeather: React.FC = () => {
                 </p>
               </div>
             </div>
-            
+
             {/* URL indicator */}
             <div className="text-right">
               <div className="text-sm text-secondary mb-1">当前URL:</div>
@@ -140,10 +140,10 @@ const CityWeather: React.FC = () => {
         />
 
         {/* Natural Language Query Interface */}
-        <NaturalLanguageQuery 
+        {/* <NaturalLanguageQuery 
           onSubmit={handleNLQuery}
           isLoading={isLoading}
-        />
+        /> */}
 
         {/* Main Chart */}
         <ChartContainer
@@ -173,28 +173,28 @@ const CityWeather: React.FC = () => {
         {/* Data Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {historicalStats && [
-            { 
-              title: '历史平均温度', 
+            {
+              title: '历史平均温度',
               value: `${historicalStats.avgTemperature}°C`,
-              change: historicalStats.temperatureTrend > 0 
-                ? `+${historicalStats.temperatureTrend.toFixed(2)}°C/年` 
+              change: historicalStats.temperatureTrend > 0
+                ? `+${historicalStats.temperatureTrend.toFixed(2)}°C/年`
                 : `${historicalStats.temperatureTrend.toFixed(2)}°C/年`,
               changeType: historicalStats.temperatureTrend > 0 ? 'positive' as const : 'negative' as const
             },
-            { 
-              title: '温度范围', 
+            {
+              title: '温度范围',
               value: `${historicalStats.temperatureRange}°C`,
               change: `${historicalStats.minTemperature}°C ~ ${historicalStats.maxTemperature}°C`,
               changeType: 'neutral' as const
             },
-            { 
-              title: '历史平均湿度', 
+            {
+              title: '历史平均湿度',
               value: `${historicalStats.avgHumidity}%`,
               change: '20年平均',
               changeType: 'neutral' as const
             },
-            { 
-              title: '数据年份', 
+            {
+              title: '数据年份',
               value: `${historicalStats.dataPoints}年`,
               change: `${format(currentDate, 'yyyy年', { locale: zhCN })} - ${format(new Date(currentDate.getFullYear() - 19, currentDate.getMonth(), currentDate.getDate()), 'yyyy年', { locale: zhCN })}`,
               changeType: 'neutral' as const
@@ -206,10 +206,9 @@ const CityWeather: React.FC = () => {
                 <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
               </div>
               <div className="text-2xl font-bold text-primary mb-1">{stat.value}</div>
-              <div className={`text-xs flex items-center ${
-                stat.changeType === 'positive' ? 'text-green-600' :
-                stat.changeType === 'negative' ? 'text-red-600' : 'text-secondary'
-              }`}>
+              <div className={`text-xs flex items-center ${stat.changeType === 'positive' ? 'text-green-600' :
+                  stat.changeType === 'negative' ? 'text-red-600' : 'text-secondary'
+                }`}>
                 <span>{stat.change}</span>
                 <span className="ml-1">较去年同期</span>
               </div>
@@ -231,22 +230,22 @@ const CityWeather: React.FC = () => {
                 </p>
               </div>
             </div>
-            
+
             <div className="space-y-3">
               {historicalInsights.map((insight, index) => (
                 <div key={index} className="flex items-start space-x-3 p-3 bg-white/50 dark:bg-white/5 rounded-lg">
                   <div className="text-lg flex-shrink-0">
-                    {insight.includes('上升') ? '📈' : 
-                     insight.includes('下降') ? '📉' : 
-                     insight.includes('最热') ? '🔥' : 
-                     insight.includes('温差') ? '🌡️' : 
-                     insight.includes('湿度') ? '💧' : '📊'}
+                    {insight.includes('上升') ? '📈' :
+                      insight.includes('下降') ? '📉' :
+                        insight.includes('最热') ? '🔥' :
+                          insight.includes('温差') ? '🌡️' :
+                            insight.includes('湿度') ? '💧' : '📊'}
                   </div>
                   <p className="text-sm text-primary leading-relaxed">{insight}</p>
                 </div>
               ))}
             </div>
-            
+
             <div className="mt-4 pt-4 border-t border-custom">
               <p className="text-xs text-secondary text-center">
                 💡 通过URL访问不同城市：/{currentLocation.id} 或切换到其他支持的城市
