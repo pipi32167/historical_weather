@@ -28,13 +28,19 @@ const CityWeather: React.FC = () => {
 
     const city = getCityByName(cityName);
     if (!city) {
-      // 如果城市不支持，重定向到默认城市
-      const defaultCity = getDefaultCity();
-      navigate(`/${defaultCity.id}`, { replace: true });
-      return defaultCity;
+      // 如果城市不支持，返回默认城市，在useEffect中处理重定向
+      return getDefaultCity();
     }
 
     return city;
+  }, [cityName]);
+
+  // 处理无效城市的重定向
+  useEffect(() => {
+    if (cityName && !getCityByName(cityName)) {
+      const defaultCity = getDefaultCity();
+      navigate(`/${defaultCity.id}`, { replace: true });
+    }
   }, [cityName, navigate]);
 
   // 设置页面标题
@@ -44,15 +50,15 @@ const CityWeather: React.FC = () => {
   }, [currentLocation]);
 
 
-  // 处理城市切换
-  const handleLocationChange = (newLocation: Location) => {
+  // 处理城市切换 - 使用 useCallback 避免重复创建
+  const handleLocationChange = React.useCallback((newLocation: Location) => {
     navigate(`/${newLocation.id}`, { replace: true });
-  };
+  }, [navigate]);
 
-  // 处理数据加载完成
-  const handleDataLoaded = (data: WeatherDataPoint[]) => {
+  // 处理数据加载完成 - 使用 useCallback 避免重复创建
+  const handleDataLoaded = React.useCallback((data: WeatherDataPoint[]) => {
     setCurrentDataForTable(data);
-  };
+  }, []);
 
   const handleError = (error: Error, errorInfo: any) => {
     console.error('CityWeather Error:', error, errorInfo);
