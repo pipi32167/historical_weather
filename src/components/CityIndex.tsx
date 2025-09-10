@@ -1,16 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getSupportedCities } from '../data/cityMappings';
+import { getFeaturedCities } from '../data/cityMappings';
 import { Location } from '../types/weather';
 import CitySearchBox from './CitySearchBox';
 import UserLocationWeather from './UserLocationWeather';
 
 const CityIndex: React.FC = () => {
   const navigate = useNavigate();
-  const supportedCities = getSupportedCities();
+  const featuredCities = getFeaturedCities();
 
   // 按国家分组城市
-  const citiesByCountry = supportedCities.reduce((acc, city) => {
+  const citiesByCountry = featuredCities.reduce((acc, city) => {
     if (!acc[city.country]) {
       acc[city.country] = [];
     }
@@ -80,7 +80,7 @@ const CityIndex: React.FC = () => {
       {/* Supported Cities */}
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-primary text-center">
-          🏙️ 支持的城市
+          🏙️ 精选城市
         </h2>
         
         {Object.entries(citiesByCountry).map(([country, cities]) => (
