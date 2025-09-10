@@ -204,6 +204,40 @@ export class OpenMeteoWeatherService {
   }
 
   /**
+   * 获取今日预报数据（包含最高最低温度）
+   * @param latitude 纬度
+   * @param longitude 经度
+   * @param timezone 时区 (可选，默认auto)
+   * @returns 今日预报数据
+   */
+  async getTodayForecast(
+    latitude: number,
+    longitude: number,
+    timezone: string = 'auto'
+  ): Promise<OpenMeteoForecastData> {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const params = new URLSearchParams({
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      current_weather: 'true',
+      daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max',
+      start_date: today,
+      end_date: today,
+      timezone
+    });
+
+    const url = `${OPEN_METEO_CONFIG.forecast}?${params}`;
+    
+    try {
+      return await fetchWithRetry<OpenMeteoForecastData>(url);
+    } catch (error) {
+      console.error('Open-Meteo今日预报获取失败:', error);
+      throw new Error(`无法获取坐标(${latitude}, ${longitude})的今日预报: ${error}`);
+    }
+  }
+
+  /**
    * 获取历史天气数据
    * @param latitude 纬度
    * @param longitude 经度

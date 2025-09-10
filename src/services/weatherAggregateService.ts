@@ -158,30 +158,37 @@ export class WeatherAggregateService {
       historicalCount = transformedHistoricalData.length;
       sources.push('历史API');
 
-      // 2. 如果目标日期是今天或未来，获取当前/预报数据
+      // 2. 如果目标日期是今天或未来，获取今日预报数据
       if (isToday(targetDate) || isFuture(targetDate)) {
-        console.log('目标日期是今天或未来，获取当前天气数据');
+        console.log('目标日期是今天或未来，获取今日预报数据');
         
         try {
-          const currentWeather = await openMeteoService.getCurrentWeather(
+          const todayForecast = await openMeteoService.getTodayForecast(
             location.latitude,
             location.longitude,
             timezone
           );
 
-          if (currentWeather && currentWeather.current_weather) {
+          if (todayForecast && todayForecast.current_weather) {
+            // 使用今日预报的最高最低温度，如果没有则使用当前温度
+            const maxTemp = todayForecast.daily?.temperature_2m_max?.[0] ?? todayForecast.current_weather.temperature;
+            const minTemp = todayForecast.daily?.temperature_2m_min?.[0] ?? todayForecast.current_weather.temperature;
+            const avgTemp = (maxTemp + minTemp) / 2;
+            const precipitation = todayForecast.daily?.precipitation_sum?.[0] ?? 0;
+            const windSpeed = todayForecast.daily?.windspeed_10m_max?.[0] ?? todayForecast.current_weather.windspeed;
+
             const currentWeatherPoint: WeatherDataPoint = {
-              timestamp: currentWeather.current_weather.time,
-              date: currentWeather.current_weather.time,
-              temperature: currentWeather.current_weather.temperature,
-              temperatureMax: currentWeather.current_weather.temperature,
-              temperatureMin: currentWeather.current_weather.temperature,
+              timestamp: todayForecast.current_weather.time,
+              date: todayForecast.current_weather.time,
+              temperature: avgTemp,
+              temperatureMax: maxTemp,
+              temperatureMin: minTemp,
               humidity: 50,
               pressure: 1013.25,
-              windSpeed: currentWeather.current_weather.windspeed,
-              windDirection: currentWeather.current_weather.winddirection,
-              precipitation: 0,
-              weatherCondition: `当前实况 (${openMeteoService.getWeatherDescription(currentWeather.current_weather.weathercode)})`,
+              windSpeed: windSpeed,
+              windDirection: todayForecast.current_weather.winddirection,
+              precipitation: precipitation,
+              weatherCondition: `今日预报 (${openMeteoService.getWeatherDescription(todayForecast.current_weather.weathercode)})`,
               location: location.name,
               latitude: location.latitude,
               longitude: location.longitude
@@ -189,18 +196,52 @@ export class WeatherAggregateService {
 
             results.unshift(currentWeatherPoint); // 添加到数组开头
             forecastCount = 1;
-            sources.push('实时API');
+            sources.push('预报API');
           }
         } catch (error) {
-          console.warn('获取当前天气数据失败，将跳过:', error);
+          console.warn('获取今日预报数据失败，尝试获取当前天气数据:', error);
+          
+          // 降级处理：获取当前天气数据
+          try {
+            const currentWeather = await openMeteoService.getCurrentWeather(
+              location.latitude,
+              location.longitude,
+              timezone
+            );
+
+            if (currentWeather && currentWeather.current_weather) {
+              const currentWeatherPoint: WeatherDataPoint = {
+                timestamp: currentWeather.current_weather.time,
+                date: currentWeather.current_weather.time,
+                temperature: currentWeather.current_weather.temperature,
+                temperatureMax: currentWeather.current_weather.temperature,
+                temperatureMin: currentWeather.current_weather.temperature,
+                humidity: 50,
+                pressure: 1013.25,
+                windSpeed: currentWeather.current_weather.windspeed,
+                windDirection: currentWeather.current_weather.winddirection,
+                precipitation: 0,
+                weatherCondition: `当前实况 (${openMeteoService.getWeatherDescription(currentWeather.current_weather.weathercode)})`,
+                location: location.name,
+                latitude: location.latitude,
+                longitude: location.longitude
+              };
+
+              results.unshift(currentWeatherPoint);
+              forecastCount = 1;
+              sources.push('实时API');
+            }
+          } catch (fallbackError) {
+            console.warn('获取当前天气数据也失败，将跳过:', fallbackError);
+          }
         }
       }
 
-      // 3. 按年份排序（历史数据从旧到新，当前数据在最前面）
+      // 3. 按年份排序（历史数据从旧到新，今日数据在最前面）
       const sortedResults = results.sort((a, b) => {
-        // 当前实况数据排在最前
-        if (a.weatherCondition.includes('当前实况')) return -1;
-        if (b.weatherCondition.includes('当前实况')) return 1;
+        // 今日预报或当前实况数据排在最前
+        if (a.weatherCondition.includes('今日预报') || a.weatherCondition.includes('当前实况')) return -1;
+        if (b.weatherCondition.includes('今日预报') || b.weatherCondition.includes('当前实况')) return 1;
         
         // 其他数据按年份排序
         return new Date(a.date).getFullYear() - new Date(b.date).getFullYear();
@@ -292,32 +333,69 @@ export class WeatherAggregateService {
     timezone: string
   ): Promise<WeatherDataPoint[]> {
     
-    // 获取预报数据
-    const forecastData = await openMeteoService.getCurrentWeather(
-      location.latitude,
-      location.longitude,
-      timezone
-    );
+    // 如果开始日期是今天，获取今日预报数据（包含最高最低温度）
+    if (isToday(startDate)) {
+      try {
+        const todayForecast = await openMeteoService.getTodayForecast(
+          location.latitude,
+          location.longitude,
+          timezone
+        );
 
-    // 对于预报数据，我们目前只能获取当前天气
-    // 如果需要多天预报，需要使用不同的API端点
-    if (isToday(startDate) && forecastData && forecastData.current_weather) {
-      return [{
-        timestamp: forecastData.current_weather.time,
-        date: format(new Date(forecastData.current_weather.time), 'yyyy-MM-dd'),
-        temperature: forecastData.current_weather.temperature,
-        temperatureMax: forecastData.current_weather.temperature,
-        temperatureMin: forecastData.current_weather.temperature,
-        humidity: 50,
-        pressure: 1013.25,
-        windSpeed: forecastData.current_weather.windspeed,
-        windDirection: forecastData.current_weather.winddirection,
-        precipitation: 0,
-        weatherCondition: `当前天气 (${openMeteoService.getWeatherDescription(forecastData.current_weather.weathercode)})`,
-        location: location.name,
-        latitude: location.latitude,
-        longitude: location.longitude,
-      }];
+        if (todayForecast && todayForecast.current_weather) {
+          // 使用今日预报的最高最低温度，如果没有则使用当前温度
+          const maxTemp = todayForecast.daily?.temperature_2m_max?.[0] ?? todayForecast.current_weather.temperature;
+          const minTemp = todayForecast.daily?.temperature_2m_min?.[0] ?? todayForecast.current_weather.temperature;
+          const avgTemp = (maxTemp + minTemp) / 2;
+          const precipitation = todayForecast.daily?.precipitation_sum?.[0] ?? 0;
+          const windSpeed = todayForecast.daily?.windspeed_10m_max?.[0] ?? todayForecast.current_weather.windspeed;
+
+          return [{
+            timestamp: todayForecast.current_weather.time,
+            date: format(new Date(todayForecast.current_weather.time), 'yyyy-MM-dd'),
+            temperature: avgTemp,
+            temperatureMax: maxTemp,
+            temperatureMin: minTemp,
+            humidity: 50,
+            pressure: 1013.25,
+            windSpeed: windSpeed,
+            windDirection: todayForecast.current_weather.winddirection,
+            precipitation: precipitation,
+            weatherCondition: `今日预报 (${openMeteoService.getWeatherDescription(todayForecast.current_weather.weathercode)})`,
+            location: location.name,
+            latitude: location.latitude,
+            longitude: location.longitude,
+          }];
+        }
+      } catch (error) {
+        console.warn('获取今日预报数据失败，尝试获取当前天气数据:', error);
+        
+        // 降级处理：获取当前天气数据
+        const forecastData = await openMeteoService.getCurrentWeather(
+          location.latitude,
+          location.longitude,
+          timezone
+        );
+
+        if (forecastData && forecastData.current_weather) {
+          return [{
+            timestamp: forecastData.current_weather.time,
+            date: format(new Date(forecastData.current_weather.time), 'yyyy-MM-dd'),
+            temperature: forecastData.current_weather.temperature,
+            temperatureMax: forecastData.current_weather.temperature,
+            temperatureMin: forecastData.current_weather.temperature,
+            humidity: 50,
+            pressure: 1013.25,
+            windSpeed: forecastData.current_weather.windspeed,
+            windDirection: forecastData.current_weather.winddirection,
+            precipitation: 0,
+            weatherCondition: `当前实况 (${openMeteoService.getWeatherDescription(forecastData.current_weather.weathercode)})`,
+            location: location.name,
+            latitude: location.latitude,
+            longitude: location.longitude,
+          }];
+        }
+      }
     }
 
     return [];
