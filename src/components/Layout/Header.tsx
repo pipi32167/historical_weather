@@ -70,8 +70,8 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
       {/* Navigation - Hidden on mobile */}
       <nav className="hidden md:flex items-center space-x-1">
         {[
-          { name: '数据对比', href: '#', active: true },
-          { name: '趋势分析', href: '#', active: false },
+          { name: '数据对比', href: '/', active: window.location.pathname === '/' },
+          { name: '组件测试', href: '/test-chart', active: window.location.pathname === '/test-chart' },
           { name: '实时数据', href: '#', active: false },
         ].map((item) => (
           <a

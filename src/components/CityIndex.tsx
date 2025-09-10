@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getSupportedCities } from '../data/cityMappings';
 import { Location } from '../types/weather';
 import CitySearchBox from './CitySearchBox';
+import UserLocationWeather from './UserLocationWeather';
 
 const CityIndex: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +35,9 @@ const CityIndex: React.FC = () => {
           支持搜索全球任意城市或使用预设城市列表。
         </p>
       </div>
+
+      {/* 用户位置天气数据 */}
+      <UserLocationWeather className="max-w-4xl mx-auto" />
 
       {/* 城市搜索框 */}
       <div className="max-w-2xl mx-auto">

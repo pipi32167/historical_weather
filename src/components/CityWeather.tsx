@@ -1,32 +1,23 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ChartContainer from './Charts/ChartContainer';
-import WeatherChart from './Charts/WeatherChart';
-import NaturalLanguageQuery from './Query/NaturalLanguageQuery';
+import HistoricalWeatherChart from './Charts/HistoricalWeatherChart';
 import HistoricalControlsPanel from './Controls/HistoricalControlsPanel';
 import HistoricalDataTable from './Tables/HistoricalDataTable';
 import ErrorBoundary from './ErrorBoundary';
-import { useWeatherData } from '../hooks/useWeatherData';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
-import { calculateHistoricalStats, generateHistoricalInsights } from '../utils/historicalDataGenerator';
-import { format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
 import { getCityByName, getDefaultCity } from '../data/cityMappings';
-import { Location } from '../types/weather';
+import { Location, WeatherDataPoint } from '../types/weather';
 
 const CityWeather: React.FC = () => {
   const { cityName } = useParams<{ cityName: string }>();
   const navigate = useNavigate();
 
-  const [chartType, setChartType] = useState<'line' | 'area' | 'bar' | 'heatmap'>('line');
-  const [isNLQueryLoading, setIsNLQueryLoading] = useState(false);
-  const [currentMetrics] = useState(['temperature']);
+  const [currentDataForTable, setCurrentDataForTable] = useState<WeatherDataPoint[]>([]);
 
   // 历史数据控制状态
   const [currentDate, setCurrentDate] = useState(new Date());
   const [historicalYears, setHistoricalYears] = useState(20);
 
-  const [useRealData] = useState(true);
   const { isOnline, isSlowConnection } = useNetworkStatus();
 
   // 根据URL参数获取当前城市
@@ -52,49 +43,16 @@ const CityWeather: React.FC = () => {
     document.title = title;
   }, [currentLocation]);
 
-  // 使用天气数据钩子
-  const { data: chartData, loading: isDataLoading, error: dataError, refetch } = useWeatherData({
-    useRealData,
-    selectedLocations: [currentLocation],
-    targetDate: currentDate,
-    years: historicalYears
-  });
-
-  const isLoading = isDataLoading || isNLQueryLoading;
 
   // 处理城市切换
   const handleLocationChange = (newLocation: Location) => {
     navigate(`/${newLocation.id}`, { replace: true });
   };
 
-  // 处理自然语言查询
-  const handleNLQuery = async (query: string) => {
-    setIsNLQueryLoading(true);
-
-    // 模拟 AI 处理延迟
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    console.log('Processing query:', query);
-
-    setIsNLQueryLoading(false);
+  // 处理数据加载完成
+  const handleDataLoaded = (data: WeatherDataPoint[]) => {
+    setCurrentDataForTable(data);
   };
-
-  // 计算历史统计数据
-  const historicalStats = useMemo(() => {
-    return calculateHistoricalStats(chartData);
-  }, [chartData]);
-
-  // 生成历史洞察
-  const historicalInsights = useMemo(() => {
-    if (historicalStats) {
-      return generateHistoricalInsights(chartData, historicalStats, currentDate);
-    }
-    return [];
-  }, [chartData, historicalStats, currentDate]);
-
-  // 图表标题和副标题
-  const chartTitle = `${currentLocation.name}历史同期数据 - ${format(currentDate, 'MM月dd日', { locale: zhCN })}`;
-  const chartSubtitle = `过去${historicalYears}年 ${format(currentDate, 'MM月dd日', { locale: zhCN })} 的温度变化 • ${chartData.length} 个数据点`;
 
   const handleError = (error: Error, errorInfo: any) => {
     console.error('CityWeather Error:', error, errorInfo);
@@ -136,128 +94,34 @@ const CityWeather: React.FC = () => {
           onDateChange={setCurrentDate}
           onLocationChange={handleLocationChange}
           onRangeChange={setHistoricalYears}
-          isLoading={isLoading}
+          isLoading={false}
         />
 
         {/* Natural Language Query Interface */}
         {/* <NaturalLanguageQuery 
           onSubmit={handleNLQuery}
-          isLoading={isLoading}
+          isLoading={false}
         /> */}
 
-        {/* Main Chart */}
-        <ChartContainer
-          title={chartTitle}
-          subtitle={chartSubtitle}
-          chartType={chartType}
-          onChartTypeChange={setChartType}
-          showTemperatureMode={true}
-          onDownload={() => {
-            console.log('Download data:', chartData);
-          }}
-          onSettings={() => {
-            refetch();
-          }}
-          isLoading={isLoading}
-        >
-          <WeatherChart
-            data={chartData}
-            type={chartType === 'heatmap' ? 'area' : chartType}
-            metrics={currentMetrics}
-            height={400}
-            showGrid={true}
-            showLegend={true}
-          />
-        </ChartContainer>
-
-        {/* Data Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {historicalStats && [
-            {
-              title: '历史平均温度',
-              value: `${historicalStats.avgTemperature}°C`,
-              change: historicalStats.temperatureTrend > 0
-                ? `+${historicalStats.temperatureTrend.toFixed(2)}°C/年`
-                : `${historicalStats.temperatureTrend.toFixed(2)}°C/年`,
-              changeType: historicalStats.temperatureTrend > 0 ? 'positive' as const : 'negative' as const
-            },
-            {
-              title: '温度范围',
-              value: `${historicalStats.temperatureRange}°C`,
-              change: `${historicalStats.minTemperature}°C ~ ${historicalStats.maxTemperature}°C`,
-              changeType: 'neutral' as const
-            },
-            {
-              title: '历史平均湿度',
-              value: `${historicalStats.avgHumidity}%`,
-              change: '20年平均',
-              changeType: 'neutral' as const
-            },
-            {
-              title: '数据年份',
-              value: `${historicalStats.dataPoints}年`,
-              change: `${format(currentDate, 'yyyy年', { locale: zhCN })} - ${format(new Date(currentDate.getFullYear() - 19, currentDate.getMonth(), currentDate.getDate()), 'yyyy年', { locale: zhCN })}`,
-              changeType: 'neutral' as const
-            },
-          ].map((stat, index) => (
-            <div key={index} className="bg-primary border border-custom rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-secondary">{stat.title}</h4>
-                <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
-              </div>
-              <div className="text-2xl font-bold text-primary mb-1">{stat.value}</div>
-              <div className={`text-xs flex items-center ${stat.changeType === 'positive' ? 'text-green-600' :
-                  stat.changeType === 'negative' ? 'text-red-600' : 'text-secondary'
-                }`}>
-                <span>{stat.change}</span>
-                <span className="ml-1">较去年同期</span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Historical Insights */}
-        {historicalInsights.length > 0 && (
-          <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 border border-custom rounded-lg p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="text-2xl">📊</div>
-              <div>
-                <h3 className="text-lg font-semibold text-primary">
-                  {format(currentDate, 'MM月dd日', { locale: zhCN })} 历史数据洞察
-                </h3>
-                <p className="text-sm text-secondary">
-                  基于{currentLocation.name}过去{historicalYears}年同期数据的分析结果
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {historicalInsights.map((insight, index) => (
-                <div key={index} className="flex items-start space-x-3 p-3 bg-white/50 dark:bg-white/5 rounded-lg">
-                  <div className="text-lg flex-shrink-0">
-                    {insight.includes('上升') ? '📈' :
-                      insight.includes('下降') ? '📉' :
-                        insight.includes('最热') ? '🔥' :
-                          insight.includes('温差') ? '🌡️' :
-                            insight.includes('湿度') ? '💧' : '📊'}
-                  </div>
-                  <p className="text-sm text-primary leading-relaxed">{insight}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-custom">
-              <p className="text-xs text-secondary text-center">
-                💡 通过URL访问不同城市：/{currentLocation.id} 或切换到其他支持的城市
-              </p>
-            </div>
-          </div>
-        )}
+        {/* Main Historical Weather Chart */}
+        <HistoricalWeatherChart
+          cityName={currentLocation.name}
+          latitude={currentLocation.latitude}
+          longitude={currentLocation.longitude}
+          startDate={currentDate}
+          endDate={currentDate}
+          years={historicalYears}
+          showCurrentWeather={true}
+          showStats={true}
+          showInsights={true}
+          chartHeight={400}
+          onDataLoaded={handleDataLoaded}
+        />
 
         {/* Historical Data Table */}
-        {chartData.length > 0 && !dataError && (
+        {currentDataForTable.length > 0 && (
           <HistoricalDataTable
-            data={chartData}
+            data={currentDataForTable}
             targetDate={currentDate}
           />
         )}
@@ -295,52 +159,6 @@ const CityWeather: React.FC = () => {
           </div>
         )}
 
-        {/* Error Message */}
-        {dataError && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-            <div className="flex items-center space-x-3 mb-2">
-              <div className="text-2xl">⚠️</div>
-              <h3 className="text-lg font-semibold text-red-800 dark:text-red-200">
-                数据加载失败
-              </h3>
-            </div>
-            <p className="text-red-700 dark:text-red-300 text-sm mb-4">
-              {dataError}
-              {!isOnline && ' (网络连接不可用)'}
-            </p>
-            <button
-              onClick={refetch}
-              disabled={!isOnline}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-md text-sm font-medium transition-colors"
-            >
-              {isOnline ? '重新加载' : '网络连接后重试'}
-            </button>
-          </div>
-        )}
-
-        {/* Loading State */}
-        {isDataLoading && !dataError && (
-          <div className="bg-primary border border-custom rounded-lg p-6 text-center">
-            <div className="text-4xl mb-4">🌤️</div>
-            <h3 className="text-lg font-semibold text-primary mb-2">
-              正在加载{currentLocation.name}历史数据...
-            </h3>
-            <p className="text-secondary mb-4">
-              正在分析{format(currentDate, 'MM月dd日', { locale: zhCN })}过去{historicalYears}年的天气变化
-            </p>
-            <div className="flex justify-center space-x-2 mt-2">
-              <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-2 py-1 rounded">
-                🌐 使用真实数据
-              </span>
-              <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
-                📡 Open-Meteo API
-              </span>
-              <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 px-2 py-1 rounded">
-                🎛️ 可自定义设置
-              </span>
-            </div>
-          </div>
-        )}
       </div>
     </ErrorBoundary>
   );

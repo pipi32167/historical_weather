@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { WeatherDataPoint, Location } from '../types/weather';
 import { weatherService } from '../services/weatherService';
+import { weatherAggregateService } from '../services/weatherAggregateService';
 import { generateSameDateHistoricalData } from '../utils/historicalDataGenerator';
 
 interface UseWeatherDataOptions {
@@ -99,7 +100,13 @@ export const useWeatherData = ({
       if (selectedLocations.length === 0) {
         // No locations selected - show historical same-date data for Shanghai
         if (useRealData) {
-          weatherData = await weatherService.getSameDateHistoricalData(defaultLocation, targetDate, years);
+          console.log('useWeatherData: 使用聚合API获取默认位置数据', {
+            location: defaultLocation.name,
+            targetDate: targetDate.toISOString().split('T')[0],
+            years
+          });
+          const response = await weatherAggregateService.getHistoricalSamePeriodData(defaultLocation, targetDate, years);
+          weatherData = response.data;
         } else {
           weatherData = generateSameDateHistoricalData(defaultLocation, targetDate, years);
         }
@@ -107,7 +114,13 @@ export const useWeatherData = ({
         // Single location - show historical data for that location
         const location = selectedLocations[0];
         if (useRealData) {
-          weatherData = await weatherService.getSameDateHistoricalData(location, targetDate, years);
+          console.log('useWeatherData: 使用聚合API获取单个位置数据', {
+            location: location.name,
+            targetDate: targetDate.toISOString().split('T')[0],
+            years
+          });
+          const response = await weatherAggregateService.getHistoricalSamePeriodData(location, targetDate, years);
+          weatherData = response.data;
         } else {
           weatherData = generateSameDateHistoricalData(location, targetDate, years);
         }
