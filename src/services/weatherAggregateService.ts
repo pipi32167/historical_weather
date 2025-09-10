@@ -329,7 +329,7 @@ export class WeatherAggregateService {
   private async getForecastData(
     location: Location,
     startDate: Date,
-    endDate: Date,
+    _endDate: Date,
     timezone: string
   ): Promise<WeatherDataPoint[]> {
     

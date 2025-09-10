@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Bars3Icon, 
   SunIcon, 
@@ -14,6 +15,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ className }) => {
+  const navigate = useNavigate();
   const { 
     theme, 
     sidebarOpen, 
@@ -23,6 +25,10 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
 
   const handleThemeToggle = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
+  };
+
+  const handleLogoClick = () => {
+    navigate('/');
   };
 
   return (
@@ -47,11 +53,14 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         </button>
 
         {/* Logo and title */}
-        <div className="flex items-center space-x-3">
+        <button
+          onClick={handleLogoClick}
+          className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200 cursor-pointer"
+        >
           <div className="flex items-center justify-center w-8 h-8 bg-primary-500 rounded-lg">
             <span className="text-white font-bold text-sm">HW</span>
           </div>
-          <div className="hidden sm:block">
+          <div className="hidden sm:block text-left">
             <h1 className="text-lg font-semibold text-primary">
               Historical Weather Analytics
             </h1>
@@ -59,12 +68,12 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
               全球天气数据分析平台
             </p>
           </div>
-          <div className="sm:hidden">
+          <div className="sm:hidden text-left">
             <h1 className="text-lg font-semibold text-primary">
               Weather Analytics
             </h1>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Navigation - Hidden on mobile */}
