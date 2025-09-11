@@ -5,6 +5,7 @@
  */
 
 import { cache, CACHE_TTL, cacheKeys } from '../utils/cache';
+import { executeConcurrently } from '../utils/concurrencyController';
 
 export interface OpenMeteoLocation {
   id: number;
@@ -41,6 +42,7 @@ export interface OpenMeteoHistoricalData {
     time: string;
     temperature_2m_max: string;
     temperature_2m_min: string;
+    temperature_2m_mean?: string;
     precipitation_sum?: string;
     windspeed_10m_max?: string;
   };
@@ -48,6 +50,7 @@ export interface OpenMeteoHistoricalData {
     time: string[];
     temperature_2m_max: number[];
     temperature_2m_min: number[];
+    temperature_2m_mean?: number[];
     precipitation_sum?: number[];
     windspeed_10m_max?: number[];
   };
@@ -306,29 +309,33 @@ export class OpenMeteoWeatherService {
     const results: Array<{ year: number; data: OpenMeteoHistoricalData }> = [];
     const currentYear = new Date().getFullYear();
 
-    // 并行请求多年数据
-    const promises = [];
+    // 使用并发控制器请求多年数据
+    const tasks = [];
     for (let i = 0; i < years; i++) {
       const year = currentYear - i - 1;
       const fullDateStr = `${year}-${month}-${day}`;
       
-      const promise = this.getHistoricalWeather(
-        latitude,
-        longitude,
-        fullDateStr,
-        fullDateStr,
-        timezone,
-        ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum']
-      ).then(data => ({ year, data }))
-      .catch(error => {
-        console.warn(`获取${year}年历史数据失败:`, error);
-        return null;
+      tasks.push(async () => {
+        try {
+          const data = await this.getHistoricalWeather(
+            latitude,
+            longitude,
+            fullDateStr,
+            fullDateStr,
+            timezone,
+            ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum']
+          );
+          return { year, data };
+        } catch (error) {
+          console.warn(`获取${year}年历史数据失败:`, error);
+          return null;
+        }
       });
-      
-      promises.push(promise);
     }
 
-    const responses = await Promise.all(promises);
+    console.log(`[OpenMeteoService] 准备获取 ${tasks.length} 年的历史同期数据，使用并发控制`);
+    
+    const responses = await executeConcurrently(tasks, 10); // 最大并发10个请求
     
     // 过滤掉失败的请求
     for (const response of responses) {
@@ -336,6 +343,8 @@ export class OpenMeteoWeatherService {
         results.push(response);
       }
     }
+    
+    console.log(`[OpenMeteoService] 成功获取 ${results.length}/${tasks.length} 年的历史同期数据`);
 
     // 缓存结果（历史数据不会变化，可以缓存较长时间）
     if (results.length > 0) {

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import HistoricalWeatherChart from './Charts/HistoricalWeatherChart';
 import HistoricalControlsPanel from './Controls/HistoricalControlsPanel';
 import HistoricalDataTable from './Tables/HistoricalDataTable';
+import MonthlyTemperatureAnalysis from './MonthlyTemperatureAnalysis';
 import ErrorBoundary from './ErrorBoundary';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { getCityByName, getDefaultCity } from '../data/cityMappings';
@@ -131,6 +132,15 @@ const CityWeather: React.FC = () => {
             targetDate={currentDate}
           />
         )}
+
+        {/* Monthly Temperature Analysis */}
+        <MonthlyTemperatureAnalysis 
+          location={currentLocation}
+          defaultMode="monthly-trends"
+          defaultMonth={currentDate.getMonth() + 1}
+          defaultStartYear={new Date().getFullYear() - 15}
+          defaultEndYear={new Date().getFullYear() - 1}
+        />
 
         {/* Network Status Banner */}
         {!isOnline && (

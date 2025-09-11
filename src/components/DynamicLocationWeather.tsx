@@ -3,6 +3,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import HistoricalWeatherChart from './Charts/HistoricalWeatherChart';
 import HistoricalControlsPanel from './Controls/HistoricalControlsPanel';
 import HistoricalDataTable from './Tables/HistoricalDataTable';
+import MonthlyTemperatureAnalysis from './MonthlyTemperatureAnalysis';
 import ErrorBoundary from './ErrorBoundary';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { Location, WeatherDataPoint } from '../types/weather';
@@ -200,6 +201,17 @@ const DynamicLocationWeather: React.FC = () => {
           <HistoricalDataTable
             data={currentDataForTable}
             targetDate={currentDate}
+          />
+        )}
+
+        {/* Monthly Temperature Analysis */}
+        {currentLocation && (
+          <MonthlyTemperatureAnalysis 
+            location={currentLocation}
+            defaultMode="monthly-trends"
+            defaultMonth={currentDate.getMonth() + 1}
+            defaultStartYear={new Date().getFullYear() - 15}
+            defaultEndYear={new Date().getFullYear() - 1}
           />
         )}
 

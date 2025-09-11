@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getFeaturedCities } from '../data/cityMappings';
+import { getFeaturedCities, getDefaultCity } from '../data/cityMappings';
 import { Location } from '../types/weather';
 import CitySearchBox from './CitySearchBox';
 import UserLocationWeather from './UserLocationWeather';
+import MonthlyTemperatureAnalysis from './MonthlyTemperatureAnalysis';
 
 const CityIndex: React.FC = () => {
   const navigate = useNavigate();
@@ -130,6 +131,14 @@ const CityIndex: React.FC = () => {
         ))}
       </div>
 
+      {/* 月度温度分析示例 */}
+      <MonthlyTemperatureAnalysis 
+        location={getDefaultCity()}
+        defaultMode="annual-profile"
+        defaultStartYear={new Date().getFullYear() - 10}
+        defaultEndYear={new Date().getFullYear() - 1}
+      />
+
       {/* Features */}
       <div className="bg-primary border border-custom rounded-lg p-6">
         <h3 className="text-xl font-semibold text-primary mb-4 text-center">
@@ -150,6 +159,12 @@ const CityIndex: React.FC = () => {
           </div>
           
           <div className="text-center p-4">
+            <div className="text-3xl mb-2">📈</div>
+            <h4 className="font-semibold text-primary mb-1">月度分析</h4>
+            <p className="text-xs text-secondary">月平均温度趋势和年度概况</p>
+          </div>
+          
+          <div className="text-center p-4">
             <div className="text-3xl mb-2">📱</div>
             <h4 className="font-semibold text-primary mb-1">响应式设计</h4>
             <p className="text-xs text-secondary">支持桌面和移动设备</p>
@@ -159,12 +174,6 @@ const CityIndex: React.FC = () => {
             <div className="text-3xl mb-2">🔗</div>
             <h4 className="font-semibold text-primary mb-1">URL直达</h4>
             <p className="text-xs text-secondary">通过城市名直接访问</p>
-          </div>
-          
-          <div className="text-center p-4">
-            <div className="text-3xl mb-2">🎨</div>
-            <h4 className="font-semibold text-primary mb-1">多种图表</h4>
-            <p className="text-xs text-secondary">折线图、面积图、柱状图</p>
           </div>
           
           <div className="text-center p-4">
