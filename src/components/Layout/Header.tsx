@@ -4,9 +4,7 @@ import {
   SunIcon, 
   MoonIcon,
   CalendarDaysIcon,
-  ClockIcon,
-  ChartBarSquareIcon,
-  PresentationChartLineIcon
+  ChartBarSquareIcon
 } from '@heroicons/react/24/outline';
 import { useAppStore } from '../../store/appStore';
 import clsx from 'clsx';
@@ -30,28 +28,16 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
 
   const navigationItems = [
     {
-      name: '本日历史同期',
+      name: '历史分析',
       path: '/historical/daily',
-      icon: CalendarDaysIcon,
-      description: '今日历史同期天气对比'
-    },
-    {
-      name: '本月历史同期',
-      path: '/historical/monthly',
-      icon: ClockIcon,
-      description: '本月历史同期天气分析'
-    },
-    {
-      name: '本季度历史同期',
-      path: '/historical/quarterly',
       icon: ChartBarSquareIcon,
-      description: '季度历史同期天气趋势'
+      description: '历史天气数据分析'
     },
     {
-      name: '本年度历史同期',
-      path: '/historical/yearly',
-      icon: PresentationChartLineIcon,
-      description: '年度历史同期天气统计'
+      name: '城市索引',
+      path: '/cities',
+      icon: CalendarDaysIcon,
+      description: '查看所有支持的城市'
     }
   ];
 
@@ -67,19 +53,16 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200 cursor-pointer"
       >
         <div className="flex items-center justify-center w-8 h-8 bg-primary-500 rounded-lg">
-          <span className="text-white font-bold text-sm">HW</span>
+          <span className="text-white font-bold text-sm">🌡️</span>
         </div>
         <div className="hidden sm:block text-left">
           <h1 className="text-lg font-semibold text-primary">
-            Historical Weather Analytics
+            历史天气分析
           </h1>
-          <p className="text-xs text-secondary">
-            历史天气数据分析平台
-          </p>
         </div>
         <div className="sm:hidden text-left">
           <h1 className="text-lg font-semibold text-primary">
-            Weather Analytics
+            天气分析
           </h1>
         </div>
       </button>
@@ -120,13 +103,19 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         })}
       </nav>
 
-      {/* Mobile navigation dropdown */}
-      <div className="lg:hidden relative">
+      {/* Mobile navigation */}
+      <div className="lg:hidden flex items-center space-x-2">
         <button
+          onClick={() => navigate('/historical/daily')}
           className="p-2 rounded-lg text-secondary hover:bg-secondary transition-colors duration-200"
-          onClick={() => {
-            // TODO: Implement mobile menu dropdown
-          }}
+          title="历史分析"
+        >
+          <ChartBarSquareIcon className="h-5 w-5" />
+        </button>
+        <button
+          onClick={() => navigate('/cities')}
+          className="p-2 rounded-lg text-secondary hover:bg-secondary transition-colors duration-200"
+          title="城市索引"
         >
           <CalendarDaysIcon className="h-5 w-5" />
         </button>

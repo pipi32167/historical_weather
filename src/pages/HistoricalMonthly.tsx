@@ -4,10 +4,11 @@ import { monthlyTemperatureService, MonthlyTemperatureTrends } from '../services
 import MonthlyTemperatureChart from '../components/Charts/MonthlyTemperatureChart';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
+import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
+import { useLocationStore } from '../store/locationStore';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-
-import { Location } from '../types/weather';
 
 const HistoricalMonthly: React.FC = () => {
   const [data, setData] = useState<MonthlyTemperatureTrends | null>(null);
@@ -15,32 +16,25 @@ const HistoricalMonthly: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [yearRange, setYearRange] = useState({ start: 2004, end: 2023 });
-  const [location, setLocation] = useState<Location>({ 
-    id: 'beijing',
-    latitude: 39.9042, 
-    longitude: 116.4074, 
-    name: '北京',
-    country: '中国',
-    timezone: 'Asia/Shanghai'
-  });
+  const { currentLocation } = useLocationStore();
 
   const loadMonthlyData = async () => {
-    if (!location) return;
+    if (!currentLocation) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      console.log('获取月度历史数据:', { month: selectedMonth, yearRange, location });
+      console.log('获取月度历史数据:', { month: selectedMonth, yearRange, location: currentLocation });
       
       const result = await monthlyTemperatureService.getMonthlyTemperatureTrends(
-        location.latitude,
-        location.longitude,
+        currentLocation.latitude,
+        currentLocation.longitude,
         selectedMonth,
         yearRange.start,
         yearRange.end,
-        location.name,
-        'auto'
+        currentLocation.name,
+        currentLocation.timezone
       );
 
       setData(result);
@@ -55,7 +49,7 @@ const HistoricalMonthly: React.FC = () => {
 
   useEffect(() => {
     loadMonthlyData();
-  }, [selectedMonth, yearRange, location]);
+  }, [selectedMonth, yearRange, currentLocation]);
 
   const handleMonthChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedMonth(parseInt(event.target.value));
@@ -65,9 +59,6 @@ const HistoricalMonthly: React.FC = () => {
     setYearRange({ start, end });
   };
 
-  const handleLocationChange = (newLocation: Location) => {
-    setLocation(newLocation);
-  };
 
   const monthNames = [
     '1月', '2月', '3月', '4月', '5月', '6月',
@@ -130,6 +121,20 @@ const HistoricalMonthly: React.FC = () => {
         </p>
       </div>
 
+      {/* Location Selector */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <MapPinIcon className="h-5 w-5 text-primary-600" />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            选择分析位置
+          </h2>
+        </div>
+        <QuickLocationSelector compact={false} onLocationChange={loadMonthlyData} />
+      </div>
+
+      {/* Analysis Type Switcher */}
+      <AnalysisTypeSwitcher />
+
       {/* Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -183,17 +188,21 @@ const HistoricalMonthly: React.FC = () => {
             </div>
           </div>
 
-          {/* Location Display */}
+          {/* Current Analysis Info */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              当前位置
+              当前分析
             </label>
             <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <MapPinIcon className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-900 dark:text-white">{location.name}</span>
-              <span className="text-gray-500 text-sm">
-                ({location.latitude.toFixed(2)}, {location.longitude.toFixed(2)})
+              <span className="text-gray-900 dark:text-white">
+                {currentLocation?.name || '未选择位置'}
               </span>
+              {currentLocation && (
+                <span className="text-gray-500 text-sm">
+                  - {monthNames[selectedMonth - 1]}份分析
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -284,7 +293,7 @@ const HistoricalMonthly: React.FC = () => {
             </div>
             
             <MonthlyTemperatureChart
-              location={location}
+              location={currentLocation!}
               mode="monthly-trends"
               selectedMonth={selectedMonth}
               startYear={yearRange.start}

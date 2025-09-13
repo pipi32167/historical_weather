@@ -3,6 +3,9 @@ import { CalendarDaysIcon, MapPinIcon, FireIcon } from '@heroicons/react/24/outl
 import { openMeteoService } from '../services/openMeteoWeather';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
+import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
+import { useLocationStore } from '../store/locationStore';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 
@@ -20,23 +23,23 @@ const HistoricalDaily: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [location, setLocation] = useState({ latitude: 39.9042, longitude: 116.4074, name: '北京' });
+  const { currentLocation } = useLocationStore();
 
   const loadDailyHistoricalData = async () => {
-    if (!location) return;
+    if (!currentLocation) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      console.log('获取历史同期数据:', { date: selectedDate, location });
+      console.log('获取历史同期数据:', { date: selectedDate, location: currentLocation });
       
       const results = await openMeteoService.getHistoricalSamePeriod(
-        location.latitude,
-        location.longitude,
+        currentLocation.latitude,
+        currentLocation.longitude,
         selectedDate,
         20, // 20年历史数据
-        'auto'
+        currentLocation.timezone
       );
 
       const processedData: DailyHistoricalData[] = results.map(result => {
@@ -70,16 +73,13 @@ const HistoricalDaily: React.FC = () => {
 
   useEffect(() => {
     loadDailyHistoricalData();
-  }, [selectedDate, location]);
+  }, [selectedDate, currentLocation]);
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = new Date(event.target.value);
     setSelectedDate(newDate);
   };
 
-  const handleLocationChange = (newLocation: { latitude: number; longitude: number; name: string }) => {
-    setLocation(newLocation);
-  };
 
   const formatDate = (date: Date) => {
     return format(date, 'MM月dd日', { locale: zhCN });
@@ -116,6 +116,20 @@ const HistoricalDaily: React.FC = () => {
         </p>
       </div>
 
+      {/* Location Selector */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <MapPinIcon className="h-5 w-5 text-primary-600" />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            选择分析位置
+          </h2>
+        </div>
+        <QuickLocationSelector compact={false} onLocationChange={loadDailyHistoricalData} />
+      </div>
+
+      {/* Analysis Type Switcher */}
+      <AnalysisTypeSwitcher />
+
       {/* Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -137,17 +151,21 @@ const HistoricalDaily: React.FC = () => {
             </p>
           </div>
 
-          {/* Location Display */}
+          {/* Current Analysis Info */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              当前位置
+              当前分析
             </label>
             <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <MapPinIcon className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-900 dark:text-white">{location.name}</span>
-              <span className="text-gray-500 text-sm">
-                ({location.latitude.toFixed(2)}, {location.longitude.toFixed(2)})
+              <span className="text-gray-900 dark:text-white">
+                {currentLocation?.name || '未选择位置'}
               </span>
+              {currentLocation && (
+                <span className="text-gray-500 text-sm">
+                  - {formatDate(selectedDate)}历史同期
+                </span>
+              )}
             </div>
           </div>
         </div>

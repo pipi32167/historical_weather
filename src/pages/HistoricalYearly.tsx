@@ -5,8 +5,9 @@ import MonthlyTemperatureChart from '../components/Charts/MonthlyTemperatureChar
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-
-import { Location } from '../types/weather';
+import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
+import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
+import { useLocationStore } from '../store/locationStore';
 
 interface YearlyData {
   year: number;
@@ -25,23 +26,16 @@ const HistoricalYearly: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [yearRange, setYearRange] = useState({ start: 2014, end: 2023 });
   const [viewMode, setViewMode] = useState<'trends' | 'profile'>('trends');
-  const [location, setLocation] = useState<Location>({ 
-    id: 'beijing',
-    latitude: 39.9042, 
-    longitude: 116.4074, 
-    name: '北京',
-    country: '中国',
-    timezone: 'Asia/Shanghai'
-  });
+  const { currentLocation } = useLocationStore();
 
   const loadYearlyData = async () => {
-    if (!location) return;
+    if (!currentLocation) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      console.log('获取年度历史数据:', { yearRange, location });
+      console.log('获取年度历史数据:', { yearRange, location: currentLocation });
       
       const yearlyResults: YearlyData[] = [];
       
@@ -49,12 +43,12 @@ const HistoricalYearly: React.FC = () => {
       for (let year = yearRange.start; year <= yearRange.end; year++) {
         try {
           const annualProfile = await monthlyTemperatureService.getAnnualTemperatureProfile(
-            location.latitude,
-            location.longitude,
+            currentLocation.latitude,
+            currentLocation.longitude,
             year,
             year,
-            location.name,
-            'auto'
+            currentLocation.name,
+            currentLocation.timezone
           );
 
           if (annualProfile.length > 0) {
@@ -96,7 +90,7 @@ const HistoricalYearly: React.FC = () => {
 
   useEffect(() => {
     loadYearlyData();
-  }, [yearRange, location]);
+  }, [yearRange, currentLocation]);
 
   const handleYearRangeChange = (start: number, end: number) => {
     setYearRange({ start, end });
@@ -239,6 +233,20 @@ const HistoricalYearly: React.FC = () => {
         </p>
       </div>
 
+      {/* Location Selector */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <MapPinIcon className="h-5 w-5 text-primary-600" />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            选择分析位置
+          </h2>
+        </div>
+        <QuickLocationSelector compact={false} onLocationChange={loadYearlyData} />
+      </div>
+
+      {/* Analysis Type Switcher */}
+      <AnalysisTypeSwitcher />
+
       {/* Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -289,17 +297,21 @@ const HistoricalYearly: React.FC = () => {
             </div>
           </div>
 
-          {/* Location Display */}
+          {/* Current Analysis Info */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              当前位置
+              当前分析
             </label>
             <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <MapPinIcon className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-900 dark:text-white">{location.name}</span>
-              <span className="text-gray-500 text-sm">
-                ({location.latitude.toFixed(2)}, {location.longitude.toFixed(2)})
+              <span className="text-gray-900 dark:text-white">
+                {currentLocation?.name || '未选择位置'}
               </span>
+              {currentLocation && (
+                <span className="text-gray-500 text-sm">
+                  - {viewMode === 'trends' ? '年度趋势' : '月度概况'}分析
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -481,7 +493,7 @@ const HistoricalYearly: React.FC = () => {
               </div>
               
               <MonthlyTemperatureChart
-                location={location}
+                location={currentLocation!}
                 mode="annual-profile"
                 startYear={yearRange.start}
                 endYear={yearRange.end}
