@@ -169,7 +169,7 @@ export class WeatherService {
   }
 
   /**
-   * Get current weather for a location
+   * Get current weather for a location using date range approach
    */
   async getCurrentWeather(location: Location, signal?: AbortSignal): Promise<WeatherDataPoint> {
     // 验证输入参数
@@ -177,17 +177,22 @@ export class WeatherService {
       throw new Error('Invalid location data provided');
     }
     
+    const today = format(new Date(), 'yyyy-MM-dd');
+    
     const params = new URLSearchParams({
       latitude: location.latitude.toString(),
       longitude: location.longitude.toString(),
       current: 'temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m,wind_direction_10m,weather_code',
+      daily: 'temperature_2m_max,temperature_2m_min',
+      start_date: today,
+      end_date: today,
       timezone: 'auto'
     });
 
     const url = `${OPEN_METEO_BASE_URL}/forecast?${params}`;
-    const cacheKey = this.getCacheKey('current', { lat: location.latitude, lon: location.longitude });
+    const cacheKey = this.getCacheKey('current', { lat: location.latitude, lon: location.longitude, date: today });
     
-    const data: OpenMeteoCurrentResponse = await this.fetchWithCache(url, cacheKey, signal, true); // 跳过缓存，确保获取最新数据
+    const data: OpenMeteoCurrentResponse & { daily?: { temperature_2m_max: number[], temperature_2m_min: number[] } } = await this.fetchWithCache(url, cacheKey, signal, true); // 跳过缓存，确保获取最新数据
     
     // 验证响应数据
     if (!data.current) {
@@ -198,8 +203,8 @@ export class WeatherService {
       timestamp: data.current.time,
       date: format(new Date(data.current.time), 'yyyy-MM-dd'),
       temperature: data.current.temperature_2m,
-      temperatureMax: data.current.temperature_2m, // Same as current for current weather
-      temperatureMin: data.current.temperature_2m,
+      temperatureMax: data.daily?.temperature_2m_max[0] || data.current.temperature_2m,
+      temperatureMin: data.daily?.temperature_2m_min[0] || data.current.temperature_2m,
       humidity: data.current.relative_humidity_2m,
       pressure: data.current.surface_pressure,
       windSpeed: data.current.wind_speed_10m,
@@ -213,7 +218,7 @@ export class WeatherService {
   }
 
   /**
-   * Get recent weather data using forecast API with past_days parameter
+   * Get recent weather data using forecast API with date range parameters
    */
   private async getRecentWeather(
     location: Location,
@@ -221,16 +226,11 @@ export class WeatherService {
     endDate: Date,
     signal?: AbortSignal
   ): Promise<WeatherDataPoint[]> {
-    const today = new Date();
-    const daysDiff = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // Forecast API支持最多92天的历史数据
-    const maxPastDays = Math.min(daysDiff, 92);
-    
     const params = new URLSearchParams({
       latitude: location.latitude.toString(),
       longitude: location.longitude.toString(),
-      past_days: maxPastDays.toString(),
+      start_date: format(startDate, 'yyyy-MM-dd'),
+      end_date: format(endDate, 'yyyy-MM-dd'),
       daily: 'temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,weather_code',
       hourly: 'relative_humidity_2m,surface_pressure,wind_speed_10m,wind_direction_10m',
       timezone: 'auto'
@@ -545,9 +545,9 @@ export class WeatherService {
             const oldestDate = batchDates[batchDates.length - 1];
             const newestDate = batchDates[0];
             
-            // 扩展范围以确保包含目标日期
-            const startDate = subDays(oldestDate, 1);
-            const endDate = new Date(newestDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+            // 使用精确的日期范围，不需要扩展
+            const startDate = oldestDate;
+            const endDate = newestDate;
             
             // 检查日期范围是否合理（不超过100天）
             const daysDiff = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
@@ -564,12 +564,11 @@ export class WeatherService {
               const yearPromises = batchDates.map(async (date) => {
                 const year = date.getFullYear();
                 try {
-                  const yearStartDate = subDays(date, 1);
-                  const yearEndDate = new Date(date.getTime() + 2 * 24 * 60 * 60 * 1000);
+                  // 使用精确的单日范围
+                  const dateStr = format(date, 'yyyy-MM-dd');
                   
-                  const yearData = await this.getHistoricalWeather(location, yearStartDate, yearEndDate, signal);
-                  const targetDateStr = format(date, 'yyyy-MM-dd');
-                  return yearData.filter(d => d.date === targetDateStr);
+                  const yearData = await this.getHistoricalWeather(location, date, date, signal);
+                  return yearData.filter(d => d.date === dateStr);
                 } catch (error) {
                   if (error instanceof Error && error.name === 'AbortError') {
                     throw error;

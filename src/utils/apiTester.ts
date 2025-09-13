@@ -4,10 +4,13 @@
  */
 
 export const testOpenMeteoAPI = async () => {
-  // 示例API调用：获取北京2003-2023年的历史数据
-  const testUrl = 'https://archive-api.open-meteo.com/v1/archive?latitude=39.90&longitude=116.41&start_date=2003-01-01&end_date=2023-12-31&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min&temperature_unit=celsius&timezone=auto';
+  // 示例API调用：使用日期范围获取北京2003-2023年的历史数据
+  const startDate = '2003-01-01';
+  const endDate = '2023-12-31';
+  const testUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=39.90&longitude=116.41&start_date=${startDate}&end_date=${endDate}&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min&temperature_unit=celsius&timezone=auto`;
   
-  console.log('测试API URL:', testUrl);
+  console.log('测试API URL (使用日期范围):', testUrl);
+  console.log('日期范围:', startDate, '到', endDate);
   
   try {
     const response = await fetch(testUrl);

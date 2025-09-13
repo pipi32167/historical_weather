@@ -207,6 +207,42 @@ export class OpenMeteoWeatherService {
   }
 
   /**
+   * 获取预报数据（使用日期范围）
+   * @param latitude 纬度
+   * @param longitude 经度
+   * @param startDate 开始日期 (YYYY-MM-DD)
+   * @param endDate 结束日期 (YYYY-MM-DD)
+   * @param timezone 时区 (可选，默认auto)
+   * @returns 预报数据
+   */
+  async getForecastData(
+    latitude: number,
+    longitude: number,
+    startDate: string,
+    endDate: string,
+    timezone: string = 'auto'
+  ): Promise<OpenMeteoForecastData> {
+    const params = new URLSearchParams({
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      current_weather: 'true',
+      daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max',
+      start_date: startDate,
+      end_date: endDate,
+      timezone
+    });
+
+    const url = `${OPEN_METEO_CONFIG.forecast}?${params}`;
+    
+    try {
+      return await fetchWithRetry<OpenMeteoForecastData>(url);
+    } catch (error) {
+      console.error('Open-Meteo预报数据获取失败:', error);
+      throw new Error(`无法获取坐标(${latitude}, ${longitude})从${startDate}到${endDate}的预报数据: ${error}`);
+    }
+  }
+
+  /**
    * 获取今日预报数据（包含最高最低温度）
    * @param latitude 纬度
    * @param longitude 经度
@@ -219,25 +255,7 @@ export class OpenMeteoWeatherService {
     timezone: string = 'auto'
   ): Promise<OpenMeteoForecastData> {
     const today = new Date().toISOString().split('T')[0];
-    
-    const params = new URLSearchParams({
-      latitude: latitude.toString(),
-      longitude: longitude.toString(),
-      current_weather: 'true',
-      daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max',
-      start_date: today,
-      end_date: today,
-      timezone
-    });
-
-    const url = `${OPEN_METEO_CONFIG.forecast}?${params}`;
-    
-    try {
-      return await fetchWithRetry<OpenMeteoForecastData>(url);
-    } catch (error) {
-      console.error('Open-Meteo今日预报获取失败:', error);
-      throw new Error(`无法获取坐标(${latitude}, ${longitude})的今日预报: ${error}`);
-    }
+    return this.getForecastData(latitude, longitude, today, today, timezone);
   }
 
   /**
