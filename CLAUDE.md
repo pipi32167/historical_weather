@@ -50,3 +50,8 @@ This is a React TypeScript application bootstrapped with Create React App. The p
 - Type all props interfaces and function parameters
 
 The application is currently in its initial state with the default CRA template converted to TypeScript and has not been customized for the historical weather use case yet.
+
+## API Guidelines
+
+### Open Meteo API
+- **Always use date ranges**: All Open Meteo API calls should use date range parameters (`start_date` and `end_date`) rather than single date requests for consistency and efficiency
