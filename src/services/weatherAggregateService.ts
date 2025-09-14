@@ -113,14 +113,76 @@ export class WeatherAggregateService {
     let forecastCount = 0;
 
     try {
-      // 1. 获取历史同期数据
-      const historicalData = await openMeteoService.getHistoricalSamePeriod(
+      // 1. 获取历史同期数据（使用日期范围查询）
+      const currentYear = new Date().getFullYear();
+      const startYear = currentYear - years;
+      const endYear = currentYear - 1;
+      
+      const rangeData = await openMeteoService.getHistoricalWeather(
         location.latitude,
         location.longitude,
-        targetDate,
-        years,
-        timezone
+        `${startYear}-01-01`,
+        `${endYear}-12-31`,
+        timezone,
+        ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum']
       );
+      
+      // 在客户端过滤出目标日期的同期数据
+      const targetMonth = targetDate.getMonth() + 1;
+      const targetDay = targetDate.getDate();
+      const historicalData: Array<{ year: number; data: any }> = [];
+      
+      // 按年份分组同期数据
+      const dataByYear: Record<number, {
+        time: string[];
+        temperature_2m_max: number[];
+        temperature_2m_min: number[];
+        precipitation_sum?: number[];
+      }> = {};
+      
+      rangeData.daily.time.forEach((time, index) => {
+        const date = new Date(time);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        
+        if (month === targetMonth && day === targetDay) {
+          if (!dataByYear[year]) {
+            dataByYear[year] = {
+              time: [],
+              temperature_2m_max: [],
+              temperature_2m_min: [],
+              precipitation_sum: []
+            };
+          }
+          
+          dataByYear[year].time.push(time);
+          dataByYear[year].temperature_2m_max.push(rangeData.daily.temperature_2m_max[index]);
+          dataByYear[year].temperature_2m_min.push(rangeData.daily.temperature_2m_min[index]);
+          if (rangeData.daily.precipitation_sum) {
+            dataByYear[year].precipitation_sum!.push(rangeData.daily.precipitation_sum[index]);
+          }
+        }
+      });
+      
+      // 构建结果
+      for (const [yearStr, yearData] of Object.entries(dataByYear)) {
+        const year = parseInt(yearStr);
+        if (yearData.time.length > 0) {
+          historicalData.push({
+            year,
+            data: {
+              ...rangeData,
+              daily: {
+                time: yearData.time,
+                temperature_2m_max: yearData.temperature_2m_max,
+                temperature_2m_min: yearData.temperature_2m_min,
+                precipitation_sum: yearData.precipitation_sum
+              }
+            }
+          });
+        }
+      }
 
       // 转换历史数据
       const transformedHistoricalData = historicalData
