@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CalendarDaysIcon, MapPinIcon, FireIcon } from '@heroicons/react/24/outline';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { openMeteoService } from '../services/openMeteoWeather';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
@@ -100,6 +101,90 @@ const HistoricalDaily: React.FC = () => {
     Math.round((currentData.reduce((sum, d) => sum + d.minTemp, 0) / currentData.length) * 10) / 10 : 0;
   const avgAvgTemp = currentData.length > 0 ? 
     Math.round((currentData.reduce((sum, d) => sum + d.avgTemp, 0) / currentData.length) * 10) / 10 : 0;
+
+  // 准备图表数据
+  const chartData = currentData.map(item => ({
+    year: item.year,
+    maxTemp: item.maxTemp,
+    minTemp: item.minTemp,
+    avgTemp: item.avgTemp,
+    precipitation: item.precipitation || 0
+  }));
+
+  // 计算温度趋势
+  const calculateTrend = (data: DailyHistoricalData[], tempType: 'maxTemp' | 'minTemp' | 'avgTemp'): { trend: 'warming' | 'cooling' | 'stable'; trendValue: number } => {
+    if (data.length < 2) return { trend: 'stable', trendValue: 0 };
+
+    const n = data.length;
+    const years = data.map(d => d.year);
+    const temps = data.map(d => d[tempType]);
+
+    const sumX = years.reduce((sum, year) => sum + year, 0);
+    const sumY = temps.reduce((sum, temp) => sum + temp, 0);
+    const sumXY = years.reduce((sum, year, i) => sum + year * temps[i], 0);
+    const sumXX = years.reduce((sum, year) => sum + year * year, 0);
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const trendValue = Math.round(slope * 1000) / 1000;
+
+    let trend: 'warming' | 'cooling' | 'stable';
+    if (Math.abs(trendValue) < 0.01) {
+      trend = 'stable';
+    } else if (trendValue > 0) {
+      trend = 'warming';
+    } else {
+      trend = 'cooling';
+    }
+
+    return { trend, trendValue };
+  };
+
+  const avgTempTrend = calculateTrend(currentData, 'avgTemp');
+  
+  const getTrendIcon = (trend: 'warming' | 'cooling' | 'stable') => {
+    switch (trend) {
+      case 'warming':
+        return '🔥';
+      case 'cooling':
+        return '❄️';
+      case 'stable':
+        return '🟢';
+    }
+  };
+  
+  const getTrendDescription = (trend: 'warming' | 'cooling' | 'stable', trendValue: number) => {
+    switch (trend) {
+      case 'warming':
+        return `升温趋势 +${Math.abs(trendValue).toFixed(3)}°C/年`;
+      case 'cooling':
+        return `降温趋势 ${trendValue.toFixed(3)}°C/年`;
+      case 'stable':
+        return '温度稳定';
+    }
+  };
+
+  // 自定义Tooltip
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-3 shadow-lg">
+          <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">{label}年</p>
+          <div className="space-y-1 text-xs">
+            {payload.map((entry: any, index: number) => (
+              <p key={index} className="text-gray-700 dark:text-gray-300">
+                <span 
+                  className="inline-block w-3 h-3 rounded mr-2" 
+                  style={{ backgroundColor: entry.color }}
+                ></span>
+                {entry.name}: {entry.value}°C
+              </p>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="space-y-6">
@@ -208,6 +293,79 @@ const HistoricalDaily: React.FC = () => {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chart */}
+      {!loading && !error && currentData.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {formatDate(selectedDate)} 历史同期温度趋势图
+            </h2>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                显示历年{formatDate(selectedDate)}的温度变化趋势 ({currentData.length} 年数据)
+              </p>
+              {currentData.length > 2 && (
+                <div className="flex items-center space-x-2 text-sm">
+                  <span>{getTrendIcon(avgTempTrend.trend)}</span>
+                  <span className={`font-medium ${
+                    avgTempTrend.trend === 'warming' ? 'text-red-600' :
+                    avgTempTrend.trend === 'cooling' ? 'text-blue-600' : 'text-green-600'
+                  }`}>
+                    {getTrendDescription(avgTempTrend.trend, avgTempTrend.trendValue)}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="h-96">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="year" 
+                  type="number"
+                  scale="linear"
+                  domain={['dataMin', 'dataMax']}
+                />
+                <YAxis tickFormatter={(value) => `${value}°C`} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend 
+                  formatter={(value: string) => 
+                    value === 'maxTemp' ? '最高温度' : 
+                    value === 'minTemp' ? '最低温度' : '平均温度'
+                  }
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="maxTemp" 
+                  stroke="#ef4444" 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  name="最高温度"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="avgTemp" 
+                  stroke="#10b981" 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  name="平均温度"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="minTemp" 
+                  stroke="#3b82f6" 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  name="最低温度"
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}

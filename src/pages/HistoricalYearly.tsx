@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PresentationChartLineIcon, MapPinIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, MinusIcon } from '@heroicons/react/24/outline';
-import { monthlyTemperatureService, MonthlyTemperatureStats } from '../services/monthlyTemperatureService';
+import { MonthlyTemperatureStats } from '../services/monthlyTemperatureService';
+import { openMeteoService } from '../services/openMeteoWeather';
 import MonthlyTemperatureChart from '../components/Charts/MonthlyTemperatureChart';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
@@ -35,49 +36,131 @@ const HistoricalYearly: React.FC = () => {
     setError(null);
 
     try {
-      console.log('获取年度历史数据:', { yearRange, location: currentLocation });
+      console.log('获取年度历史数据（优化版本，一次API调用）:', { yearRange, location: currentLocation });
+      
+      // 只进行一次API调用，获取整个日期范围的数据
+      const startDate = `${yearRange.start}-01-01`;
+      const endDate = `${yearRange.end}-12-31`;
+      
+      console.log(`[HistoricalYearly] 获取日期范围数据: ${startDate} 到 ${endDate}`);
+      
+      const historicalData = await openMeteoService.getHistoricalWeather(
+        currentLocation.latitude,
+        currentLocation.longitude,
+        startDate,
+        endDate,
+        currentLocation.timezone,
+        ['temperature_2m_max', 'temperature_2m_min', 'temperature_2m_mean']
+      );
+      
+      console.log(`[HistoricalYearly] 获取到 ${historicalData.daily.time.length} 天的数据`);
+      
+      // 按年份和月份分组数据
+      const dataByYearMonth: Record<string, Array<{
+        date: string;
+        maxTemp: number;
+        minTemp: number;
+        avgTemp: number;
+      }>> = {};
+      
+      historicalData.daily.time.forEach((time, index) => {
+        const date = new Date(time);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const key = `${year}-${month}`;
+        
+        if (!dataByYearMonth[key]) {
+          dataByYearMonth[key] = [];
+        }
+        
+        const maxTemp = historicalData.daily.temperature_2m_max[index];
+        const minTemp = historicalData.daily.temperature_2m_min[index];
+        const avgTemp = historicalData.daily.temperature_2m_mean?.[index] || (maxTemp + minTemp) / 2;
+        
+        if (!isNaN(maxTemp) && !isNaN(minTemp) && !isNaN(avgTemp)) {
+          dataByYearMonth[key].push({
+            date: time,
+            maxTemp,
+            minTemp,
+            avgTemp
+          });
+        }
+      });
+      
+      // 按年份组织数据
+      const yearDataMap: Record<number, MonthlyTemperatureStats[]> = {};
+      
+      for (const [key, monthData] of Object.entries(dataByYearMonth)) {
+        const [year, month] = key.split('-').map(Number);
+        
+        if (monthData.length > 0) {
+          if (!yearDataMap[year]) {
+            yearDataMap[year] = [];
+          }
+          
+          const avgTemp = monthData.reduce((sum, d) => sum + d.avgTemp, 0) / monthData.length;
+          const avgMaxTemp = monthData.reduce((sum, d) => sum + d.maxTemp, 0) / monthData.length;
+          const avgMinTemp = monthData.reduce((sum, d) => sum + d.minTemp, 0) / monthData.length;
+          const recordHigh = Math.max(...monthData.map(d => d.maxTemp));
+          const recordLow = Math.min(...monthData.map(d => d.minTemp));
+          
+          const monthNames = [
+            '1月', '2月', '3月', '4月', '5月', '6月',
+            '7月', '8月', '9月', '10月', '11月', '12月'
+          ];
+          
+          yearDataMap[year].push({
+            year,
+            month,
+            monthName: monthNames[month - 1],
+            avgTemp: Math.round(avgTemp * 10) / 10,
+            avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
+            avgMinTemp: Math.round(avgMinTemp * 10) / 10,
+            recordHigh: Math.round(recordHigh * 10) / 10,
+            recordLow: Math.round(recordLow * 10) / 10,
+            totalDays: new Date(year, month, 0).getDate(),
+            dataPoints: monthData.length,
+            location: currentLocation.name,
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude
+          });
+        }
+      }
       
       const yearlyResults: YearlyData[] = [];
       
-      // 为每年获取年度概况数据
+      // 为每年生成年度数据
       for (let year = yearRange.start; year <= yearRange.end; year++) {
-        try {
-          const annualProfile = await monthlyTemperatureService.getAnnualTemperatureProfile(
-            currentLocation.latitude,
-            currentLocation.longitude,
-            year,
-            year,
-            currentLocation.name,
-            currentLocation.timezone
-          );
+        const yearMonthData = yearDataMap[year] || [];
+        
+        if (yearMonthData.length > 0) {
+          // 按月份排序
+          yearMonthData.sort((a, b) => a.month - b.month);
+          
+          // 计算年度统计
+          const avgTemp = yearMonthData.reduce((sum, month) => sum + month.avgTemp, 0) / yearMonthData.length;
+          const avgMaxTemp = yearMonthData.reduce((sum, month) => sum + month.avgMaxTemp, 0) / yearMonthData.length;
+          const avgMinTemp = yearMonthData.reduce((sum, month) => sum + month.avgMinTemp, 0) / yearMonthData.length;
+          const recordHigh = Math.max(...yearMonthData.map(month => month.recordHigh));
+          const recordLow = Math.min(...yearMonthData.map(month => month.recordLow));
+          const totalDataPoints = yearMonthData.reduce((sum, month) => sum + month.dataPoints, 0);
 
-          if (annualProfile.length > 0) {
-            // 计算年度统计
-            const avgTemp = annualProfile.reduce((sum, month) => sum + month.avgTemp, 0) / annualProfile.length;
-            const avgMaxTemp = annualProfile.reduce((sum, month) => sum + month.avgMaxTemp, 0) / annualProfile.length;
-            const avgMinTemp = annualProfile.reduce((sum, month) => sum + month.avgMinTemp, 0) / annualProfile.length;
-            const recordHigh = Math.max(...annualProfile.map(month => month.recordHigh));
-            const recordLow = Math.min(...annualProfile.map(month => month.recordLow));
-            const totalDataPoints = annualProfile.reduce((sum, month) => sum + month.dataPoints, 0);
-
-            yearlyResults.push({
-              year,
-              months: annualProfile,
-              avgTemp: Math.round(avgTemp * 10) / 10,
-              avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
-              avgMinTemp: Math.round(avgMinTemp * 10) / 10,
-              recordHigh: Math.round(recordHigh * 10) / 10,
-              recordLow: Math.round(recordLow * 10) / 10,
-              totalDataPoints
-            });
-          }
-        } catch (yearError) {
-          console.warn(`获取${year}年数据失败:`, yearError);
+          yearlyResults.push({
+            year,
+            months: yearMonthData,
+            avgTemp: Math.round(avgTemp * 10) / 10,
+            avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
+            avgMinTemp: Math.round(avgMinTemp * 10) / 10,
+            recordHigh: Math.round(recordHigh * 10) / 10,
+            recordLow: Math.round(recordLow * 10) / 10,
+            totalDataPoints
+          });
         }
       }
 
       // 按年份排序
       yearlyResults.sort((a, b) => a.year - b.year);
+      console.log('成功处理年度数据:', yearlyResults.length, '年');
       setData(yearlyResults);
 
     } catch (error) {
@@ -184,39 +267,7 @@ const HistoricalYearly: React.FC = () => {
     recordLow: item.recordLow
   }));
 
-  // 计算多年平均的月度概况
-  const averageMonthlyProfile = () => {
-    if (data.length === 0) return [];
 
-    const monthlyAverages = [];
-    for (let month = 1; month <= 12; month++) {
-      const monthData = data
-        .map(yearData => yearData.months.find(m => m.month === month))
-        .filter(Boolean) as MonthlyTemperatureStats[];
-
-      if (monthData.length > 0) {
-        const avgTemp = monthData.reduce((sum, m) => sum + m.avgTemp, 0) / monthData.length;
-        const avgMaxTemp = monthData.reduce((sum, m) => sum + m.avgMaxTemp, 0) / monthData.length;
-        const avgMinTemp = monthData.reduce((sum, m) => sum + m.avgMinTemp, 0) / monthData.length;
-        const recordHigh = Math.max(...monthData.map(m => m.recordHigh));
-        const recordLow = Math.min(...monthData.map(m => m.recordLow));
-
-        monthlyAverages.push({
-          month,
-          monthName: monthData[0].monthName,
-          avgTemp: Math.round(avgTemp * 10) / 10,
-          avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
-          avgMinTemp: Math.round(avgMinTemp * 10) / 10,
-          recordHigh: Math.round(recordHigh * 10) / 10,
-          recordLow: Math.round(recordLow * 10) / 10
-        });
-      }
-    }
-
-    return monthlyAverages;
-  };
-
-  const monthlyProfileData = averageMonthlyProfile();
 
   return (
     <div className="space-y-6">
