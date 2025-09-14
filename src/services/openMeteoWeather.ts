@@ -117,7 +117,7 @@ async function fetchWithRetry<T>(url: string, maxRetries: number = OPEN_METEO_CO
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       console.warn(`Open-Meteo API请求失败 (尝试 ${attempt + 1}/${maxRetries}):`, error);
-      
+
       // 最后一次尝试失败时不等待
       if (attempt < maxRetries - 1) {
         // 指数退避：第一次重试等待1秒，第二次等待2秒
@@ -148,7 +148,7 @@ export class OpenMeteoWeatherService {
     // 检查缓存
     const cacheKey = cacheKeys.geocoding(cityName, language);
     const cachedResult = cache.get<OpenMeteoLocation[]>(cacheKey);
-    
+
     if (cachedResult) {
       console.log('从缓存获取地理编码结果:', cityName);
       return cachedResult;
@@ -162,14 +162,14 @@ export class OpenMeteoWeatherService {
     });
 
     const url = `${OPEN_METEO_CONFIG.geocoding}?${params}`;
-    
+
     try {
       const response = await fetchWithRetry<{ results?: OpenMeteoLocation[] }>(url);
       const results = response.results || [];
-      
+
       // 缓存结果（地理编码结果相对稳定，缓存时间较长）
       cache.set(cacheKey, results, CACHE_TTL.GEOCODING);
-      
+
       return results;
     } catch (error) {
       console.error('Open-Meteo地理编码失败:', error);
@@ -189,6 +189,15 @@ export class OpenMeteoWeatherService {
     longitude: number,
     timezone: string = 'auto'
   ): Promise<OpenMeteoForecastData> {
+    // 检查缓存
+    const cacheKey = cacheKeys.currentWeather(latitude, longitude);
+    const cachedResult = cache.get<OpenMeteoForecastData>(cacheKey);
+
+    if (cachedResult) {
+      console.log('从缓存获取当前天气数据:', { latitude, longitude });
+      return cachedResult;
+    }
+
     const params = new URLSearchParams({
       latitude: latitude.toString(),
       longitude: longitude.toString(),
@@ -197,9 +206,14 @@ export class OpenMeteoWeatherService {
     });
 
     const url = `${OPEN_METEO_CONFIG.forecast}?${params}`;
-    
+
     try {
-      return await fetchWithRetry<OpenMeteoForecastData>(url);
+      const result = await fetchWithRetry<OpenMeteoForecastData>(url);
+
+      // 缓存结果（当前天气数据变化较快，缓存时间较短）
+      cache.set(cacheKey, result, CACHE_TTL.CURRENT_WEATHER);
+
+      return result;
     } catch (error) {
       console.error('Open-Meteo当前天气获取失败:', error);
       throw new Error(`无法获取坐标(${latitude}, ${longitude})的当前天气: ${error}`);
@@ -222,6 +236,15 @@ export class OpenMeteoWeatherService {
     endDate: string,
     timezone: string = 'auto'
   ): Promise<OpenMeteoForecastData> {
+    // 检查缓存
+    const cacheKey = cacheKeys.forecastData(latitude, longitude, startDate, endDate);
+    const cachedResult = cache.get<OpenMeteoForecastData>(cacheKey);
+
+    if (cachedResult) {
+      console.log('从缓存获取预报数据:', { latitude, longitude, startDate, endDate });
+      return cachedResult;
+    }
+
     const params = new URLSearchParams({
       latitude: latitude.toString(),
       longitude: longitude.toString(),
@@ -233,9 +256,14 @@ export class OpenMeteoWeatherService {
     });
 
     const url = `${OPEN_METEO_CONFIG.forecast}?${params}`;
-    
+
     try {
-      return await fetchWithRetry<OpenMeteoForecastData>(url);
+      const result = await fetchWithRetry<OpenMeteoForecastData>(url);
+
+      // 缓存结果（预报数据相对稳定，可以缓存一段时间）
+      cache.set(cacheKey, result, CACHE_TTL.FORECAST_DATA);
+
+      return result;
     } catch (error) {
       console.error('Open-Meteo预报数据获取失败:', error);
       throw new Error(`无法获取坐标(${latitude}, ${longitude})从${startDate}到${endDate}的预报数据: ${error}`);
@@ -276,6 +304,18 @@ export class OpenMeteoWeatherService {
     timezone: string = 'auto',
     dailyParams: string[] = ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum']
   ): Promise<OpenMeteoHistoricalData> {
+    console.log('请求历史天气数据:', { latitude, longitude, startDate, endDate, timezone, dailyParams });
+    // 检查缓存
+    const cacheKey = cacheKeys.historicalWeather(latitude, longitude, startDate, endDate, dailyParams);
+    console.log('生成的缓存键:', cacheKey);
+    const cachedResult = cache.get<OpenMeteoHistoricalData>(cacheKey);
+
+    if (cachedResult) {
+      console.log('✅ 缓存命中! 从缓存获取历史天气数据:', { latitude, longitude, startDate, endDate });
+      return cachedResult;
+    }
+    console.log('❌ 缓存未命中，调用Open-Meteo历史天气API');
+
     const params = new URLSearchParams({
       latitude: latitude.toString(),
       longitude: longitude.toString(),
@@ -286,9 +326,15 @@ export class OpenMeteoWeatherService {
     });
 
     const url = `${OPEN_METEO_CONFIG.historical}?${params}`;
-    
+
     try {
-      return await fetchWithRetry<OpenMeteoHistoricalData>(url);
+      const result = await fetchWithRetry<OpenMeteoHistoricalData>(url);
+
+      // 缓存结果（历史数据相对稳定，可以缓存较长时间）
+      cache.set(cacheKey, result, CACHE_TTL.HISTORICAL_DATA);
+      console.log('💾 数据已缓存，缓存键:', cacheKey, '缓存TTL:', CACHE_TTL.HISTORICAL_DATA);
+
+      return result;
     } catch (error) {
       console.error('Open-Meteo历史天气获取失败:', error);
       throw new Error(`无法获取坐标(${latitude}, ${longitude})从${startDate}到${endDate}的历史天气: ${error}`);

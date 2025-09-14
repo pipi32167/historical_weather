@@ -55,3 +55,19 @@ The application is currently in its initial state with the default CRA template 
 
 ### Open Meteo API
 - **Always use date ranges**: All Open Meteo API calls should use date range parameters (`start_date` and `end_date`) rather than single date requests for consistency and efficiency
+
+### API Caching
+- **Persistent localStorage caching**: All API requests are automatically cached to localStorage for persistence across page refreshes
+- **Cache TTL settings**:
+  - Historical data: 7 days (data doesn't change)
+  - Geocoding results: 7 days (stable location data)  
+  - Current weather: 10 minutes (frequently changing data)
+  - Forecast data: 1 hour (moderately changing data)
+  - Search results: 30 minutes (user experience optimization)
+- **Storage management**: 
+  - Maximum cache size: 50MB
+  - Automatic cleanup of oldest items when storage limit reached
+  - Automatic cleanup of expired items every minute
+  - Fallback to memory-only mode if localStorage unavailable
+- **Cache keys**: Automatically generated based on coordinates, dates, parameters, and API endpoint
+- **Error handling**: Corrupted cache entries are automatically removed

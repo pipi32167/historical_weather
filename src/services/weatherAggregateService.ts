@@ -6,6 +6,7 @@
 import { openMeteoService } from './openMeteoWeather';
 import { WeatherDataPoint, Location } from '../types/weather';
 import { format, isToday, isFuture, startOfDay } from 'date-fns';
+import { cache, CACHE_TTL, cacheKeys } from '../utils/cache';
 
 export interface WeatherDataRequest {
   location: Location;
@@ -100,9 +101,24 @@ export class WeatherAggregateService {
     years: number = 20,
     timezone: string = 'auto'
   ): Promise<WeatherDataResponse> {
+    // 检查缓存
+    const dateStr = format(targetDate, 'yyyy-MM-dd');
+    const cacheKey = cacheKeys.historicalSamePeriod(location.latitude, location.longitude, dateStr, years);
+    const cachedResult = cache.get<WeatherDataResponse>(cacheKey);
+    
+    if (cachedResult) {
+      console.log('从缓存获取历史同期数据:', {
+        location: location.name,
+        targetDate: dateStr,
+        years,
+        timezone
+      });
+      return cachedResult;
+    }
+
     console.log('WeatherAggregateService: 获取历史同期数据', {
       location: location.name,
-      targetDate: format(targetDate, 'yyyy-MM-dd'),
+      targetDate: dateStr,
       years,
       timezone
     });
@@ -309,7 +325,7 @@ export class WeatherAggregateService {
         return new Date(a.date).getFullYear() - new Date(b.date).getFullYear();
       });
 
-      return {
+      const result = {
         data: sortedResults,
         metadata: {
           totalPoints: sortedResults.length,
@@ -318,6 +334,11 @@ export class WeatherAggregateService {
           source: sources
         }
       };
+      
+      // 缓存结果（历史同期数据相对稳定，可以缓存较长时间）
+      cache.set(cacheKey, result, CACHE_TTL.HISTORICAL_DATA);
+      
+      return result;
 
     } catch (error) {
       console.error('WeatherAggregateService: 获取历史同期数据失败', error);
