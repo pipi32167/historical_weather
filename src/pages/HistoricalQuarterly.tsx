@@ -30,7 +30,7 @@ const HistoricalQuarterly: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedQuarter, setSelectedQuarter] = useState<number>(Math.ceil((new Date().getMonth() + 1) / 3));
-  const [yearRange, setYearRange] = useState({ start: 2014, end: 2023 });
+  const [yearRange, setYearRange] = useState({ start: 2014, end: 2024 });
   const { currentLocation } = useLocationStore();
 
   const quarterNames = ['第一季度', '第二季度', '第三季度', '第四季度'];
@@ -393,7 +393,7 @@ const HistoricalQuarterly: React.FC = () => {
                 value={yearRange.start}
                 onChange={(e) => handleYearRangeChange(parseInt(e.target.value), yearRange.end)}
                 min="1980"
-                max="2023"
+                max="2024"
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
                          bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                          focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -404,7 +404,7 @@ const HistoricalQuarterly: React.FC = () => {
                 value={yearRange.end}
                 onChange={(e) => handleYearRangeChange(yearRange.start, parseInt(e.target.value))}
                 min="1980"
-                max="2023"
+                max="2024"
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
                          bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                          focus:ring-2 focus:ring-primary-500 focus:border-transparent"
