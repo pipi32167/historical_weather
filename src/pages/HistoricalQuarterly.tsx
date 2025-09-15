@@ -66,7 +66,7 @@ const HistoricalQuarterly: React.FC = () => {
       const selectedQuarterInCurrentYear = selectedQuarter <= currentQuarter;
 
       // 设置结束日期：如果选择的季度在当前年份且已经过去，则包含当前年份
-      let actualEndYear = yearRange.end;
+      let actualEndYear = Math.min(yearRange.end, currentYear); // 确保不使用未来年份
       let endDate;
 
       if (actualEndYear === currentYear && selectedQuarterInCurrentYear) {
@@ -80,8 +80,12 @@ const HistoricalQuarterly: React.FC = () => {
         endDate = `${actualEndYear}-12-31`;
         console.log(`[HistoricalQuarterly] 当前年份${selectedQuarter}季度未到，排除当年: ${endDate}`);
       } else {
-        // 历史年份
-        endDate = `${actualEndYear}-12-31`;
+        // 历史年份，确保结束日期不超过今天
+        if (actualEndYear === currentYear) {
+          endDate = new Date().toISOString().split('T')[0];
+        } else {
+          endDate = `${actualEndYear}-12-31`;
+        }
       }
 
       const startDate = `${yearRange.start}-01-01`;

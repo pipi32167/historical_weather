@@ -34,24 +34,24 @@ const HistoricalDaily: React.FC = () => {
 
     try {
       console.log('获取历史同期数据:', { date: selectedDate, location: currentLocation });
-      
+
       const currentYear = new Date().getFullYear();
       const currentDate = new Date();
       const targetMonth = selectedDate.getMonth() + 1;
       const targetDay = selectedDate.getDate();
       const isToday = selectedDate.toDateString() === currentDate.toDateString();
-      
+
       // 数据获取范围：[当前年份-20] 至 [当前年份]
       const years = 20;
       const startYear = currentYear - years;
       const endYear = currentYear;
-      
+
       let historicalData;
       let currentYearData = null;
-      
+
       if (isToday) {
         console.log('今日数据，调用预报接口获取当天数据');
-        
+
         // 获取历史数据（不包含当前年份）
         const historicalResult = await openMeteoService.getHistoricalWeather(
           currentLocation.latitude,
@@ -61,7 +61,7 @@ const HistoricalDaily: React.FC = () => {
           currentLocation.timezone,
           ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum']
         );
-        
+
         // 获取今日预报数据
         try {
           const todayForecast = await openMeteoService.getTodayForecast(
@@ -69,9 +69,9 @@ const HistoricalDaily: React.FC = () => {
             currentLocation.longitude,
             currentLocation.timezone
           );
-          
+
           historicalData = historicalResult;
-          
+
           // 处理今日预报数据
           if (todayForecast.daily && todayForecast.daily.time.length > 0) {
             currentYearData = {
@@ -91,15 +91,17 @@ const HistoricalDaily: React.FC = () => {
       } else {
         // 非今日，获取完整历史数据（包含当前年份的历史数据）
         const selectedDateThisYear = new Date(currentYear, selectedDate.getMonth(), selectedDate.getDate());
-        
+
         if (selectedDateThisYear <= currentDate) {
           console.log('当年历史数据，使用历史接口');
           // 选定日期在当年且已经过去，包含当前年份的历史数据
+          // 确保结束日期不超过今天
+          const today = new Date().toISOString().split('T')[0];
           historicalData = await openMeteoService.getHistoricalWeather(
             currentLocation.latitude,
             currentLocation.longitude,
             `${startYear}-01-01`,
-            `${endYear}-12-31`,
+            today,
             currentLocation.timezone,
             ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum']
           );
@@ -116,10 +118,10 @@ const HistoricalDaily: React.FC = () => {
           );
         }
       }
-      
+
       // 在客户端过滤出目标日期的同期数据
       const results: Array<{ year: number; data: any }> = [];
-      
+
       // 按年份分组同期数据
       const dataByYear: Record<number, {
         time: string[];
@@ -127,7 +129,7 @@ const HistoricalDaily: React.FC = () => {
         temperature_2m_min: number[];
         precipitation_sum?: number[];
       }> = {};
-      
+
       // 处理历史数据
       if (historicalData && historicalData.daily) {
         historicalData.daily.time.forEach((time, index) => {
@@ -135,7 +137,7 @@ const HistoricalDaily: React.FC = () => {
           const year = date.getFullYear();
           const month = date.getMonth() + 1;
           const day = date.getDate();
-          
+
           if (month === targetMonth && day === targetDay) {
             if (!dataByYear[year]) {
               dataByYear[year] = {
@@ -145,7 +147,7 @@ const HistoricalDaily: React.FC = () => {
                 precipitation_sum: []
               };
             }
-            
+
             dataByYear[year].time.push(time);
             dataByYear[year].temperature_2m_max.push(historicalData.daily.temperature_2m_max[index]);
             dataByYear[year].temperature_2m_min.push(historicalData.daily.temperature_2m_min[index]);
@@ -155,7 +157,7 @@ const HistoricalDaily: React.FC = () => {
           }
         });
       }
-      
+
       // 处理当年数据（今日预报或当年历史）
       if (currentYearData) {
         console.log('添加当年数据:', currentYearData);
@@ -166,7 +168,7 @@ const HistoricalDaily: React.FC = () => {
           precipitation_sum: currentYearData.precipitation_sum
         };
       }
-      
+
       // 构建结果
       for (const [yearStr, yearData] of Object.entries(dataByYear)) {
         const year = parseInt(yearStr);
@@ -240,11 +242,11 @@ const HistoricalDaily: React.FC = () => {
   };
 
   const currentData = data.length > 0 ? data : [];
-  const avgMaxTemp = currentData.length > 0 ? 
+  const avgMaxTemp = currentData.length > 0 ?
     Math.round((currentData.reduce((sum, d) => sum + d.maxTemp, 0) / currentData.length) * 10) / 10 : 0;
-  const avgMinTemp = currentData.length > 0 ? 
+  const avgMinTemp = currentData.length > 0 ?
     Math.round((currentData.reduce((sum, d) => sum + d.minTemp, 0) / currentData.length) * 10) / 10 : 0;
-  const avgAvgTemp = currentData.length > 0 ? 
+  const avgAvgTemp = currentData.length > 0 ?
     Math.round((currentData.reduce((sum, d) => sum + d.avgTemp, 0) / currentData.length) * 10) / 10 : 0;
 
   // 准备图表数据
@@ -285,7 +287,7 @@ const HistoricalDaily: React.FC = () => {
   };
 
   const avgTempTrend = calculateTrend(currentData, 'avgTemp');
-  
+
   const getTrendIcon = (trend: 'warming' | 'cooling' | 'stable') => {
     switch (trend) {
       case 'warming':
@@ -296,7 +298,7 @@ const HistoricalDaily: React.FC = () => {
         return '🟢';
     }
   };
-  
+
   const getTrendDescription = (trend: 'warming' | 'cooling' | 'stable', trendValue: number) => {
     switch (trend) {
       case 'warming':
@@ -317,8 +319,8 @@ const HistoricalDaily: React.FC = () => {
           <div className="space-y-1 text-xs">
             {payload.map((entry: any, index: number) => (
               <p key={index} className="text-gray-700 dark:text-gray-300">
-                <span 
-                  className="inline-block w-3 h-3 rounded mr-2" 
+                <span
+                  className="inline-block w-3 h-3 rounded mr-2"
                   style={{ backgroundColor: entry.color }}
                 ></span>
                 {entry.name}: {entry.value}°C
@@ -456,55 +458,54 @@ const HistoricalDaily: React.FC = () => {
               {currentData.length > 2 && (
                 <div className="flex items-center space-x-2 text-sm">
                   <span>{getTrendIcon(avgTempTrend.trend)}</span>
-                  <span className={`font-medium ${
-                    avgTempTrend.trend === 'warming' ? 'text-red-600' :
-                    avgTempTrend.trend === 'cooling' ? 'text-blue-600' : 'text-green-600'
-                  }`}>
+                  <span className={`font-medium ${avgTempTrend.trend === 'warming' ? 'text-red-600' :
+                      avgTempTrend.trend === 'cooling' ? 'text-blue-600' : 'text-green-600'
+                    }`}>
                     {getTrendDescription(avgTempTrend.trend, avgTempTrend.trendValue)}
                   </span>
                 </div>
               )}
             </div>
           </div>
-          
+
           <div className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="year" 
+                <XAxis
+                  dataKey="year"
                   type="number"
                   scale="linear"
                   domain={['dataMin', 'dataMax']}
                 />
                 <YAxis tickFormatter={(value) => `${value}°C`} />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend 
-                  formatter={(value: string) => 
-                    value === 'maxTemp' ? '最高温度' : 
-                    value === 'minTemp' ? '最低温度' : '平均温度'
+                <Legend
+                  formatter={(value: string) =>
+                    value === 'maxTemp' ? '最高温度' :
+                      value === 'minTemp' ? '最低温度' : '平均温度'
                   }
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="maxTemp" 
-                  stroke="#ef4444" 
+                <Line
+                  type="monotone"
+                  dataKey="maxTemp"
+                  stroke="#ef4444"
                   strokeWidth={2}
                   dot={{ r: 4 }}
                   name="最高温度"
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="avgTemp" 
-                  stroke="#10b981" 
+                <Line
+                  type="monotone"
+                  dataKey="avgTemp"
+                  stroke="#10b981"
                   strokeWidth={2}
                   dot={{ r: 4 }}
                   name="平均温度"
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="minTemp" 
-                  stroke="#3b82f6" 
+                <Line
+                  type="monotone"
+                  dataKey="minTemp"
+                  stroke="#3b82f6"
                   strokeWidth={2}
                   dot={{ r: 4 }}
                   name="最低温度"

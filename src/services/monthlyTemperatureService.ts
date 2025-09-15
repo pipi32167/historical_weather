@@ -73,15 +73,15 @@ class MonthlyTemperatureAggregator {
       '7月', '8月', '9月', '10月', '11月', '12月'
     ];
 
-    const validData = dailyData.filter(d => 
-      !isNaN(d.temperature) && 
-      !isNaN(d.temperatureMax) && 
+    const validData = dailyData.filter(d =>
+      !isNaN(d.temperature) &&
+      !isNaN(d.temperatureMax) &&
       !isNaN(d.temperatureMin) &&
-      d.temperature !== null && 
-      d.temperatureMax !== null && 
+      d.temperature !== null &&
+      d.temperatureMax !== null &&
       d.temperatureMin !== null &&
-      typeof d.temperature === 'number' && 
-      typeof d.temperatureMax === 'number' && 
+      typeof d.temperature === 'number' &&
+      typeof d.temperatureMax === 'number' &&
       typeof d.temperatureMin === 'number'
     );
 
@@ -173,7 +173,7 @@ export class MonthlyTemperatureService {
     // 检查缓存
     const cacheKey = `monthly_trends_${latitude.toFixed(4)}_${longitude.toFixed(4)}_${month}_${startYear}_${endYear}`;
     const cachedResult = cache.get<MonthlyTemperatureTrends>(cacheKey);
-    
+
     if (cachedResult) {
       console.log('从缓存获取月度温度趋势:', { month, startYear, endYear, location });
       return cachedResult;
@@ -184,21 +184,21 @@ export class MonthlyTemperatureService {
 
       // 一次性获取整个日期范围的数据
       const startDate = `${startYear}-01-01`;
-      
+
       // 特殊处理：如果是当前年份，需要小心处理日期范围
       const currentYear = new Date().getFullYear();
       const currentMonth = new Date().getMonth() + 1;
-      
+
       let endDate;
-      if (endYear === currentYear) {
-        if (month <= currentMonth) {
+      if (endYear >= currentYear) {
+        if (endYear === currentYear && month <= currentMonth) {
           // 当前年份的已过月份或当前月份，获取到今天
           endDate = new Date().toISOString().split('T')[0];
           console.log(`[MonthlyTemperatureService] 当前年份${month}月(≤当前月${currentMonth})，获取到今天: ${endDate}`);
         } else {
-          // 当前年份的未来月份，这种情况不应该发生，因为页面逻辑应该已经排除了
-          console.warn(`[MonthlyTemperatureService] 警告：尝试获取当前年份未来月份${month}的数据`);
-          endDate = `${endYear}-12-31`;
+          // 当前年份的未来月份或未来年份，使用今天作为结束日期
+          console.warn(`[MonthlyTemperatureService] 警告：尝试获取当前年份未来月份${month}或未来年份${endYear}的数据，使用今天作为结束日期`);
+          endDate = new Date().toISOString().split('T')[0];
         }
       } else {
         // 历史年份，获取整年数据
@@ -246,9 +246,9 @@ export class MonthlyTemperatureService {
           const meanTemp = historicalData.daily.temperature_2m_mean?.[index] || (maxTemp + minTemp) / 2;
 
           // 验证数据有效性 - 添加更严格的验证
-          if (!isNaN(maxTemp) && !isNaN(minTemp) && !isNaN(meanTemp) && 
-              maxTemp !== null && minTemp !== null && meanTemp !== null &&
-              typeof maxTemp === 'number' && typeof minTemp === 'number' && typeof meanTemp === 'number') {
+          if (!isNaN(maxTemp) && !isNaN(minTemp) && !isNaN(meanTemp) &&
+            maxTemp !== null && minTemp !== null && meanTemp !== null &&
+            typeof maxTemp === 'number' && typeof minTemp === 'number' && typeof meanTemp === 'number') {
             dataByYear[year].push({
               date: time,
               temperature: meanTemp,
@@ -262,7 +262,7 @@ export class MonthlyTemperatureService {
       // 为每年计算月度统计
       for (const [yearStr, yearData] of Object.entries(dataByYear)) {
         const year = parseInt(yearStr);
-        
+
         if (yearData.length > 0) {
           const monthlyStats = MonthlyTemperatureAggregator.calculateMonthlyStats(
             yearData,
@@ -330,7 +330,7 @@ export class MonthlyTemperatureService {
   ): Promise<MonthlyTemperatureStats[]> {
     const cacheKey = `annual_profile_${latitude.toFixed(4)}_${longitude.toFixed(4)}_${startYear}_${endYear}`;
     const cachedResult = cache.get<MonthlyTemperatureStats[]>(cacheKey);
-    
+
     if (cachedResult) {
       console.log('从缓存获取年度温度概况:', { startYear, endYear, location });
       return cachedResult;
@@ -341,15 +341,15 @@ export class MonthlyTemperatureService {
 
       // 一次性获取整个日期范围的数据
       const startDate = `${startYear}-01-01`;
-      
-      // 特殊处理：如果结束年份是当前年份，使用今天作为结束日期
+
+      // 特殊处理：如果结束年份是当前年份或未来年份，使用今天作为结束日期
       const currentYear = new Date().getFullYear();
       let endDate;
-      
-      if (endYear === currentYear) {
-        // 当前年份，使用今天作为结束日期
+
+      if (endYear >= currentYear) {
+        // 当前年份或未来年份，使用今天作为结束日期
         endDate = new Date().toISOString().split('T')[0];
-        console.log(`[MonthlyTemperatureService] 当前年份，使用今天作为结束日期: ${endDate}`);
+        console.log(`[MonthlyTemperatureService] 年份为当前年份或未来年份(${endYear})，使用今天作为结束日期: ${endDate}`);
       } else {
         // 历史年份，使用12月31日
         endDate = `${endYear}-12-31`;
@@ -421,7 +421,7 @@ export class MonthlyTemperatureService {
       // 计算每个年月的统计数据
       for (const [key, monthData] of Object.entries(dataByYearMonth)) {
         const [year, month] = key.split('-').map(Number);
-        
+
         if (monthData.length > 0) {
           const monthlyStats = MonthlyTemperatureAggregator.calculateMonthlyStats(
             monthData,
@@ -452,7 +452,7 @@ export class MonthlyTemperatureService {
 
       for (let month = 1; month <= 12; month++) {
         const yearData = monthlyData[month];
-        
+
         if (yearData.length > 0) {
           const avgTemp = MonthlyTemperatureAggregator.mean(yearData.map(d => d.avgTemp));
           const avgMaxTemp = MonthlyTemperatureAggregator.mean(yearData.map(d => d.avgMaxTemp));
