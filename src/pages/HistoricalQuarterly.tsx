@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChartBarSquareIcon, MapPinIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, MinusIcon } from '@heroicons/react/24/outline';
 import { MonthlyTemperatureStats } from '../services/monthlyTemperatureService';
-import { openMeteoService } from '../services/openMeteoWeather';
+import { unifiedHistoricalService } from '../services/unifiedHistoricalService';
 import HistoricalTemperatureChart from '../components/Charts/HistoricalTemperatureChart';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
@@ -50,58 +50,20 @@ const HistoricalQuarterly: React.FC = () => {
     setError(null);
 
     try {
-      console.log('获取季度历史数据（优化版本，一次API调用）:', { quarter: selectedQuarter, yearRange, location: currentLocation });
+      console.log('🔢 使用统一服务获取季度历史数据:', { quarter: selectedQuarter, yearRange, location: currentLocation });
 
       const quarterlyResults: QuarterlyYearData[] = [];
 
       // 获取当前季度的所有月份
       const currentQuarterMonths = quarterMonths[selectedQuarter - 1];
 
-      // 计算当前年份和季度
-      const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth() + 1;
-      const currentQuarter = Math.ceil(currentMonth / 3);
-
-      // 判断选择的季度在当前年份是否已经过去
-      const selectedQuarterInCurrentYear = selectedQuarter <= currentQuarter;
-
-      // 设置结束日期：如果选择的季度在当前年份且已经过去，则包含当前年份
-      let actualEndYear = Math.min(yearRange.end, currentYear); // 确保不使用未来年份
-      let endDate;
-
-      if (actualEndYear === currentYear && selectedQuarterInCurrentYear) {
-        // 当前年份的已过去季度，获取到当前日期
-        const today = new Date();
-        endDate = today.toISOString().split('T')[0];
-        console.log(`[HistoricalQuarterly] 当前年份${selectedQuarter}季度已过去，包含当年数据到今天: ${endDate}`);
-      } else if (actualEndYear === currentYear && !selectedQuarterInCurrentYear) {
-        // 当前年份的未来季度，排除当前年份
-        actualEndYear = currentYear - 1;
-        endDate = `${actualEndYear}-12-31`;
-        console.log(`[HistoricalQuarterly] 当前年份${selectedQuarter}季度未到，排除当年: ${endDate}`);
-      } else {
-        // 历史年份，确保结束日期不超过今天
-        if (actualEndYear === currentYear) {
-          endDate = new Date().toISOString().split('T')[0];
-        } else {
-          endDate = `${actualEndYear}-12-31`;
-        }
-      }
-
-      const startDate = `${yearRange.start}-01-01`;
-
-      console.log(`[HistoricalQuarterly] 获取日期范围数据: ${startDate} 到 ${endDate}`);
-
-      const historicalData = await openMeteoService.getHistoricalWeather(
-        currentLocation.latitude,
-        currentLocation.longitude,
-        startDate,
-        endDate,
-        currentLocation.timezone,
-        ['temperature_2m_max', 'temperature_2m_min', 'temperature_2m_mean']
+      // 使用统一服务获取历史数据
+      const historicalData = await unifiedHistoricalService.getUnifiedHistoricalData(
+        currentLocation,
+        yearRange.start
       );
 
-      console.log(`[HistoricalQuarterly] 获取到 ${historicalData.daily.time.length} 天的数据`);
+      console.log(`[HistoricalQuarterly] 从统一服务获取到 ${historicalData.daily.time.length} 天的数据`);
 
       // 按年份和月份分组数据
       const dataByYearMonth: Record<string, Array<{
@@ -111,7 +73,8 @@ const HistoricalQuarterly: React.FC = () => {
         avgTemp: number;
       }>> = {};
 
-      historicalData.daily.time.forEach((time, index) => {
+      // 处理历史数据
+      historicalData.daily.time.forEach((time: string, index: number) => {
         const date = new Date(time);
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
@@ -128,7 +91,11 @@ const HistoricalQuarterly: React.FC = () => {
           const minTemp = historicalData.daily.temperature_2m_min[index];
           const avgTemp = historicalData.daily.temperature_2m_mean?.[index] || (maxTemp + minTemp) / 2;
 
-          if (!isNaN(maxTemp) && !isNaN(minTemp) && !isNaN(avgTemp)) {
+          // 验证数据有效性
+          if (maxTemp != null && minTemp != null &&
+            !isNaN(maxTemp) && !isNaN(minTemp) &&
+            maxTemp >= -60 && maxTemp <= 60 &&
+            minTemp >= -60 && minTemp <= 60) {
             dataByYearMonth[key].push({
               date: time,
               maxTemp,
@@ -169,7 +136,7 @@ const HistoricalQuarterly: React.FC = () => {
       }
 
       // 为每年生成季度数据
-      for (let year = yearRange.start; year <= actualEndYear; year++) {
+      for (let year = yearRange.start; year <= Math.min(yearRange.end, new Date().getFullYear()); year++) {
         const yearMonthData = yearDataMap[year];
 
         if (yearMonthData && Object.keys(yearMonthData).length > 0) {
@@ -189,32 +156,32 @@ const HistoricalQuarterly: React.FC = () => {
             const recordHigh = Math.max(...quarterData.map(month => month.avgMaxTemp));
             const recordLow = Math.min(...quarterData.map(month => month.avgMinTemp));
 
+            // 为当前季度创建MonthlyTemperatureStats数据
+            const monthStats = currentQuarterMonths.map(month => {
+              const monthData = yearMonthData[month];
+              if (monthData) {
+                return {
+                  year,
+                  month,
+                  monthName: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'][month - 1],
+                  avgTemp: monthData.avgTemp,
+                  avgMaxTemp: monthData.avgMaxTemp,
+                  avgMinTemp: monthData.avgMinTemp,
+                  recordHigh: monthData.avgMaxTemp,
+                  recordLow: monthData.avgMinTemp,
+                  totalDays: new Date(year, month, 0).getDate(),
+                  dataPoints: monthData.dataPoints,
+                  location: currentLocation.name,
+                  latitude: currentLocation.latitude,
+                  longitude: currentLocation.longitude
+                };
+              }
+              return null;
+            }).filter(Boolean) as MonthlyTemperatureStats[];
+
             // 创建季度数据（只创建当前选中的季度）
             const quarters: QuarterlyData[] = quarterNames.map((name, index) => {
               if (index === selectedQuarter - 1) {
-                // 为当前季度创建模拟MonthlyTemperatureStats数据
-                const monthStats = currentQuarterMonths.map(month => {
-                  const monthData = yearMonthData[month];
-                  if (monthData) {
-                    return {
-                      year,
-                      month,
-                      monthName: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'][month - 1],
-                      avgTemp: monthData.avgTemp,
-                      avgMaxTemp: monthData.avgMaxTemp,
-                      avgMinTemp: monthData.avgMinTemp,
-                      recordHigh: monthData.avgMaxTemp, // 简化处理
-                      recordLow: monthData.avgMinTemp,   // 简化处理
-                      totalDays: new Date(year, month, 0).getDate(),
-                      dataPoints: monthData.dataPoints,
-                      location: currentLocation.name,
-                      latitude: currentLocation.latitude,
-                      longitude: currentLocation.longitude
-                    };
-                  }
-                  return null;
-                }).filter(Boolean) as MonthlyTemperatureStats[];
-
                 return {
                   quarter: name,
                   quarterNumber: index + 1,

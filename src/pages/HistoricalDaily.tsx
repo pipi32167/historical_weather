@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CalendarDaysIcon, MapPinIcon, FireIcon } from '@heroicons/react/24/outline';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { openMeteoService } from '../services/openMeteoWeather';
+import { unifiedHistoricalService } from '../services/unifiedHistoricalService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
@@ -33,186 +33,76 @@ const HistoricalDaily: React.FC = () => {
     setError(null);
 
     try {
-      console.log('获取历史同期数据:', { date: selectedDate, location: currentLocation });
+      console.log('📊 获取历史同期数据:', { date: selectedDate, location: currentLocation });
 
-      const currentYear = new Date().getFullYear();
       const currentDate = new Date();
       const targetMonth = selectedDate.getMonth() + 1;
       const targetDay = selectedDate.getDate();
       const isToday = selectedDate.toDateString() === currentDate.toDateString();
 
-      // 数据获取范围：[当前年份-20] 至 [当前年份]
+      // 数据获取范围：过去20年
       const years = 20;
-      const startYear = currentYear - years;
-      const endYear = currentYear;
+      const startYear = new Date().getFullYear() - years;
 
-      let historicalData;
-      let currentYearData = null;
+      // 1. 获取统一的历史数据（从startYear-01-01到昨天）
+      console.log(`📅 获取历史数据范围: ${startYear}-01-01 到昨天`);
+      const historicalData = await unifiedHistoricalService.getUnifiedHistoricalData(
+        currentLocation,
+        startYear
+      );
 
+      // 2. 过滤出目标日期的历史数据
+      const historicalResults = unifiedHistoricalService.filterByDate(
+        historicalData,
+        targetMonth,
+        targetDay
+      );
+
+      console.log(`📈 找到 ${historicalResults.length} 年的历史数据:`,
+        historicalResults.map(r => r.year).sort());
+
+      let processedData: DailyHistoricalData[] = [...historicalResults];
+
+      // 3. 如果查看的是今天，添加今日预报数据
       if (isToday) {
-        console.log('今日数据，调用预报接口获取当天数据');
+        console.log('📡 获取今日预报数据...');
 
-        // 获取历史数据（不包含当前年份）
-        const historicalResult = await openMeteoService.getHistoricalWeather(
-          currentLocation.latitude,
-          currentLocation.longitude,
-          `${startYear}-01-01`,
-          `${currentYear - 1}-12-31`,
-          currentLocation.timezone,
-          ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum']
-        );
+        const todayForecast = await unifiedHistoricalService.getTodayForecast(currentLocation);
 
-        // 获取今日预报数据
-        try {
-          const todayForecast = await openMeteoService.getTodayForecast(
-            currentLocation.latitude,
-            currentLocation.longitude,
-            currentLocation.timezone
-          );
+        if (todayForecast?.daily?.time?.length > 0) {
+          const todayData = todayForecast.daily;
+          const maxTemp = todayData.temperature_2m_max?.[0];
+          const minTemp = todayData.temperature_2m_min?.[0];
 
-          historicalData = historicalResult;
+          if (maxTemp != null && minTemp != null && !isNaN(maxTemp) && !isNaN(minTemp)) {
+            const currentYear = new Date().getFullYear();
 
-          // 处理今日预报数据
-          if (todayForecast.daily && todayForecast.daily.time.length > 0) {
-            currentYearData = {
+            processedData.unshift({
               year: currentYear,
-              time: todayForecast.daily.time,
-              temperature_2m_max: todayForecast.daily.temperature_2m_max || [],
-              temperature_2m_min: todayForecast.daily.temperature_2m_min || [],
-              precipitation_sum: todayForecast.daily.precipitation_sum || []
-            };
-          }
-        } catch (forecastError) {
-          console.warn('今日预报数据获取失败，使用历史数据:', forecastError);
-          // 优雅降级：预报接口失败时只使用历史数据
-          historicalData = historicalResult;
-          currentYearData = null;
-        }
-      } else {
-        // 非今日，获取完整历史数据（包含当前年份的历史数据）
-        const selectedDateThisYear = new Date(currentYear, selectedDate.getMonth(), selectedDate.getDate());
+              date: todayData.time[0],
+              maxTemp: Math.round(maxTemp * 10) / 10,
+              minTemp: Math.round(minTemp * 10) / 10,
+              avgTemp: Math.round((maxTemp + minTemp) / 2 * 10) / 10,
+              precipitation: Math.round((todayData.precipitation_sum?.[0] || 0) * 10) / 10
+            });
 
-        if (selectedDateThisYear <= currentDate) {
-          console.log('当年历史数据，使用历史接口');
-          // 选定日期在当年且已经过去，包含当前年份的历史数据
-          // 确保结束日期不超过今天
-          const today = new Date().toISOString().split('T')[0];
-          historicalData = await openMeteoService.getHistoricalWeather(
-            currentLocation.latitude,
-            currentLocation.longitude,
-            `${startYear}-01-01`,
-            today,
-            currentLocation.timezone,
-            ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum']
-          );
+            console.log(`✅ 添加今日预报数据: ${currentYear}年`, {
+              maxTemp, minTemp, avgTemp: (maxTemp + minTemp) / 2
+            });
+          }
         } else {
-          console.log('当年未来日期，排除当前年份');
-          // 选定日期在当年但还未到达，排除当前年份
-          historicalData = await openMeteoService.getHistoricalWeather(
-            currentLocation.latitude,
-            currentLocation.longitude,
-            `${startYear}-01-01`,
-            `${currentYear - 1}-12-31`,
-            currentLocation.timezone,
-            ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum']
-          );
+          console.warn('⚠️ 今日预报数据不可用');
         }
       }
 
-      // 在客户端过滤出目标日期的同期数据
-      const results: Array<{ year: number; data: any }> = [];
-
-      // 按年份分组同期数据
-      const dataByYear: Record<number, {
-        time: string[];
-        temperature_2m_max: number[];
-        temperature_2m_min: number[];
-        precipitation_sum?: number[];
-      }> = {};
-
-      // 处理历史数据
-      if (historicalData && historicalData.daily) {
-        historicalData.daily.time.forEach((time, index) => {
-          const date = new Date(time);
-          const year = date.getFullYear();
-          const month = date.getMonth() + 1;
-          const day = date.getDate();
-
-          if (month === targetMonth && day === targetDay) {
-            if (!dataByYear[year]) {
-              dataByYear[year] = {
-                time: [],
-                temperature_2m_max: [],
-                temperature_2m_min: [],
-                precipitation_sum: []
-              };
-            }
-
-            dataByYear[year].time.push(time);
-            dataByYear[year].temperature_2m_max.push(historicalData.daily.temperature_2m_max[index]);
-            dataByYear[year].temperature_2m_min.push(historicalData.daily.temperature_2m_min[index]);
-            if (historicalData.daily.precipitation_sum) {
-              dataByYear[year].precipitation_sum!.push(historicalData.daily.precipitation_sum[index]);
-            }
-          }
-        });
-      }
-
-      // 处理当年数据（今日预报或当年历史）
-      if (currentYearData) {
-        console.log('添加当年数据:', currentYearData);
-        dataByYear[currentYear] = {
-          time: currentYearData.time,
-          temperature_2m_max: currentYearData.temperature_2m_max,
-          temperature_2m_min: currentYearData.temperature_2m_min,
-          precipitation_sum: currentYearData.precipitation_sum
-        };
-      }
-
-      // 构建结果
-      for (const [yearStr, yearData] of Object.entries(dataByYear)) {
-        const year = parseInt(yearStr);
-        if (yearData.time.length > 0) {
-          results.push({
-            year,
-            data: {
-              latitude: currentLocation.latitude,
-              longitude: currentLocation.longitude,
-              timezone: currentLocation.timezone,
-              daily: {
-                time: yearData.time,
-                temperature_2m_max: yearData.temperature_2m_max,
-                temperature_2m_min: yearData.temperature_2m_min,
-                precipitation_sum: yearData.precipitation_sum
-              }
-            }
-          });
-        }
-      }
-
-      const processedData: DailyHistoricalData[] = results.map(result => {
-        const dailyData = result.data.daily;
-        const maxTemp = dailyData.temperature_2m_max[0] || 0;
-        const minTemp = dailyData.temperature_2m_min[0] || 0;
-        const avgTemp = (maxTemp + minTemp) / 2;
-        const precipitation = dailyData.precipitation_sum?.[0] || 0;
-
-        return {
-          year: result.year,
-          date: dailyData.time[0],
-          maxTemp: Math.round(maxTemp * 10) / 10,
-          minTemp: Math.round(minTemp * 10) / 10,
-          avgTemp: Math.round(avgTemp * 10) / 10,
-          precipitation: Math.round(precipitation * 10) / 10
-        };
-      });
-
-      // 按年份排序
+      // 4. 按年份排序并设置数据
       processedData.sort((a, b) => b.year - a.year);
       setData(processedData);
 
+      console.log(`🎯 最终显示 ${processedData.length} 年的数据`);
+
     } catch (error) {
-      console.error('获取历史同期数据失败:', error);
+      console.error('❌ 获取历史同期数据失败:', error);
       setError('获取历史同期数据失败，请稍后重试');
     } finally {
       setLoading(false);
@@ -459,7 +349,7 @@ const HistoricalDaily: React.FC = () => {
                 <div className="flex items-center space-x-2 text-sm">
                   <span>{getTrendIcon(avgTempTrend.trend)}</span>
                   <span className={`font-medium ${avgTempTrend.trend === 'warming' ? 'text-red-600' :
-                      avgTempTrend.trend === 'cooling' ? 'text-blue-600' : 'text-green-600'
+                    avgTempTrend.trend === 'cooling' ? 'text-blue-600' : 'text-green-600'
                     }`}>
                     {getTrendDescription(avgTempTrend.trend, avgTempTrend.trendValue)}
                   </span>

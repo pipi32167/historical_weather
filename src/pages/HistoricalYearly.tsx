@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PresentationChartLineIcon, MapPinIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, MinusIcon } from '@heroicons/react/24/outline';
 import { MonthlyTemperatureStats } from '../services/monthlyTemperatureService';
-import { openMeteoService } from '../services/openMeteoWeather';
+import { unifiedHistoricalService } from '../services/unifiedHistoricalService';
 import MonthlyTemperatureChart from '../components/Charts/MonthlyTemperatureChart';
 import HistoricalTemperatureChart from '../components/Charts/HistoricalTemperatureChart';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -38,35 +38,15 @@ const HistoricalYearly: React.FC = () => {
     try {
       console.log('获取年度历史数据（优化版本，一次API调用）:', { yearRange, location: currentLocation });
 
-      // 只进行一次API调用，获取整个日期范围的数据
-      const startDate = `${yearRange.start}-01-01`;
+      // 使用统一的历史数据服务
+      console.log(`[HistoricalYearly] 使用统一服务获取历史数据，年份范围: ${yearRange.start} - ${yearRange.end}`);
 
-      // 确保结束日期不超过今天
-      const today = new Date();
-      const currentYear = today.getFullYear();
-      let endDate;
-
-      if (yearRange.end >= currentYear) {
-        // 当前年份或未来年份，使用今天作为结束日期
-        endDate = today.toISOString().split('T')[0];
-        console.log(`[HistoricalYearly] 年份范围包含当前年份或未来年份，使用今天作为结束日期: ${endDate}`);
-      } else {
-        // 历史年份，使用12月31日
-        endDate = `${yearRange.end}-12-31`;
-      }
-
-      console.log(`[HistoricalYearly] 获取日期范围数据: ${startDate} 到 ${endDate}`);
-
-      const historicalData = await openMeteoService.getHistoricalWeather(
-        currentLocation.latitude,
-        currentLocation.longitude,
-        startDate,
-        endDate,
-        currentLocation.timezone,
-        ['temperature_2m_max', 'temperature_2m_min', 'temperature_2m_mean']
+      const historicalData = await unifiedHistoricalService.getUnifiedHistoricalData(
+        currentLocation,
+        yearRange.start
       );
 
-      console.log(`[HistoricalYearly] 获取到 ${historicalData.daily.time.length} 天的数据`);
+      console.log(`[HistoricalYearly] 获取到 ${historicalData.daily?.time?.length || 0} 天的数据`);
 
       // 按年份和月份分组数据
       const dataByYearMonth: Record<string, Array<{
@@ -76,29 +56,31 @@ const HistoricalYearly: React.FC = () => {
         avgTemp: number;
       }>> = {};
 
-      historicalData.daily.time.forEach((time, index) => {
-        const date = new Date(time);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-        const key = `${year}-${month}`;
+      if (historicalData?.daily?.time) {
+        historicalData.daily.time.forEach((time: string, index: number) => {
+          const date = new Date(time);
+          const year = date.getFullYear();
+          const month = date.getMonth() + 1;
+          const key = `${year}-${month}`;
 
-        if (!dataByYearMonth[key]) {
-          dataByYearMonth[key] = [];
-        }
+          if (!dataByYearMonth[key]) {
+            dataByYearMonth[key] = [];
+          }
 
-        const maxTemp = historicalData.daily.temperature_2m_max[index];
-        const minTemp = historicalData.daily.temperature_2m_min[index];
-        const avgTemp = historicalData.daily.temperature_2m_mean?.[index] || (maxTemp + minTemp) / 2;
+          const maxTemp = historicalData.daily.temperature_2m_max[index];
+          const minTemp = historicalData.daily.temperature_2m_min[index];
+          const avgTemp = historicalData.daily.temperature_2m_mean?.[index] || (maxTemp + minTemp) / 2;
 
-        if (!isNaN(maxTemp) && !isNaN(minTemp) && !isNaN(avgTemp)) {
-          dataByYearMonth[key].push({
-            date: time,
-            maxTemp,
-            minTemp,
-            avgTemp
-          });
-        }
-      });
+          if (!isNaN(maxTemp) && !isNaN(minTemp) && !isNaN(avgTemp)) {
+            dataByYearMonth[key].push({
+              date: time,
+              maxTemp,
+              minTemp,
+              avgTemp
+            });
+          }
+        });
+      }
 
       // 按年份组织数据
       const yearDataMap: Record<number, MonthlyTemperatureStats[]> = {};

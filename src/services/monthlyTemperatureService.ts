@@ -3,6 +3,7 @@
  * 基于Open-Meteo API实现月度温度数据聚合和分析
  */
 
+import { unifiedHistoricalService } from './unifiedHistoricalService';
 import { openMeteoService } from './openMeteoWeather';
 import { cache, CACHE_TTL } from '../utils/cache';
 import { executeWithRetry } from '../utils/concurrencyController';
@@ -159,7 +160,8 @@ export class MonthlyTemperatureService {
   // 现在使用更高效的日期范围查询来一次性获取多年数据
 
   /**
-   * 获取指定月份多年的温度趋势（优化版本 - 使用日期范围查询）
+   * 获取特定月份的温度趋势（多年对比）
+   * 使用统一历史数据服务
    */
   async getMonthlyTemperatureTrends(
     latitude: number,
@@ -167,150 +169,31 @@ export class MonthlyTemperatureService {
     month: number,
     startYear: number,
     endYear: number,
-    location: string = '未知位置',
+    locationName: string = 'Unknown',
     timezone: string = 'auto'
   ): Promise<MonthlyTemperatureTrends | null> {
-    // 检查缓存
-    const cacheKey = `monthly_trends_${latitude.toFixed(4)}_${longitude.toFixed(4)}_${month}_${startYear}_${endYear}`;
-    const cachedResult = cache.get<MonthlyTemperatureTrends>(cacheKey);
-
-    if (cachedResult) {
-      console.log('从缓存获取月度温度趋势:', { month, startYear, endYear, location });
-      return cachedResult;
-    }
-
     try {
-      console.log('计算月度温度趋势（日期范围查询）:', { location, month, startYear, endYear });
-
-      // 一次性获取整个日期范围的数据
-      const startDate = `${startYear}-01-01`;
-
-      // 特殊处理：如果是当前年份，需要小心处理日期范围
-      const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth() + 1;
-
-      let endDate;
-      if (endYear >= currentYear) {
-        if (endYear === currentYear && month <= currentMonth) {
-          // 当前年份的已过月份或当前月份，获取到今天
-          endDate = new Date().toISOString().split('T')[0];
-          console.log(`[MonthlyTemperatureService] 当前年份${month}月(≤当前月${currentMonth})，获取到今天: ${endDate}`);
-        } else {
-          // 当前年份的未来月份或未来年份，使用今天作为结束日期
-          console.warn(`[MonthlyTemperatureService] 警告：尝试获取当前年份未来月份${month}或未来年份${endYear}的数据，使用今天作为结束日期`);
-          endDate = new Date().toISOString().split('T')[0];
-        }
-      } else {
-        // 历史年份，获取整年数据
-        endDate = `${endYear}-12-31`;
-      }
-
-      console.log(`[MonthlyTemperatureService] 获取日期范围数据: ${startDate} 到 ${endDate}`);
-
-      const historicalData = await executeWithRetry(
-        () => openMeteoService.getHistoricalWeather(
-          latitude,
-          longitude,
-          startDate,
-          endDate,
-          timezone,
-          ['temperature_2m_max', 'temperature_2m_min', 'temperature_2m_mean']
-        ),
-        3,
-        1000
-      );
-
-      // 按年份和月份分组数据
-      const yearlyStats: MonthlyTemperatureStats[] = [];
-      const dataByYear: Record<number, Array<{
-        date: string;
-        temperature: number;
-        temperatureMax: number;
-        temperatureMin: number;
-      }>> = {};
-
-      // 过滤出指定月份的数据并按年份分组
-      historicalData.daily.time.forEach((time, index) => {
-        const date = new Date(time);
-        const year = date.getFullYear();
-        const monthNum = date.getMonth() + 1; // 0-11 -> 1-12
-
-        // 只处理指定月份的数据
-        if (monthNum === month) {
-          if (!dataByYear[year]) {
-            dataByYear[year] = [];
-          }
-
-          const maxTemp = historicalData.daily.temperature_2m_max[index];
-          const minTemp = historicalData.daily.temperature_2m_min[index];
-          const meanTemp = historicalData.daily.temperature_2m_mean?.[index] || (maxTemp + minTemp) / 2;
-
-          // 验证数据有效性 - 添加更严格的验证
-          if (!isNaN(maxTemp) && !isNaN(minTemp) && !isNaN(meanTemp) &&
-            maxTemp !== null && minTemp !== null && meanTemp !== null &&
-            typeof maxTemp === 'number' && typeof minTemp === 'number' && typeof meanTemp === 'number') {
-            dataByYear[year].push({
-              date: time,
-              temperature: meanTemp,
-              temperatureMax: maxTemp,
-              temperatureMin: minTemp
-            });
-          }
-        }
-      });
-
-      // 为每年计算月度统计
-      for (const [yearStr, yearData] of Object.entries(dataByYear)) {
-        const year = parseInt(yearStr);
-
-        if (yearData.length > 0) {
-          const monthlyStats = MonthlyTemperatureAggregator.calculateMonthlyStats(
-            yearData,
-            location,
-            latitude,
-            longitude
-          );
-
-          if (monthlyStats) {
-            // 确保年份正确
-            monthlyStats.year = year;
-            monthlyStats.month = month;
-            yearlyStats.push(monthlyStats);
-          }
-        }
-      }
-
-      console.log(`[MonthlyTemperatureService] 成功处理 ${yearlyStats.length} 年的${month}月数据`);
-
-      if (yearlyStats.length === 0) {
-        return null;
-      }
-
-      // 计算趋势
-      const { trend, trendValue } = MonthlyTemperatureAggregator.calculateTrend(yearlyStats);
-      const averageTemp = MonthlyTemperatureAggregator.mean(yearlyStats.map(d => d.avgTemp));
-
-      const monthNames = [
-        '1月', '2月', '3月', '4月', '5月', '6月',
-        '7月', '8月', '9月', '10月', '11月', '12月'
-      ];
-
-      const trendsData: MonthlyTemperatureTrends = {
-        location,
+      // 构造 Location 对象
+      const location = {
+        id: `${latitude.toFixed(4)}_${longitude.toFixed(4)}`,
+        name: locationName,
         latitude,
         longitude,
-        month,
-        monthName: monthNames[month - 1],
-        years: yearlyStats.sort((a, b) => a.year - b.year),
-        averageTemp: Math.round(averageTemp * 10) / 10,
-        trend,
-        trendValue
+        country: 'Unknown',
+        timezone
       };
 
-      // 缓存结果
-      cache.set(cacheKey, trendsData, CACHE_TTL.HISTORICAL_DATA);
+      // 使用统一服务获取月度趋势数据
+      console.log('📊 使用统一服务计算月度温度趋势:', { locationName, month, startYear, endYear });
 
-      return trendsData;
+      const result = await unifiedHistoricalService.getMonthlyTemperatureTrends(
+        location,
+        month,
+        startYear,
+        Math.min(endYear, new Date().getFullYear()) // 确保不超过当前年份
+      );
+
+      return result;
     } catch (error) {
       console.error('获取月度温度趋势失败:', error);
       return null;
@@ -319,141 +202,44 @@ export class MonthlyTemperatureService {
 
   /**
    * 获取指定位置全年各月的平均温度（基于多年数据）- 优化版本
+   * 使用统一历史数据服务
    */
   async getAnnualTemperatureProfile(
     latitude: number,
     longitude: number,
     startYear: number,
     endYear: number,
-    location: string = '未知位置',
+    locationName: string = '未知位置',
     timezone: string = 'auto'
   ): Promise<MonthlyTemperatureStats[]> {
-    const cacheKey = `annual_profile_${latitude.toFixed(4)}_${longitude.toFixed(4)}_${startYear}_${endYear}`;
-    const cachedResult = cache.get<MonthlyTemperatureStats[]>(cacheKey);
-
-    if (cachedResult) {
-      console.log('从缓存获取年度温度概况:', { startYear, endYear, location });
-      return cachedResult;
-    }
-
     try {
-      console.log('计算年度温度概况（日期范围查询）:', { location, startYear, endYear });
+      console.log('📈 使用统一服务计算年度温度概况:', { locationName, startYear, endYear });
 
-      // 一次性获取整个日期范围的数据
-      const startDate = `${startYear}-01-01`;
-
-      // 特殊处理：如果结束年份是当前年份或未来年份，使用今天作为结束日期
-      const currentYear = new Date().getFullYear();
-      let endDate;
-
-      if (endYear >= currentYear) {
-        // 当前年份或未来年份，使用今天作为结束日期
-        endDate = new Date().toISOString().split('T')[0];
-        console.log(`[MonthlyTemperatureService] 年份为当前年份或未来年份(${endYear})，使用今天作为结束日期: ${endDate}`);
-      } else {
-        // 历史年份，使用12月31日
-        endDate = `${endYear}-12-31`;
-      }
-
-      console.log(`[MonthlyTemperatureService] 获取年度概况数据: ${startDate} 到 ${endDate}`);
-
-      const historicalData = await executeWithRetry(
-        () => openMeteoService.getHistoricalWeather(
-          latitude,
-          longitude,
-          startDate,
-          endDate,
-          timezone,
-          ['temperature_2m_max', 'temperature_2m_min', 'temperature_2m_mean']
-        ),
-        3,
-        1000
-      );
-
-      // 按年份和月份分组数据
-      const dataByYearMonth: Record<string, Array<{
-        date: string;
-        temperature: number;
-        temperatureMax: number;
-        temperatureMin: number;
-      }>> = {};
-
-      // 分组数据
-      historicalData.daily.time.forEach((time, index) => {
-        const date = new Date(time);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1; // 0-11 -> 1-12
-        const key = `${year}-${month}`;
-
-        if (!dataByYearMonth[key]) {
-          dataByYearMonth[key] = [];
-        }
-
-        const maxTemp = historicalData.daily.temperature_2m_max[index];
-        const minTemp = historicalData.daily.temperature_2m_min[index];
-        const meanTemp = historicalData.daily.temperature_2m_mean?.[index] || (maxTemp + minTemp) / 2;
-
-        // 验证数据有效性
-        if (!isNaN(maxTemp) && !isNaN(minTemp) && !isNaN(meanTemp)) {
-          dataByYearMonth[key].push({
-            date: time,
-            temperature: meanTemp,
-            temperatureMax: maxTemp,
-            temperatureMin: minTemp
-          });
-        }
-      });
-
-      // 按月份聚合多年数据
-      const monthlyData: Record<number, Array<{
-        year: number;
-        avgTemp: number;
-        avgMaxTemp: number;
-        avgMinTemp: number;
-        recordHigh: number;
-        recordLow: number;
-      }>> = {};
-
-      for (let month = 1; month <= 12; month++) {
-        monthlyData[month] = [];
-      }
-
-      // 计算每个年月的统计数据
-      for (const [key, monthData] of Object.entries(dataByYearMonth)) {
-        const [year, month] = key.split('-').map(Number);
-
-        if (monthData.length > 0) {
-          const monthlyStats = MonthlyTemperatureAggregator.calculateMonthlyStats(
-            monthData,
-            location,
-            latitude,
-            longitude
-          );
-
-          if (monthlyStats) {
-            monthlyData[month].push({
-              year,
-              avgTemp: monthlyStats.avgTemp,
-              avgMaxTemp: monthlyStats.avgMaxTemp,
-              avgMinTemp: monthlyStats.avgMinTemp,
-              recordHigh: monthlyStats.recordHigh,
-              recordLow: monthlyStats.recordLow
-            });
-          }
-        }
-      }
+      // 构造 Location 对象
+      const location = {
+        id: `${latitude.toFixed(4)}_${longitude.toFixed(4)}`,
+        name: locationName,
+        latitude,
+        longitude,
+        country: 'Unknown',
+        timezone
+      };
 
       // 计算每个月的多年平均值
       const monthlyProfiles: MonthlyTemperatureStats[] = [];
-      const monthNames = [
-        '1月', '2月', '3月', '4月', '5月', '6月',
-        '7月', '8月', '9月', '10月', '11月', '12月'
-      ];
 
       for (let month = 1; month <= 12; month++) {
-        const yearData = monthlyData[month];
+        // 使用统一服务获取单个月份的多年趋势
+        const monthTrends = await unifiedHistoricalService.getMonthlyTemperatureTrends(
+          location,
+          month,
+          startYear,
+          Math.min(endYear, new Date().getFullYear())
+        );
 
-        if (yearData.length > 0) {
+        if (monthTrends && monthTrends.years.length > 0) {
+          // 计算该月的多年平均值
+          const yearData = monthTrends.years;
           const avgTemp = MonthlyTemperatureAggregator.mean(yearData.map(d => d.avgTemp));
           const avgMaxTemp = MonthlyTemperatureAggregator.mean(yearData.map(d => d.avgMaxTemp));
           const avgMinTemp = MonthlyTemperatureAggregator.mean(yearData.map(d => d.avgMinTemp));
@@ -463,7 +249,7 @@ export class MonthlyTemperatureService {
           monthlyProfiles.push({
             year: Math.round((startYear + endYear) / 2),
             month,
-            monthName: monthNames[month - 1],
+            monthName: monthTrends.monthName,
             avgTemp: Math.round(avgTemp * 10) / 10,
             avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
             avgMinTemp: Math.round(avgMinTemp * 10) / 10,
@@ -471,20 +257,14 @@ export class MonthlyTemperatureService {
             recordLow: Math.round(recordLow * 10) / 10,
             totalDays: new Date(2000, month, 0).getDate(), // 该月的总天数
             dataPoints: yearData.length,
-            location,
+            location: locationName,
             latitude,
             longitude
           });
         }
       }
 
-      console.log(`[MonthlyTemperatureService] 成功计算 ${monthlyProfiles.length}/12 个月的年度概况（基于${Object.keys(dataByYearMonth).length}个年月数据）`);
-
-      // 缓存结果
-      if (monthlyProfiles.length > 0) {
-        cache.set(cacheKey, monthlyProfiles, CACHE_TTL.HISTORICAL_DATA);
-      }
-
+      console.log(`[MonthlyTemperatureService] 成功计算 ${monthlyProfiles.length}/12 个月的年度概况`);
       return monthlyProfiles;
     } catch (error) {
       console.error('获取年度温度概况失败:', error);
