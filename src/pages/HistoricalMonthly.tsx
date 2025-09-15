@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ClockIcon, MapPinIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, MinusIcon } from '@heroicons/react/24/outline';
 import { monthlyTemperatureService, MonthlyTemperatureTrends } from '../services/monthlyTemperatureService';
-import MonthlyTemperatureChart from '../components/Charts/MonthlyTemperatureChart';
+import HistoricalTemperatureChart from '../components/Charts/HistoricalTemperatureChart';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
 import { useLocationStore } from '../store/locationStore';
-import { format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
 
 const HistoricalMonthly: React.FC = () => {
   const [data, setData] = useState<MonthlyTemperatureTrends | null>(null);
@@ -26,17 +24,17 @@ const HistoricalMonthly: React.FC = () => {
 
     try {
       console.log('获取月度历史数据:', { month: selectedMonth, yearRange, location: currentLocation });
-      
+
       // 计算当前年份和月份
       const currentYear = new Date().getFullYear();
       const currentMonth = new Date().getMonth() + 1;
-      
+
       // 判断选择的月份在当前年份是否已经过去
       const selectedMonthInCurrentYear = selectedMonth <= currentMonth;
-      
+
       // 设置实际的结束年份
       let actualEndYear = yearRange.end;
-      
+
       if (actualEndYear === currentYear && !selectedMonthInCurrentYear) {
         // 当前年份的未来月份，排除当前年份
         actualEndYear = currentYear - 1;
@@ -44,7 +42,7 @@ const HistoricalMonthly: React.FC = () => {
       } else if (actualEndYear === currentYear && selectedMonthInCurrentYear) {
         console.log(`[HistoricalMonthly] 当前年份${selectedMonth}月已过去，包含当年数据`);
       }
-      
+
       const result = await monthlyTemperatureService.getMonthlyTemperatureTrends(
         currentLocation.latitude,
         currentLocation.longitude,
@@ -123,6 +121,16 @@ const HistoricalMonthly: React.FC = () => {
         return 'text-gray-600 bg-gray-50 dark:bg-gray-900/20';
     }
   };
+
+  // 转换数据格式为通用图表组件所需的格式
+  const chartData = data ? data.years.map(yearData => ({
+    year: yearData.year,
+    recordHigh: yearData.recordHigh,
+    maxTemp: yearData.avgMaxTemp,
+    avgTemp: yearData.avgTemp,
+    minTemp: yearData.avgMinTemp,
+    recordLow: yearData.recordLow
+  })) : [];
 
   return (
     <div className="space-y-6">
@@ -300,24 +308,13 @@ const HistoricalMonthly: React.FC = () => {
           </div>
 
           {/* Chart */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {data.monthName}温度趋势图 ({yearRange.start}-{yearRange.end})
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                显示历年{data.monthName}的平均温度变化趋势
-              </p>
-            </div>
-            
-            <MonthlyTemperatureChart
-              location={currentLocation!}
-              mode="monthly-trends"
-              selectedMonth={selectedMonth}
-              startYear={yearRange.start}
-              endYear={yearRange.end}
-            />
-          </div>
+          <HistoricalTemperatureChart
+            data={chartData}
+            type="monthly"
+            title={`${data.monthName}温度趋势图`}
+            subtitle={`显示历年${data.monthName}的平均温度变化趋势`}
+            yearRange={yearRange}
+          />
 
           {/* Detailed Data Table */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">

@@ -3,9 +3,9 @@ import { PresentationChartLineIcon, MapPinIcon, ArrowTrendingUpIcon, ArrowTrendi
 import { MonthlyTemperatureStats } from '../services/monthlyTemperatureService';
 import { openMeteoService } from '../services/openMeteoWeather';
 import MonthlyTemperatureChart from '../components/Charts/MonthlyTemperatureChart';
+import HistoricalTemperatureChart from '../components/Charts/HistoricalTemperatureChart';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
 import { useLocationStore } from '../store/locationStore';
@@ -37,14 +37,14 @@ const HistoricalYearly: React.FC = () => {
 
     try {
       console.log('获取年度历史数据（优化版本，一次API调用）:', { yearRange, location: currentLocation });
-      
+
       // 只进行一次API调用，获取整个日期范围的数据
       const startDate = `${yearRange.start}-01-01`;
-      
+
       // 特殊处理：如果结束年份是当前年份，使用今天作为结束日期
       const currentYear = new Date().getFullYear();
       let endDate;
-      
+
       if (yearRange.end === currentYear) {
         // 当前年份，使用今天作为结束日期
         endDate = new Date().toISOString().split('T')[0];
@@ -53,9 +53,9 @@ const HistoricalYearly: React.FC = () => {
         // 历史年份，使用12月31日
         endDate = `${yearRange.end}-12-31`;
       }
-      
+
       console.log(`[HistoricalYearly] 获取日期范围数据: ${startDate} 到 ${endDate}`);
-      
+
       const historicalData = await openMeteoService.getHistoricalWeather(
         currentLocation.latitude,
         currentLocation.longitude,
@@ -64,9 +64,9 @@ const HistoricalYearly: React.FC = () => {
         currentLocation.timezone,
         ['temperature_2m_max', 'temperature_2m_min', 'temperature_2m_mean']
       );
-      
+
       console.log(`[HistoricalYearly] 获取到 ${historicalData.daily.time.length} 天的数据`);
-      
+
       // 按年份和月份分组数据
       const dataByYearMonth: Record<string, Array<{
         date: string;
@@ -74,21 +74,21 @@ const HistoricalYearly: React.FC = () => {
         minTemp: number;
         avgTemp: number;
       }>> = {};
-      
+
       historicalData.daily.time.forEach((time, index) => {
         const date = new Date(time);
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
         const key = `${year}-${month}`;
-        
+
         if (!dataByYearMonth[key]) {
           dataByYearMonth[key] = [];
         }
-        
+
         const maxTemp = historicalData.daily.temperature_2m_max[index];
         const minTemp = historicalData.daily.temperature_2m_min[index];
         const avgTemp = historicalData.daily.temperature_2m_mean?.[index] || (maxTemp + minTemp) / 2;
-        
+
         if (!isNaN(maxTemp) && !isNaN(minTemp) && !isNaN(avgTemp)) {
           dataByYearMonth[key].push({
             date: time,
@@ -98,29 +98,29 @@ const HistoricalYearly: React.FC = () => {
           });
         }
       });
-      
+
       // 按年份组织数据
       const yearDataMap: Record<number, MonthlyTemperatureStats[]> = {};
-      
+
       for (const [key, monthData] of Object.entries(dataByYearMonth)) {
         const [year, month] = key.split('-').map(Number);
-        
+
         if (monthData.length > 0) {
           if (!yearDataMap[year]) {
             yearDataMap[year] = [];
           }
-          
+
           const avgTemp = monthData.reduce((sum, d) => sum + d.avgTemp, 0) / monthData.length;
           const avgMaxTemp = monthData.reduce((sum, d) => sum + d.maxTemp, 0) / monthData.length;
           const avgMinTemp = monthData.reduce((sum, d) => sum + d.minTemp, 0) / monthData.length;
           const recordHigh = Math.max(...monthData.map(d => d.maxTemp));
           const recordLow = Math.min(...monthData.map(d => d.minTemp));
-          
+
           const monthNames = [
             '1月', '2月', '3月', '4月', '5月', '6月',
             '7月', '8月', '9月', '10月', '11月', '12月'
           ];
-          
+
           yearDataMap[year].push({
             year,
             month,
@@ -138,17 +138,17 @@ const HistoricalYearly: React.FC = () => {
           });
         }
       }
-      
+
       const yearlyResults: YearlyData[] = [];
-      
+
       // 为每年生成年度数据
       for (let year = yearRange.start; year <= yearRange.end; year++) {
         const yearMonthData = yearDataMap[year] || [];
-        
+
         if (yearMonthData.length > 0) {
           // 按月份排序
           yearMonthData.sort((a, b) => a.month - b.month);
-          
+
           // 计算年度统计
           const avgTemp = yearMonthData.reduce((sum, month) => sum + month.avgTemp, 0) / yearMonthData.length;
           const avgMaxTemp = yearMonthData.reduce((sum, month) => sum + month.avgMaxTemp, 0) / yearMonthData.length;
@@ -200,9 +200,9 @@ const HistoricalYearly: React.FC = () => {
   };
 
   // 计算整体统计
-  const avgYearlyTemp = data.length > 0 ? 
+  const avgYearlyTemp = data.length > 0 ?
     Math.round((data.reduce((sum, d) => sum + d.avgTemp, 0) / data.length) * 10) / 10 : 0;
-  
+
   const overallRecordHigh = data.length > 0 ? Math.max(...data.map(d => d.recordHigh)) : 0;
   const overallRecordLow = data.length > 0 ? Math.min(...data.map(d => d.recordLow)) : 0;
 
@@ -272,15 +272,16 @@ const HistoricalYearly: React.FC = () => {
   // 准备图表数据
   const yearlyChartData = data.map(item => ({
     year: item.year,
-    avgTemp: item.avgTemp,
-    maxTemp: item.avgMaxTemp,
-    minTemp: item.avgMinTemp,
     recordHigh: item.recordHigh,
+    maxTemp: item.avgMaxTemp,
+    avgTemp: item.avgTemp,
+    minTemp: item.avgMinTemp,
     recordLow: item.recordLow
   }));
 
 
 
+  console.log('渲染 HistoricalYearly 组件:', yearlyChartData);
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -465,131 +466,13 @@ const HistoricalYearly: React.FC = () => {
 
           {/* Charts */}
           {viewMode === 'trends' && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  年度温度趋势图 ({yearRange.start}-{yearRange.end})
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  显示历年的平均温度、极值变化趋势
-                </p>
-              </div>
-              
-              <div className="h-96">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={yearlyChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis 
-                      dataKey="year" 
-                      type="number"
-                      scale="linear"
-                      domain={['dataMin', 'dataMax']}
-                      stroke="#6b7280"
-                      fontSize={12}
-                      tickFormatter={(value) => `${value}`}
-                    />
-                    <YAxis 
-                      stroke="#6b7280"
-                      fontSize={12}
-                      tickFormatter={(value) => `${value}°C`}
-                    />
-                    <Tooltip 
-                      formatter={(value: number, name: string) => {
-                        let label = '';
-                        switch (name) {
-                          case 'avgTemp':
-                            label = '年平均温度';
-                            break;
-                          case 'maxTemp':
-                            label = '年平均最高温';
-                            break;
-                          case 'minTemp':
-                            label = '年平均最低温';
-                            break;
-                          case 'recordHigh':
-                            label = '年最高温';
-                            break;
-                          case 'recordLow':
-                            label = '年最低温';
-                            break;
-                          default:
-                            label = name;
-                        }
-                        return [`${value}°C`, label];
-                      }}
-                      contentStyle={{
-                        backgroundColor: '#f9fafb',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '6px',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                    <Legend 
-                      formatter={(value: string) => {
-                        switch (value) {
-                          case 'avgTemp':
-                            return '年平均温度';
-                          case 'maxTemp':
-                            return '年平均最高温';
-                          case 'minTemp':
-                            return '年平均最低温';
-                          case 'recordHigh':
-                            return '年最高温';
-                          case 'recordLow':
-                            return '年最低温';
-                          default:
-                            return value;
-                        }
-                      }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="avgTemp" 
-                      stroke="#10b981" 
-                      strokeWidth={3}
-                      dot={{ fill: '#10b981', strokeWidth: 2, r: 5 }}
-                      name="年平均温度"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="maxTemp" 
-                      stroke="#f59e0b" 
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      dot={{ fill: '#f59e0b', strokeWidth: 2, r: 3 }}
-                      name="年平均最高温"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="minTemp" 
-                      stroke="#3b82f6" 
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      dot={{ fill: '#3b82f6', strokeWidth: 2, r: 3 }}
-                      name="年平均最低温"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="recordHigh" 
-                      stroke="#ef4444" 
-                      strokeWidth={1}
-                      strokeDasharray="2 2"
-                      dot={{ fill: '#ef4444', strokeWidth: 1, r: 2 }}
-                      name="年最高温"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="recordLow" 
-                      stroke="#1e40af" 
-                      strokeWidth={1}
-                      strokeDasharray="2 2"
-                      dot={{ fill: '#1e40af', strokeWidth: 1, r: 2 }}
-                      name="年最低温"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+            <HistoricalTemperatureChart
+              data={yearlyChartData}
+              type="yearly"
+              title="年度温度趋势图"
+              subtitle="显示历年的平均温度、极值变化趋势"
+              yearRange={yearRange}
+            />
           )}
 
           {viewMode === 'profile' && (
@@ -602,7 +485,7 @@ const HistoricalYearly: React.FC = () => {
                   显示各月份的多年平均温度分布
                 </p>
               </div>
-              
+
               <MonthlyTemperatureChart
                 location={currentLocation!}
                 mode="annual-profile"

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { ChartBarSquareIcon, MapPinIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, MinusIcon } from '@heroicons/react/24/outline';
 import { MonthlyTemperatureStats } from '../services/monthlyTemperatureService';
 import { openMeteoService } from '../services/openMeteoWeather';
+import HistoricalTemperatureChart from '../components/Charts/HistoricalTemperatureChart';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
@@ -51,24 +51,24 @@ const HistoricalQuarterly: React.FC = () => {
 
     try {
       console.log('获取季度历史数据（优化版本，一次API调用）:', { quarter: selectedQuarter, yearRange, location: currentLocation });
-      
+
       const quarterlyResults: QuarterlyYearData[] = [];
-      
+
       // 获取当前季度的所有月份
       const currentQuarterMonths = quarterMonths[selectedQuarter - 1];
-      
+
       // 计算当前年份和季度
       const currentYear = new Date().getFullYear();
       const currentMonth = new Date().getMonth() + 1;
       const currentQuarter = Math.ceil(currentMonth / 3);
-      
+
       // 判断选择的季度在当前年份是否已经过去
       const selectedQuarterInCurrentYear = selectedQuarter <= currentQuarter;
-      
+
       // 设置结束日期：如果选择的季度在当前年份且已经过去，则包含当前年份
       let actualEndYear = yearRange.end;
       let endDate;
-      
+
       if (actualEndYear === currentYear && selectedQuarterInCurrentYear) {
         // 当前年份的已过去季度，获取到当前日期
         const today = new Date();
@@ -83,11 +83,11 @@ const HistoricalQuarterly: React.FC = () => {
         // 历史年份
         endDate = `${actualEndYear}-12-31`;
       }
-      
+
       const startDate = `${yearRange.start}-01-01`;
-      
+
       console.log(`[HistoricalQuarterly] 获取日期范围数据: ${startDate} 到 ${endDate}`);
-      
+
       const historicalData = await openMeteoService.getHistoricalWeather(
         currentLocation.latitude,
         currentLocation.longitude,
@@ -96,9 +96,9 @@ const HistoricalQuarterly: React.FC = () => {
         currentLocation.timezone,
         ['temperature_2m_max', 'temperature_2m_min', 'temperature_2m_mean']
       );
-      
+
       console.log(`[HistoricalQuarterly] 获取到 ${historicalData.daily.time.length} 天的数据`);
-      
+
       // 按年份和月份分组数据
       const dataByYearMonth: Record<string, Array<{
         date: string;
@@ -106,24 +106,24 @@ const HistoricalQuarterly: React.FC = () => {
         minTemp: number;
         avgTemp: number;
       }>> = {};
-      
+
       historicalData.daily.time.forEach((time, index) => {
         const date = new Date(time);
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
-        
+
         // 只处理当前季度的月份
         if (currentQuarterMonths.includes(month)) {
           const key = `${year}-${month}`;
-          
+
           if (!dataByYearMonth[key]) {
             dataByYearMonth[key] = [];
           }
-          
+
           const maxTemp = historicalData.daily.temperature_2m_max[index];
           const minTemp = historicalData.daily.temperature_2m_min[index];
           const avgTemp = historicalData.daily.temperature_2m_mean?.[index] || (maxTemp + minTemp) / 2;
-          
+
           if (!isNaN(maxTemp) && !isNaN(minTemp) && !isNaN(avgTemp)) {
             dataByYearMonth[key].push({
               date: time,
@@ -134,7 +134,7 @@ const HistoricalQuarterly: React.FC = () => {
           }
         }
       });
-      
+
       // 按年份组织数据
       const yearDataMap: Record<number, Record<number, {
         avgTemp: number;
@@ -142,19 +142,19 @@ const HistoricalQuarterly: React.FC = () => {
         avgMinTemp: number;
         dataPoints: number;
       }>> = {};
-      
+
       for (const [key, monthData] of Object.entries(dataByYearMonth)) {
         const [year, month] = key.split('-').map(Number);
-        
+
         if (monthData.length > 0) {
           if (!yearDataMap[year]) {
             yearDataMap[year] = {};
           }
-          
+
           const avgTemp = monthData.reduce((sum, d) => sum + d.avgTemp, 0) / monthData.length;
           const avgMaxTemp = monthData.reduce((sum, d) => sum + d.maxTemp, 0) / monthData.length;
           const avgMinTemp = monthData.reduce((sum, d) => sum + d.minTemp, 0) / monthData.length;
-          
+
           yearDataMap[year][month] = {
             avgTemp: Math.round(avgTemp * 10) / 10,
             avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
@@ -163,28 +163,28 @@ const HistoricalQuarterly: React.FC = () => {
           };
         }
       }
-      
+
       // 为每年生成季度数据
       for (let year = yearRange.start; year <= actualEndYear; year++) {
         const yearMonthData = yearDataMap[year];
-        
+
         if (yearMonthData && Object.keys(yearMonthData).length > 0) {
           // 获取当前季度的所有月份数据
           const quarterData = currentQuarterMonths
             .map(month => yearMonthData[month])
             .filter(data => data !== undefined);
-          
+
           if (quarterData.length > 0) {
             // 计算季度平均值
             const avgTemp = quarterData.reduce((sum, month) => sum + month.avgTemp, 0) / quarterData.length;
             const avgMaxTemp = quarterData.reduce((sum, month) => sum + month.avgMaxTemp, 0) / quarterData.length;
             const avgMinTemp = quarterData.reduce((sum, month) => sum + month.avgMinTemp, 0) / quarterData.length;
             const totalDataPoints = quarterData.reduce((sum, month) => sum + month.dataPoints, 0);
-            
+
             // 计算季度极值温度
             const recordHigh = Math.max(...quarterData.map(month => month.avgMaxTemp));
             const recordLow = Math.min(...quarterData.map(month => month.avgMinTemp));
-            
+
             // 创建季度数据（只创建当前选中的季度）
             const quarters: QuarterlyData[] = quarterNames.map((name, index) => {
               if (index === selectedQuarter - 1) {
@@ -210,7 +210,7 @@ const HistoricalQuarterly: React.FC = () => {
                   }
                   return null;
                 }).filter(Boolean) as MonthlyTemperatureStats[];
-                
+
                 return {
                   quarter: name,
                   quarterNumber: index + 1,
@@ -236,7 +236,7 @@ const HistoricalQuarterly: React.FC = () => {
                 };
               }
             });
-            
+
             quarterlyResults.push({
               year,
               quarters
@@ -244,7 +244,7 @@ const HistoricalQuarterly: React.FC = () => {
           }
         }
       }
-      
+
       console.log('成功处理季度数据:', quarterlyResults.length, '年');
       quarterlyResults.forEach(result => {
         console.log(`年份 ${result.year} 的${quarterNames[selectedQuarter - 1]}数据:`, result.quarters[selectedQuarter - 1]);
@@ -291,7 +291,7 @@ const HistoricalQuarterly: React.FC = () => {
   }).filter(item => item.months.length > 0);
 
   // 计算平均值和趋势
-  const avgQuarterTemp = selectedQuarterData.length > 0 ? 
+  const avgQuarterTemp = selectedQuarterData.length > 0 ?
     Math.round((selectedQuarterData.reduce((sum, d) => sum + d.avgTemp, 0) / selectedQuarterData.length) * 10) / 10 : 0;
 
   // 计算趋势
@@ -360,10 +360,10 @@ const HistoricalQuarterly: React.FC = () => {
   // 准备图表数据
   const chartData = selectedQuarterData.map(item => ({
     year: item.year,
-    avgTemp: item.avgTemp,
-    maxTemp: item.avgMaxTemp,
-    minTemp: item.avgMinTemp,
     recordHigh: item.recordHigh,
+    maxTemp: item.avgMaxTemp,
+    avgTemp: item.avgTemp,
+    minTemp: item.avgMinTemp,
     recordLow: item.recordLow
   }));
 
@@ -543,131 +543,13 @@ const HistoricalQuarterly: React.FC = () => {
           </div>
 
           {/* Chart */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {quarterNames[selectedQuarter - 1]}温度趋势图 ({yearRange.start}-{yearRange.end})
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                显示历年{quarterNames[selectedQuarter - 1]}的平均温度变化趋势
-              </p>
-            </div>
-            
-            <div className="h-96">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis 
-                    dataKey="year" 
-                    type="number"
-                    scale="linear"
-                    domain={['dataMin', 'dataMax']}
-                    stroke="#6b7280"
-                    fontSize={12}
-                    tickFormatter={(value) => `${value}`}
-                  />
-                  <YAxis 
-                    stroke="#6b7280"
-                    fontSize={12}
-                    tickFormatter={(value) => `${value}°C`}
-                  />
-                  <Tooltip 
-                    formatter={(value: number, name: string) => {
-                      let label = '';
-                      switch (name) {
-                        case 'avgTemp':
-                          label = '季度平均温度';
-                          break;
-                        case 'maxTemp':
-                          label = '季度平均最高温';
-                          break;
-                        case 'minTemp':
-                          label = '季度平均最低温';
-                          break;
-                        case 'recordHigh':
-                          label = '季度最高温';
-                          break;
-                        case 'recordLow':
-                          label = '季度最低温';
-                          break;
-                        default:
-                          label = name;
-                      }
-                      return [`${value}°C`, label];
-                    }}
-                    contentStyle={{
-                      backgroundColor: '#f9fafb',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '6px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                    }}
-                  />
-                  <Legend 
-                    formatter={(value: string) => {
-                      switch (value) {
-                        case 'avgTemp':
-                          return '季度平均温度';
-                        case 'maxTemp':
-                          return '季度平均最高温';
-                        case 'minTemp':
-                          return '季度平均最低温';
-                        case 'recordHigh':
-                          return '季度最高温';
-                        case 'recordLow':
-                          return '季度最低温';
-                        default:
-                          return value;
-                      }
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="avgTemp" 
-                    stroke="#10b981" 
-                    strokeWidth={3}
-                    dot={{ fill: '#10b981', strokeWidth: 2, r: 5 }}
-                    name="季度平均温度"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="maxTemp" 
-                    stroke="#f59e0b" 
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={{ fill: '#f59e0b', strokeWidth: 2, r: 3 }}
-                    name="季度平均最高温"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="minTemp" 
-                    stroke="#3b82f6" 
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 3 }}
-                    name="季度平均最低温"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="recordHigh" 
-                    stroke="#ef4444" 
-                    strokeWidth={1}
-                    strokeDasharray="2 2"
-                    dot={{ fill: '#ef4444', strokeWidth: 1, r: 2 }}
-                    name="季度最高温"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="recordLow" 
-                    stroke="#1e40af" 
-                    strokeWidth={1}
-                    strokeDasharray="2 2"
-                    dot={{ fill: '#1e40af', strokeWidth: 1, r: 2 }}
-                    name="季度最低温"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+          <HistoricalTemperatureChart
+            data={chartData}
+            type="quarterly"
+            title={`${quarterNames[selectedQuarter - 1]}温度趋势图`}
+            subtitle={`显示历年${quarterNames[selectedQuarter - 1]}的平均温度变化趋势`}
+            yearRange={yearRange}
+          />
 
           {/* Detailed Data Table */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
