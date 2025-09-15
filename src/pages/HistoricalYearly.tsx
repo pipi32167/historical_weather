@@ -40,7 +40,19 @@ const HistoricalYearly: React.FC = () => {
       
       // 只进行一次API调用，获取整个日期范围的数据
       const startDate = `${yearRange.start}-01-01`;
-      const endDate = `${yearRange.end}-12-31`;
+      
+      // 特殊处理：如果结束年份是当前年份，使用今天作为结束日期
+      const currentYear = new Date().getFullYear();
+      let endDate;
+      
+      if (yearRange.end === currentYear) {
+        // 当前年份，使用今天作为结束日期
+        endDate = new Date().toISOString().split('T')[0];
+        console.log(`[HistoricalYearly] 当前年份，使用今天作为结束日期: ${endDate}`);
+      } else {
+        // 历史年份，使用12月31日
+        endDate = `${yearRange.end}-12-31`;
+      }
       
       console.log(`[HistoricalYearly] 获取日期范围数据: ${startDate} 到 ${endDate}`);
       

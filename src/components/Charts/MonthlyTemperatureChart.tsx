@@ -324,26 +324,46 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
               <Line 
                 type="monotone" 
                 dataKey="avgTemp" 
-                stroke="#3b82f6"
-                strokeWidth={2}
-                dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                name="平均温度"
+                stroke="#10b981"
+                strokeWidth={3}
+                dot={{ fill: '#10b981', strokeWidth: 2, r: 5 }}
+                name="月平均温度"
               />
               <Line 
                 type="monotone" 
                 dataKey="maxTemp" 
-                stroke="#ef4444"
+                stroke="#f59e0b"
                 strokeWidth={2}
-                dot={{ fill: '#ef4444', strokeWidth: 2, r: 3 }}
-                name="平均最高温"
+                strokeDasharray="5 5"
+                dot={{ fill: '#f59e0b', strokeWidth: 2, r: 3 }}
+                name="月平均最高温"
               />
               <Line 
                 type="monotone" 
                 dataKey="minTemp" 
-                stroke="#06b6d4"
+                stroke="#3b82f6"
                 strokeWidth={2}
-                dot={{ fill: '#06b6d4', strokeWidth: 2, r: 3 }}
-                name="平均最低温"
+                strokeDasharray="5 5"
+                dot={{ fill: '#3b82f6', strokeWidth: 2, r: 3 }}
+                name="月平均最低温"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="recordHigh" 
+                stroke="#ef4444"
+                strokeWidth={1}
+                strokeDasharray="2 2"
+                dot={{ fill: '#ef4444', strokeWidth: 1, r: 2 }}
+                name="月最高温"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="recordLow" 
+                stroke="#1e40af"
+                strokeWidth={1}
+                strokeDasharray="2 2"
+                dot={{ fill: '#1e40af', strokeWidth: 1, r: 2 }}
+                name="月最低温"
               />
             </LineChart>
           ) : (
@@ -363,20 +383,32 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
               <Legend />
               <Bar 
                 dataKey="avgTemp" 
-                fill="#3b82f6"
-                name="平均温度"
+                fill="#10b981"
+                name="月平均温度"
                 radius={[2, 2, 0, 0]}
               />
               <Bar 
                 dataKey="maxTemp" 
-                fill="#ef4444"
-                name="平均最高温"
+                fill="#f59e0b"
+                name="月平均最高温"
                 radius={[2, 2, 0, 0]}
               />
               <Bar 
                 dataKey="minTemp" 
-                fill="#06b6d4"
-                name="平均最低温"
+                fill="#3b82f6"
+                name="月平均最低温"
+                radius={[2, 2, 0, 0]}
+              />
+              <Bar 
+                dataKey="recordHigh" 
+                fill="#ef4444"
+                name="月最高温"
+                radius={[2, 2, 0, 0]}
+              />
+              <Bar 
+                dataKey="recordLow" 
+                fill="#1e40af"
+                name="月最低温"
                 radius={[2, 2, 0, 0]}
               />
             </BarChart>

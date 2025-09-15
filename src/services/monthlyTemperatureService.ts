@@ -76,7 +76,13 @@ class MonthlyTemperatureAggregator {
     const validData = dailyData.filter(d => 
       !isNaN(d.temperature) && 
       !isNaN(d.temperatureMax) && 
-      !isNaN(d.temperatureMin)
+      !isNaN(d.temperatureMin) &&
+      d.temperature !== null && 
+      d.temperatureMax !== null && 
+      d.temperatureMin !== null &&
+      typeof d.temperature === 'number' && 
+      typeof d.temperatureMax === 'number' && 
+      typeof d.temperatureMin === 'number'
     );
 
     if (validData.length === 0) return null;
@@ -179,18 +185,23 @@ export class MonthlyTemperatureService {
       // 一次性获取整个日期范围的数据
       const startDate = `${startYear}-01-01`;
       
-      // 特殊处理：如果是当前年份的当前月份，只获取到今天
+      // 特殊处理：如果是当前年份，需要小心处理日期范围
       const currentYear = new Date().getFullYear();
       const currentMonth = new Date().getMonth() + 1;
-      const isCurrentYearCurrentMonth = endYear === currentYear && month === currentMonth;
       
       let endDate;
-      if (isCurrentYearCurrentMonth) {
-        // 当前年份当前月份，获取到今天
-        endDate = new Date().toISOString().split('T')[0];
-        console.log(`[MonthlyTemperatureService] 当前年份当前月份，获取到今天: ${endDate}`);
+      if (endYear === currentYear) {
+        if (month <= currentMonth) {
+          // 当前年份的已过月份或当前月份，获取到今天
+          endDate = new Date().toISOString().split('T')[0];
+          console.log(`[MonthlyTemperatureService] 当前年份${month}月(≤当前月${currentMonth})，获取到今天: ${endDate}`);
+        } else {
+          // 当前年份的未来月份，这种情况不应该发生，因为页面逻辑应该已经排除了
+          console.warn(`[MonthlyTemperatureService] 警告：尝试获取当前年份未来月份${month}的数据`);
+          endDate = `${endYear}-12-31`;
+        }
       } else {
-        // 其他情况，获取整年数据
+        // 历史年份，获取整年数据
         endDate = `${endYear}-12-31`;
       }
 
@@ -234,8 +245,10 @@ export class MonthlyTemperatureService {
           const minTemp = historicalData.daily.temperature_2m_min[index];
           const meanTemp = historicalData.daily.temperature_2m_mean?.[index] || (maxTemp + minTemp) / 2;
 
-          // 验证数据有效性
-          if (!isNaN(maxTemp) && !isNaN(minTemp) && !isNaN(meanTemp)) {
+          // 验证数据有效性 - 添加更严格的验证
+          if (!isNaN(maxTemp) && !isNaN(minTemp) && !isNaN(meanTemp) && 
+              maxTemp !== null && minTemp !== null && meanTemp !== null &&
+              typeof maxTemp === 'number' && typeof minTemp === 'number' && typeof meanTemp === 'number') {
             dataByYear[year].push({
               date: time,
               temperature: meanTemp,
@@ -328,7 +341,19 @@ export class MonthlyTemperatureService {
 
       // 一次性获取整个日期范围的数据
       const startDate = `${startYear}-01-01`;
-      const endDate = `${endYear}-12-31`;
+      
+      // 特殊处理：如果结束年份是当前年份，使用今天作为结束日期
+      const currentYear = new Date().getFullYear();
+      let endDate;
+      
+      if (endYear === currentYear) {
+        // 当前年份，使用今天作为结束日期
+        endDate = new Date().toISOString().split('T')[0];
+        console.log(`[MonthlyTemperatureService] 当前年份，使用今天作为结束日期: ${endDate}`);
+      } else {
+        // 历史年份，使用12月31日
+        endDate = `${endYear}-12-31`;
+      }
 
       console.log(`[MonthlyTemperatureService] 获取年度概况数据: ${startDate} 到 ${endDate}`);
 

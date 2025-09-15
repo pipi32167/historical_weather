@@ -304,9 +304,27 @@ for (let year = yearRange.start; year <= actualEndYear; year++) {
 ### 4. HistoricalYearly - 年度历史数据
 
 **核心逻辑：**
+- 智能年份范围：`[起始年份]` 到 `[当前年份]`
+- 智能日期范围：
+  - **历史年份**：使用 `${year}-12-31` 作为结束日期
+  - **当前年份**：使用今天作为结束日期，避免 API 范围错误
 - 按年份分组所有月份数据
 - 计算年度统计（平均温度、极值等）
 - 支持两种显示模式：年度趋势和月度概况
+
+**智能日期范围处理：**
+```typescript
+const currentYear = new Date().getFullYear();
+let endDate;
+
+if (yearRange.end === currentYear) {
+  // 当前年份，使用今天作为结束日期
+  endDate = new Date().toISOString().split('T')[0];
+} else {
+  // 历史年份，使用12月31日
+  endDate = `${yearRange.end}-12-31`;
+}
+```
 
 **年度聚合：**
 ```typescript
@@ -912,6 +930,47 @@ const testCurrentYearFutureMonth = async () => {
     const currentYearData = result.years.find(item => item.year === currentYear);
     expect(currentYearData).toBeUndefined();
   }
+};
+
+// 测试用例：当前年份 API 调用
+const testCurrentYearApiCall = async () => {
+  const location = { latitude: 39.9042, longitude: 116.4074 };
+  const currentYear = new Date().getFullYear();
+  const yearRange = { start: currentYear, end: currentYear };
+  
+  // 测试当前年份不应该产生 API 范围错误
+  const result = await loadYearlyHistoricalData(location, yearRange);
+  
+  expect(result).toBeDefined();
+  expect(result.length).toBe(1);
+  expect(result[0].year).toBe(currentYear);
+  
+  // 当前年份的数据应该只包含到今天
+  expect(result[0].totalDataPoints).toBeLessThanOrEqual(
+    Math.floor((new Date().getTime() - new Date(currentYear, 0, 1).getTime()) / (1000 * 60 * 60 * 24)) + 1
+  );
+};
+
+// 测试用例：年度概况当前年份
+const testAnnualProfileCurrentYear = async () => {
+  const location = { latitude: 39.9042, longitude: 116.4074 };
+  const currentYear = new Date().getFullYear();
+  
+  // 测试年度概况模式对当前年份的处理
+  const result = await getAnnualTemperatureProfile(
+    location.latitude,
+    location.longitude,
+    currentYear,
+    currentYear,
+    '测试位置'
+  );
+  
+  expect(result).toBeDefined();
+  expect(result.length).toBeGreaterThan(0);
+  
+  // 当前年份应该包含到当前月份的数据
+  const currentMonth = new Date().getMonth() + 1;
+  expect(result.length).toBeLessThanOrEqual(currentMonth);
 };
 
 // 测试用例：不同时区

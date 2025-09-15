@@ -17,6 +17,8 @@ interface QuarterlyData {
   avgTemp: number;
   avgMaxTemp: number;
   avgMinTemp: number;
+  recordHigh: number;
+  recordLow: number;
   totalDataPoints: number;
 }
 
@@ -179,6 +181,10 @@ const HistoricalQuarterly: React.FC = () => {
             const avgMinTemp = quarterData.reduce((sum, month) => sum + month.avgMinTemp, 0) / quarterData.length;
             const totalDataPoints = quarterData.reduce((sum, month) => sum + month.dataPoints, 0);
             
+            // 计算季度极值温度
+            const recordHigh = Math.max(...quarterData.map(month => month.avgMaxTemp));
+            const recordLow = Math.min(...quarterData.map(month => month.avgMinTemp));
+            
             // 创建季度数据（只创建当前选中的季度）
             const quarters: QuarterlyData[] = quarterNames.map((name, index) => {
               if (index === selectedQuarter - 1) {
@@ -212,6 +218,8 @@ const HistoricalQuarterly: React.FC = () => {
                   avgTemp: Math.round(avgTemp * 10) / 10,
                   avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
                   avgMinTemp: Math.round(avgMinTemp * 10) / 10,
+                  recordHigh: Math.round(recordHigh * 10) / 10,
+                  recordLow: Math.round(recordLow * 10) / 10,
                   totalDataPoints
                 };
               } else {
@@ -222,6 +230,8 @@ const HistoricalQuarterly: React.FC = () => {
                   avgTemp: 0,
                   avgMaxTemp: 0,
                   avgMinTemp: 0,
+                  recordHigh: 0,
+                  recordLow: 0,
                   totalDataPoints: 0
                 };
               }
@@ -352,7 +362,9 @@ const HistoricalQuarterly: React.FC = () => {
     year: item.year,
     avgTemp: item.avgTemp,
     maxTemp: item.avgMaxTemp,
-    minTemp: item.avgMinTemp
+    minTemp: item.avgMinTemp,
+    recordHigh: item.recordHigh,
+    recordLow: item.recordLow
   }));
 
   return (
@@ -555,36 +567,54 @@ const HistoricalQuarterly: React.FC = () => {
                   <Tooltip 
                     formatter={(value: number, name: string) => [
                       `${value}°C`, 
-                      name === 'avgTemp' ? '平均温度' : 
-                      name === 'maxTemp' ? '最高温度' : '最低温度'
+                      name === 'avgTemp' ? '季度平均温度' : 
+                      name === 'maxTemp' ? '季度平均最高温' : 
+                      name === 'minTemp' ? '季度平均最低温' :
+                      name === 'recordHigh' ? '季度最高温' : '季度最低温'
                     ]}
                   />
                   <Legend 
                     formatter={(value: string) => 
-                      value === 'avgTemp' ? '平均温度' : 
-                      value === 'maxTemp' ? '最高温度' : '最低温度'
+                      value === 'avgTemp' ? '季度平均温度' : 
+                      value === 'maxTemp' ? '季度平均最高温' : 
+                      value === 'minTemp' ? '季度平均最低温' :
+                      value === 'recordHigh' ? '季度最高温' : '季度最低温'
                     }
                   />
                   <Line 
                     type="monotone" 
                     dataKey="avgTemp" 
                     stroke="#10b981" 
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
+                    strokeWidth={3}
+                    dot={{ r: 5 }}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="maxTemp" 
-                    stroke="#ef4444" 
-                    strokeWidth={1}
+                    stroke="#f59e0b" 
+                    strokeWidth={2}
                     strokeDasharray="5 5"
                   />
                   <Line 
                     type="monotone" 
                     dataKey="minTemp" 
                     stroke="#3b82f6" 
-                    strokeWidth={1}
+                    strokeWidth={2}
                     strokeDasharray="5 5"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="recordHigh" 
+                    stroke="#ef4444" 
+                    strokeWidth={1}
+                    strokeDasharray="2 2"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="recordLow" 
+                    stroke="#1e40af" 
+                    strokeWidth={1}
+                    strokeDasharray="2 2"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -607,16 +637,19 @@ const HistoricalQuarterly: React.FC = () => {
                       年份
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      平均温度 (°C)
+                      季度平均温度 (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      最高温 (°C)
+                      季度平均最高温 (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      最低温 (°C)
+                      季度平均最低温 (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      包含月份
+                      季度最高温 (°C)
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      季度最低温 (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       数据天数
@@ -638,8 +671,11 @@ const HistoricalQuarterly: React.FC = () => {
                       <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getTemperatureColor(item.avgMinTemp)}`}>
                         {item.avgMinTemp}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                        {item.months.map(m => m.monthName).join(', ')}
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getTemperatureColor(item.recordHigh)}`}>
+                        {item.recordHigh}
+                      </td>
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getTemperatureColor(item.recordLow)}`}>
+                        {item.recordLow}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                         {item.totalDataPoints}
