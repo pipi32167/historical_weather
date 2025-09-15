@@ -556,14 +556,21 @@ const HistoricalQuarterly: React.FC = () => {
             <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis 
                     dataKey="year" 
                     type="number"
                     scale="linear"
                     domain={['dataMin', 'dataMax']}
+                    stroke="#6b7280"
+                    fontSize={12}
+                    tickFormatter={(value) => `${value}`}
                   />
-                  <YAxis />
+                  <YAxis 
+                    stroke="#6b7280"
+                    fontSize={12}
+                    tickFormatter={(value) => `${value}°C`}
+                  />
                   <Tooltip 
                     formatter={(value: number, name: string) => [
                       `${value}°C`, 
@@ -572,6 +579,12 @@ const HistoricalQuarterly: React.FC = () => {
                       name === 'minTemp' ? '季度平均最低温' :
                       name === 'recordHigh' ? '季度最高温' : '季度最低温'
                     ]}
+                    contentStyle={{
+                      backgroundColor: '#f9fafb',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '6px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
                   />
                   <Legend 
                     formatter={(value: string) => 
@@ -586,7 +599,8 @@ const HistoricalQuarterly: React.FC = () => {
                     dataKey="avgTemp" 
                     stroke="#10b981" 
                     strokeWidth={3}
-                    dot={{ r: 5 }}
+                    dot={{ fill: '#10b981', strokeWidth: 2, r: 5 }}
+                    name="季度平均温度"
                   />
                   <Line 
                     type="monotone" 
@@ -594,6 +608,8 @@ const HistoricalQuarterly: React.FC = () => {
                     stroke="#f59e0b" 
                     strokeWidth={2}
                     strokeDasharray="5 5"
+                    dot={{ fill: '#f59e0b', strokeWidth: 2, r: 3 }}
+                    name="季度平均最高温"
                   />
                   <Line 
                     type="monotone" 
@@ -601,6 +617,8 @@ const HistoricalQuarterly: React.FC = () => {
                     stroke="#3b82f6" 
                     strokeWidth={2}
                     strokeDasharray="5 5"
+                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 3 }}
+                    name="季度平均最低温"
                   />
                   <Line 
                     type="monotone" 
@@ -608,6 +626,8 @@ const HistoricalQuarterly: React.FC = () => {
                     stroke="#ef4444" 
                     strokeWidth={1}
                     strokeDasharray="2 2"
+                    dot={{ fill: '#ef4444', strokeWidth: 1, r: 2 }}
+                    name="季度最高温"
                   />
                   <Line 
                     type="monotone" 
@@ -615,6 +635,8 @@ const HistoricalQuarterly: React.FC = () => {
                     stroke="#1e40af" 
                     strokeWidth={1}
                     strokeDasharray="2 2"
+                    dot={{ fill: '#1e40af', strokeWidth: 1, r: 2 }}
+                    name="季度最低温"
                   />
                 </LineChart>
               </ResponsiveContainer>

@@ -303,7 +303,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
       </div>
 
       {/* 图表 */}
-      <div className="h-80 mb-4">
+      <div className="h-96 mb-4">
         <ResponsiveContainer width="100%" height="100%">
           {mode === 'monthly-trends' ? (
             <LineChart data={trendsChartData}>
@@ -319,7 +319,15 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
                 fontSize={12}
                 tickFormatter={(value) => `${value}°C`}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip 
+                content={<CustomTooltip />}
+                contentStyle={{
+                  backgroundColor: '#f9fafb',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
               <Legend />
               <Line 
                 type="monotone" 
@@ -379,7 +387,15 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
                 fontSize={12}
                 tickFormatter={(value) => `${value}°C`}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip 
+                content={<CustomTooltip />}
+                contentStyle={{
+                  backgroundColor: '#f9fafb',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
               <Legend />
               <Bar 
                 dataKey="avgTemp" 
