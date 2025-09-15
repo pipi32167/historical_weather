@@ -71,3 +71,113 @@ The application is currently in its initial state with the default CRA template 
   - Fallback to memory-only mode if localStorage unavailable
 - **Cache keys**: Automatically generated based on coordinates, dates, parameters, and API endpoint
 - **Error handling**: Corrupted cache entries are automatically removed
+
+### API Rate Limiting & Retry Strategy
+- **Maximum retry limit**: All API calls must implement a maximum of 3 retries to prevent rate limiting (429 errors)
+- **Exponential backoff**: Use exponential backoff for retries (1s, 2s, 4s delays)
+- **Retry state management**: Track retry counts and provide user feedback during retry attempts
+- **Graceful failure**: After max retries, provide clear error messages and manual retry options
+
+## React Development Best Practices
+
+### Preventing Infinite Render Loops
+**CRITICAL**: This codebase has experienced multiple instances of infinite render loops causing excessive API calls. Follow these guidelines strictly:
+
+#### Common Causes of Infinite Loops:
+1. **useEffect dependency arrays with unstable references**:
+   - Objects, arrays, or functions created inline in dependency arrays
+   - Store setters (like Zustand setters) that change on every render
+   - Component state that gets updated inside the useEffect
+
+2. **State updates triggering their own useEffect**:
+   - Setting state inside useEffect that is listed as a dependency
+   - Updating location/data that triggers the same useEffect to run again
+
+#### Prevention Strategies:
+1. **Wrap functions with useCallback**:
+   ```typescript
+   const stableFunction = useCallback(() => {
+     // function logic
+   }, [dependencies]);
+   ```
+
+2. **Minimize useEffect dependencies**:
+   - Only include values that actually need to trigger the effect
+   - Use eslint-disable when dependencies are stable but ESLint complains
+   - Prefer multiple focused useEffects over one complex one
+
+3. **Guard against unnecessary re-runs**:
+   ```typescript
+   useEffect(() => {
+     if (shouldRun && !isAlreadyRunning) {
+       // effect logic
+     }
+   }, [shouldRun, isAlreadyRunning]);
+   ```
+
+4. **State initialization patterns**:
+   - Check if state is already initialized before making API calls
+   - Use flags like `isInitialized` to prevent repeated initialization
+   - Reset state flags when conditions change (location, date, etc.)
+
+#### Warning Signs:
+- Console showing repeated API calls
+- Network tab showing continuous requests
+- 429 (Rate Limit) errors from APIs
+- Browser becoming unresponsive
+- React DevTools showing excessive re-renders
+
+#### Testing for Infinite Loops:
+- Monitor network tab during development
+- Watch console for repeated log messages
+- Use React DevTools Profiler to identify excessive renders
+- Test with different user flows (location changes, date changes, page refresh)
+
+#### Specific Examples from This Project:
+
+**❌ WRONG - Causes infinite loop:**
+```typescript
+useEffect(() => {
+  if (latitude && longitude) {
+    // This updates currentLocation, which is in dependencies
+    setCurrentLocation(newLocation);
+  }
+}, [latitude, longitude, currentLocation, setCurrentLocation]);
+```
+
+**✅ CORRECT - Prevents infinite loop:**
+```typescript
+useEffect(() => {
+  if (latitude && longitude && !locationInitialized) {
+    setCurrentLocation(newLocation);
+    setLocationInitialized(true);
+  }
+}, [latitude, longitude, locationInitialized]); // eslint-disable-line react-hooks/exhaustive-deps
+```
+
+**❌ WRONG - Multiple state updates trigger re-renders:**
+```typescript
+useEffect(() => {
+  loadData(); // This calls API and updates state
+}, [selectedDate, currentLocation]); // Runs every time location changes
+
+useEffect(() => {
+  setCurrentLocation(newLoc); // This triggers the above useEffect
+}, [geolocation]);
+```
+
+**✅ CORRECT - Guard against unnecessary calls:**
+```typescript
+useEffect(() => {
+  if (locationInitialized && currentLocation) {
+    loadData();
+  }
+}, [selectedDate, currentLocation, locationInitialized]);
+
+useEffect(() => {
+  if (!locationInitialized && geolocation) {
+    setCurrentLocation(newLoc);
+    setLocationInitialized(true);
+  }
+}, [geolocation, locationInitialized]);
+```
