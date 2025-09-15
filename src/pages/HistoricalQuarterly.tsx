@@ -572,13 +572,29 @@ const HistoricalQuarterly: React.FC = () => {
                     tickFormatter={(value) => `${value}°C`}
                   />
                   <Tooltip 
-                    formatter={(value: number, name: string) => [
-                      `${value}°C`, 
-                      name === 'avgTemp' ? '季度平均温度' : 
-                      name === 'maxTemp' ? '季度平均最高温' : 
-                      name === 'minTemp' ? '季度平均最低温' :
-                      name === 'recordHigh' ? '季度最高温' : '季度最低温'
-                    ]}
+                    formatter={(value: number, name: string) => {
+                      let label = '';
+                      switch (name) {
+                        case 'avgTemp':
+                          label = '季度平均温度';
+                          break;
+                        case 'maxTemp':
+                          label = '季度平均最高温';
+                          break;
+                        case 'minTemp':
+                          label = '季度平均最低温';
+                          break;
+                        case 'recordHigh':
+                          label = '季度最高温';
+                          break;
+                        case 'recordLow':
+                          label = '季度最低温';
+                          break;
+                        default:
+                          label = name;
+                      }
+                      return [`${value}°C`, label];
+                    }}
                     contentStyle={{
                       backgroundColor: '#f9fafb',
                       border: '1px solid #e5e7eb',
@@ -587,12 +603,22 @@ const HistoricalQuarterly: React.FC = () => {
                     }}
                   />
                   <Legend 
-                    formatter={(value: string) => 
-                      value === 'avgTemp' ? '季度平均温度' : 
-                      value === 'maxTemp' ? '季度平均最高温' : 
-                      value === 'minTemp' ? '季度平均最低温' :
-                      value === 'recordHigh' ? '季度最高温' : '季度最低温'
-                    }
+                    formatter={(value: string) => {
+                      switch (value) {
+                        case 'avgTemp':
+                          return '季度平均温度';
+                        case 'maxTemp':
+                          return '季度平均最高温';
+                        case 'minTemp':
+                          return '季度平均最低温';
+                        case 'recordHigh':
+                          return '季度最高温';
+                        case 'recordLow':
+                          return '季度最低温';
+                        default:
+                          return value;
+                      }
+                    }}
                   />
                   <Line 
                     type="monotone" 
