@@ -30,7 +30,7 @@ const HistoricalQuarterly: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedQuarter, setSelectedQuarter] = useState<number>(Math.ceil((new Date().getMonth() + 1) / 3));
-  const [yearRange, setYearRange] = useState({ start: 2014, end: 2024 });
+  const [yearRange, setYearRange] = useState({ start: 2014, end: new Date().getFullYear() });
   const { currentLocation } = useLocationStore();
 
   const quarterNames = ['第一季度', '第二季度', '第三季度', '第四季度'];
@@ -55,9 +55,34 @@ const HistoricalQuarterly: React.FC = () => {
       // 获取当前季度的所有月份
       const currentQuarterMonths = quarterMonths[selectedQuarter - 1];
       
-      // 只进行一次API调用，获取整个日期范围的数据
+      // 计算当前年份和季度
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth() + 1;
+      const currentQuarter = Math.ceil(currentMonth / 3);
+      
+      // 判断选择的季度在当前年份是否已经过去
+      const selectedQuarterInCurrentYear = selectedQuarter <= currentQuarter;
+      
+      // 设置结束日期：如果选择的季度在当前年份且已经过去，则包含当前年份
+      let actualEndYear = yearRange.end;
+      let endDate;
+      
+      if (actualEndYear === currentYear && selectedQuarterInCurrentYear) {
+        // 当前年份的已过去季度，获取到当前日期
+        const today = new Date();
+        endDate = today.toISOString().split('T')[0];
+        console.log(`[HistoricalQuarterly] 当前年份${selectedQuarter}季度已过去，包含当年数据到今天: ${endDate}`);
+      } else if (actualEndYear === currentYear && !selectedQuarterInCurrentYear) {
+        // 当前年份的未来季度，排除当前年份
+        actualEndYear = currentYear - 1;
+        endDate = `${actualEndYear}-12-31`;
+        console.log(`[HistoricalQuarterly] 当前年份${selectedQuarter}季度未到，排除当年: ${endDate}`);
+      } else {
+        // 历史年份
+        endDate = `${actualEndYear}-12-31`;
+      }
+      
       const startDate = `${yearRange.start}-01-01`;
-      const endDate = `${yearRange.end}-12-31`;
       
       console.log(`[HistoricalQuarterly] 获取日期范围数据: ${startDate} 到 ${endDate}`);
       
@@ -138,7 +163,7 @@ const HistoricalQuarterly: React.FC = () => {
       }
       
       // 为每年生成季度数据
-      for (let year = yearRange.start; year <= yearRange.end; year++) {
+      for (let year = yearRange.start; year <= actualEndYear; year++) {
         const yearMonthData = yearDataMap[year];
         
         if (yearMonthData && Object.keys(yearMonthData).length > 0) {
@@ -393,7 +418,7 @@ const HistoricalQuarterly: React.FC = () => {
                 value={yearRange.start}
                 onChange={(e) => handleYearRangeChange(parseInt(e.target.value), yearRange.end)}
                 min="1980"
-                max="2024"
+                max={new Date().getFullYear()}
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
                          bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                          focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -404,7 +429,7 @@ const HistoricalQuarterly: React.FC = () => {
                 value={yearRange.end}
                 onChange={(e) => handleYearRangeChange(yearRange.start, parseInt(e.target.value))}
                 min="1980"
-                max="2024"
+                max={new Date().getFullYear()}
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
                          bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                          focus:ring-2 focus:ring-primary-500 focus:border-transparent"

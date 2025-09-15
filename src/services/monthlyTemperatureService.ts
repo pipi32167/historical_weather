@@ -178,7 +178,21 @@ export class MonthlyTemperatureService {
 
       // 一次性获取整个日期范围的数据
       const startDate = `${startYear}-01-01`;
-      const endDate = `${endYear}-12-31`;
+      
+      // 特殊处理：如果是当前年份的当前月份，只获取到今天
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth() + 1;
+      const isCurrentYearCurrentMonth = endYear === currentYear && month === currentMonth;
+      
+      let endDate;
+      if (isCurrentYearCurrentMonth) {
+        // 当前年份当前月份，获取到今天
+        endDate = new Date().toISOString().split('T')[0];
+        console.log(`[MonthlyTemperatureService] 当前年份当前月份，获取到今天: ${endDate}`);
+      } else {
+        // 其他情况，获取整年数据
+        endDate = `${endYear}-12-31`;
+      }
 
       console.log(`[MonthlyTemperatureService] 获取日期范围数据: ${startDate} 到 ${endDate}`);
 

@@ -15,7 +15,7 @@ const HistoricalMonthly: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-  const [yearRange, setYearRange] = useState({ start: 2004, end: 2024 });
+  const [yearRange, setYearRange] = useState({ start: 2004, end: new Date().getFullYear() });
   const { currentLocation } = useLocationStore();
 
   const loadMonthlyData = async () => {
@@ -27,12 +27,30 @@ const HistoricalMonthly: React.FC = () => {
     try {
       console.log('获取月度历史数据:', { month: selectedMonth, yearRange, location: currentLocation });
       
+      // 计算当前年份和月份
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth() + 1;
+      
+      // 判断选择的月份在当前年份是否已经过去
+      const selectedMonthInCurrentYear = selectedMonth <= currentMonth;
+      
+      // 设置实际的结束年份
+      let actualEndYear = yearRange.end;
+      
+      if (actualEndYear === currentYear && !selectedMonthInCurrentYear) {
+        // 当前年份的未来月份，排除当前年份
+        actualEndYear = currentYear - 1;
+        console.log(`[HistoricalMonthly] 当前年份${selectedMonth}月未到，排除当年，实际结束年份: ${actualEndYear}`);
+      } else if (actualEndYear === currentYear && selectedMonthInCurrentYear) {
+        console.log(`[HistoricalMonthly] 当前年份${selectedMonth}月已过去，包含当年数据`);
+      }
+      
       const result = await monthlyTemperatureService.getMonthlyTemperatureTrends(
         currentLocation.latitude,
         currentLocation.longitude,
         selectedMonth,
         yearRange.start,
-        yearRange.end,
+        actualEndYear,
         currentLocation.name,
         currentLocation.timezone
       );
@@ -169,7 +187,7 @@ const HistoricalMonthly: React.FC = () => {
                 value={yearRange.start}
                 onChange={(e) => handleYearRangeChange(parseInt(e.target.value), yearRange.end)}
                 min="1980"
-                max="2024"
+                max={new Date().getFullYear()}
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
                          bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                          focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -180,7 +198,7 @@ const HistoricalMonthly: React.FC = () => {
                 value={yearRange.end}
                 onChange={(e) => handleYearRangeChange(yearRange.start, parseInt(e.target.value))}
                 min="1980"
-                max="2024"
+                max={new Date().getFullYear()}
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
                          bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                          focus:ring-2 focus:ring-primary-500 focus:border-transparent"
