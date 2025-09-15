@@ -63,121 +63,68 @@ const HistoricalQuarterly: React.FC = () => {
         yearRange.start
       );
 
-      console.log(`[HistoricalQuarterly] 从统一服务获取到 ${historicalData.daily.time.length} 天的数据`);
+      console.log(`[HistoricalQuarterly] 开始处理季度数据，年份范围: ${yearRange.start}-${Math.min(yearRange.end, new Date().getFullYear())}`);
 
-      // 按年份和月份分组数据
-      const dataByYearMonth: Record<string, Array<{
-        date: string;
-        maxTemp: number;
-        minTemp: number;
-        avgTemp: number;
-      }>> = {};
+      // 使用统一服务获取季度月份的月度趋势数据
+      const monthlyTrendsPromises = currentQuarterMonths.map(month =>
+        unifiedHistoricalService.getMonthlyTemperatureTrends(
+          currentLocation,
+          month,
+          yearRange.start,
+          Math.min(yearRange.end, new Date().getFullYear())
+        )
+      );
 
-      // 处理历史数据
-      historicalData.daily.time.forEach((time: string, index: number) => {
-        const date = new Date(time);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
+      const monthlyTrendsResults = await Promise.all(monthlyTrendsPromises);
 
-        // 只处理当前季度的月份
-        if (currentQuarterMonths.includes(month)) {
-          const key = `${year}-${month}`;
+      // 按年份重新组织数据
+      const yearMap: Record<number, Record<number, MonthlyTemperatureStats>> = {};
 
-          if (!dataByYearMonth[key]) {
-            dataByYearMonth[key] = [];
-          }
-
-          const maxTemp = historicalData.daily.temperature_2m_max[index];
-          const minTemp = historicalData.daily.temperature_2m_min[index];
-          const avgTemp = historicalData.daily.temperature_2m_mean?.[index] || (maxTemp + minTemp) / 2;
-
-          // 验证数据有效性
-          if (maxTemp != null && minTemp != null &&
-            !isNaN(maxTemp) && !isNaN(minTemp) &&
-            maxTemp >= -60 && maxTemp <= 60 &&
-            minTemp >= -60 && minTemp <= 60) {
-            dataByYearMonth[key].push({
-              date: time,
-              maxTemp,
-              minTemp,
-              avgTemp
-            });
-          }
+      // 将月度趋势数据按年份和月份归类
+      monthlyTrendsResults.forEach((monthTrend, monthIndex) => {
+        if (monthTrend?.years) {
+          const month = currentQuarterMonths[monthIndex];
+          monthTrend.years.forEach(yearData => {
+            if (!yearMap[yearData.year]) {
+              yearMap[yearData.year] = {};
+            }
+            yearMap[yearData.year][month] = yearData;
+          });
         }
       });
 
-      // 按年份组织数据
-      const yearDataMap: Record<number, Record<number, {
-        avgTemp: number;
-        avgMaxTemp: number;
-        avgMinTemp: number;
-        dataPoints: number;
-      }>> = {};
-
-      for (const [key, monthData] of Object.entries(dataByYearMonth)) {
-        const [year, month] = key.split('-').map(Number);
-
-        if (monthData.length > 0) {
-          if (!yearDataMap[year]) {
-            yearDataMap[year] = {};
-          }
-
-          const avgTemp = monthData.reduce((sum, d) => sum + d.avgTemp, 0) / monthData.length;
-          const avgMaxTemp = monthData.reduce((sum, d) => sum + d.maxTemp, 0) / monthData.length;
-          const avgMinTemp = monthData.reduce((sum, d) => sum + d.minTemp, 0) / monthData.length;
-
-          yearDataMap[year][month] = {
-            avgTemp: Math.round(avgTemp * 10) / 10,
-            avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
-            avgMinTemp: Math.round(avgMinTemp * 10) / 10,
-            dataPoints: monthData.length
-          };
-        }
-      }
-
       // 为每年生成季度数据
       for (let year = yearRange.start; year <= Math.min(yearRange.end, new Date().getFullYear()); year++) {
-        const yearMonthData = yearDataMap[year];
+        const monthsData = yearMap[year];
 
-        if (yearMonthData && Object.keys(yearMonthData).length > 0) {
-          // 获取当前季度的所有月份数据
-          const quarterData = currentQuarterMonths
-            .map(month => yearMonthData[month])
-            .filter(data => data !== undefined);
+        if (monthsData) {
+          const quarterMonthStats: MonthlyTemperatureStats[] = [];
+          let totalAvgTemp = 0;
+          let totalAvgMaxTemp = 0;
+          let totalAvgMinTemp = 0;
+          let totalRecordHigh = -Infinity;
+          let totalRecordLow = Infinity;
+          let totalDataPoints = 0;
 
-          if (quarterData.length > 0) {
+          // 收集该年份在当前季度的所有月份数据
+          for (const month of currentQuarterMonths) {
+            const monthData = monthsData[month];
+            if (monthData) {
+              quarterMonthStats.push(monthData);
+              totalAvgTemp += monthData.avgTemp;
+              totalAvgMaxTemp += monthData.avgMaxTemp;
+              totalAvgMinTemp += monthData.avgMinTemp;
+              totalRecordHigh = Math.max(totalRecordHigh, monthData.recordHigh);
+              totalRecordLow = Math.min(totalRecordLow, monthData.recordLow);
+              totalDataPoints += monthData.dataPoints;
+            }
+          }
+
+          if (quarterMonthStats.length > 0) {
             // 计算季度平均值
-            const avgTemp = quarterData.reduce((sum, month) => sum + month.avgTemp, 0) / quarterData.length;
-            const avgMaxTemp = quarterData.reduce((sum, month) => sum + month.avgMaxTemp, 0) / quarterData.length;
-            const avgMinTemp = quarterData.reduce((sum, month) => sum + month.avgMinTemp, 0) / quarterData.length;
-            const totalDataPoints = quarterData.reduce((sum, month) => sum + month.dataPoints, 0);
-
-            // 计算季度极值温度
-            const recordHigh = Math.max(...quarterData.map(month => month.avgMaxTemp));
-            const recordLow = Math.min(...quarterData.map(month => month.avgMinTemp));
-
-            // 为当前季度创建MonthlyTemperatureStats数据
-            const monthStats = currentQuarterMonths.map(month => {
-              const monthData = yearMonthData[month];
-              if (monthData) {
-                return {
-                  year,
-                  month,
-                  monthName: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'][month - 1],
-                  avgTemp: monthData.avgTemp,
-                  avgMaxTemp: monthData.avgMaxTemp,
-                  avgMinTemp: monthData.avgMinTemp,
-                  recordHigh: monthData.avgMaxTemp,
-                  recordLow: monthData.avgMinTemp,
-                  totalDays: new Date(year, month, 0).getDate(),
-                  dataPoints: monthData.dataPoints,
-                  location: currentLocation.name,
-                  latitude: currentLocation.latitude,
-                  longitude: currentLocation.longitude
-                };
-              }
-              return null;
-            }).filter(Boolean) as MonthlyTemperatureStats[];
+            const avgTemp = totalAvgTemp / quarterMonthStats.length;
+            const avgMaxTemp = totalAvgMaxTemp / quarterMonthStats.length;
+            const avgMinTemp = totalAvgMinTemp / quarterMonthStats.length;
 
             // 创建季度数据（只创建当前选中的季度）
             const quarters: QuarterlyData[] = quarterNames.map((name, index) => {
@@ -185,12 +132,12 @@ const HistoricalQuarterly: React.FC = () => {
                 return {
                   quarter: name,
                   quarterNumber: index + 1,
-                  months: monthStats,
+                  months: quarterMonthStats,
                   avgTemp: Math.round(avgTemp * 10) / 10,
                   avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
                   avgMinTemp: Math.round(avgMinTemp * 10) / 10,
-                  recordHigh: Math.round(recordHigh * 10) / 10,
-                  recordLow: Math.round(recordLow * 10) / 10,
+                  recordHigh: totalRecordHigh === -Infinity ? 0 : Math.round(totalRecordHigh * 10) / 10,
+                  recordLow: totalRecordLow === Infinity ? 0 : Math.round(totalRecordLow * 10) / 10,
                   totalDataPoints
                 };
               } else {

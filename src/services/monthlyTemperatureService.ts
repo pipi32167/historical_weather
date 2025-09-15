@@ -4,9 +4,6 @@
  */
 
 import { unifiedHistoricalService } from './unifiedHistoricalService';
-import { openMeteoService } from './openMeteoWeather';
-import { cache, CACHE_TTL } from '../utils/cache';
-import { executeWithRetry } from '../utils/concurrencyController';
 import { getYear, getMonth, getDaysInMonth } from 'date-fns';
 
 export interface MonthlyTemperatureStats {
@@ -149,15 +146,6 @@ class MonthlyTemperatureAggregator {
  * 月平均温度服务类
  */
 export class MonthlyTemperatureService {
-  /**
-   * 生成缓存键
-   */
-  private getCacheKey(type: string, lat: number, lon: number, year: number, month: number): string {
-    return `monthly_${type}_${lat.toFixed(4)}_${lon.toFixed(4)}_${year}_${month}`;
-  }
-
-  // 注意：getMonthlyTemperatureStats 方法已被移除
-  // 现在使用更高效的日期范围查询来一次性获取多年数据
 
   /**
    * 获取特定月份的温度趋势（多年对比）
