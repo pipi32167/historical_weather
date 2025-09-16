@@ -35,16 +35,16 @@ const NotFound: React.FC = () => {
       icon: ChartBarSquareIcon
     },
     {
-      title: '城市气温查询',
-      description: '搜索全球任意城市的历史气温数据',
-      path: '/cities',
-      icon: MagnifyingGlassIcon
-    },
-    {
       title: '月度趋势分析',
       description: '分析月度气温变化趋势和统计数据',
       path: '/historical/monthly',
       icon: ChartBarSquareIcon
+    },
+    {
+      title: '关于我们',
+      description: '了解平台功能和技术架构',
+      path: '/about',
+      icon: MagnifyingGlassIcon
     }
   ];
 

@@ -37,12 +37,6 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
       description: t('analysis.historical')
     },
     {
-      name: t('navigation.cities'),
-      path: '/cities',
-      icon: CalendarDaysIcon,
-      description: t('location.search')
-    },
-    {
       name: t('navigation.about', { defaultValue: '关于我们' }),
       path: '/about',
       icon: CalendarDaysIcon,
@@ -122,9 +116,9 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
           <ChartBarSquareIcon className="h-5 w-5" />
         </button>
         <button
-          onClick={() => navigate('/cities')}
+          onClick={() => navigate('/about')}
           className="p-2 rounded-lg text-secondary hover:bg-secondary transition-colors duration-200"
-          title="城市索引"
+          title="关于我们"
         >
           <CalendarDaysIcon className="h-5 w-5" />
         </button>

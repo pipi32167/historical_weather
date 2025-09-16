@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './components/Layout/MainLayout';
 import HomepageHistoricalDaily from './components/HomepageHistoricalDaily';
-import CityIndex from './components/CityIndex';
 import CityWeather from './components/CityWeather';
 import DynamicLocationWeather from './components/DynamicLocationWeather';
 import About from './components/About';
@@ -26,9 +25,6 @@ function App(): React.ReactElement {
           <Routes>
             {/* 首页 - 带自动定位的历史气温数据 */}
             <Route path="/" element={<HomepageHistoricalDaily />} />
-            
-            {/* 原始城市索引页面 - 保留作为备用 */}
-            <Route path="/cities" element={<CityIndex />} />
             
             {/* 历史同期数据页面 */}
             <Route path="/historical/daily" element={<HistoricalDaily />} />
