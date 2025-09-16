@@ -31,7 +31,7 @@ class UnifiedHistoricalService {
    * 生成位置缓存键
    */
   private getLocationKey(location: Location): string {
-    return `${location.latitude.toFixed(4)}_${location.longitude.toFixed(4)}`;
+    return `${location.latitude.toFixed(2)}_${location.longitude.toFixed(2)}`;
   }
 
   /**
