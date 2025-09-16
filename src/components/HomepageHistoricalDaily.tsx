@@ -9,7 +9,7 @@ import { QuickLocationSelector } from './common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from './common/AnalysisTypeSwitcher';
 import { useLocationStore } from '../store/locationStore';
 import { useGeolocation } from '../hooks/useGeolocation';
-import { openMeteoService } from '../services/openMeteoWeather';
+import { osmGeocodingService } from '../services/osmGeocodingService';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 
@@ -23,7 +23,7 @@ interface DailyHistoricalData {
 }
 
 const HomepageHistoricalDaily: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [data, setData] = useState<DailyHistoricalData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,151 +35,160 @@ const HomepageHistoricalDaily: React.FC = () => {
   const [skipGeolocation, setSkipGeolocation] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [maxRetryReached, setMaxRetryReached] = useState(false);
-  
+
   const { currentLocation, setCurrentLocation } = useLocationStore();
-  const { 
-    latitude, 
-    longitude, 
-    error: geoError, 
+  const {
+    latitude,
+    longitude,
+    error: geoError,
     loading: geoLoading,
-    getCurrentPosition 
+    getCurrentPosition
   } = useGeolocation();
 
-  // Reverse geocoding function to get city name from coordinates  
+  // Initial state logging and cache cleanup
+  useEffect(() => {
+    console.log('🚀 HomepageHistoricalDaily component mounted');
+    console.log('📦 Initial state:', {
+      currentLocation: currentLocation?.name || 'null',
+      locationInitialized,
+      skipGeolocation,
+      latitude,
+      longitude,
+      geoError: !!geoError,
+      geoLoading
+    });
+    
+    // 清理过期的OSM缓存
+    osmGeocodingService.cleanExpiredCache();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reverse geocoding function using OSM service
   const reverseGeocode = useCallback(async (lat: number, lon: number): Promise<string | null> => {
-    try {
-      // Create a simple query using coordinates (Open-Meteo geocoding doesn't support reverse geocoding directly)
-      // We'll search for nearby locations using a small radius search
-      const nearbyLocations = await openMeteoService.geocodeCity(`${lat.toFixed(2)},${lon.toFixed(2)}`, 'zh', 1);
-      
-      if (nearbyLocations.length > 0) {
-        const location = nearbyLocations[0];
-        let cityName = location.name;
-        if (location.admin1) {
-          cityName += `, ${location.admin1}`;
-        }
-        if (location.country) {
-          cityName += `, ${location.country}`;
-        }
-        return cityName;
-      }
-      
-      // If direct search doesn't work, try a broader search for nearby cities
-      
-      // Try searching for cities near these coordinates
-      const broadLocations = await openMeteoService.geocodeCity('city', 'zh', 20);
-      
-      // Find the closest city
-      let closestCity = null;
-      let minDistance = Infinity;
-      
-      for (const city of broadLocations) {
-        const distance = Math.sqrt(
-          Math.pow(city.latitude - lat, 2) + Math.pow(city.longitude - lon, 2)
-        );
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestCity = city;
-        }
-      }
-      
-      if (closestCity && minDistance < 1) { // Within ~111km
-        let cityName = closestCity.name;
-        if (closestCity.admin1) {
-          cityName += `, ${closestCity.admin1}`;
-        }
-        if (closestCity.country) {
-          cityName += `, ${closestCity.country}`;
-        }
-        return cityName;
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Reverse geocoding failed:', error);
-      return null;
-    }
-  }, []);
+    // 获取当前语言设置
+    const currentLanguage = i18n.language || 'zh-CN';
+    const languageParam = osmGeocodingService.getLanguageParam(currentLanguage);
+    
+    return await osmGeocodingService.reverseGeocode(lat, lon, {
+      language: languageParam,
+      zoom: 10,
+      enableCache: true,
+      cacheTime: 24 * 60 * 60 * 1000 // 24小时缓存
+    });
+  }, [i18n.language]);
 
   // Initialize location on component mount
   useEffect(() => {
-    // If we already have a location from store (e.g., default Beijing), mark as initialized
-    if (currentLocation && !locationInitialized) {
-      console.log('🏠 使用已有位置:', currentLocation.name);
-      setLocationInitialized(true);
-      return;
-    }
-    
-    // Otherwise try to get user's current location
+    console.log('🔧 Location initialization effect triggered:', {
+      locationInitialized,
+      skipGeolocation,
+      hasCurrentLocation: !!currentLocation,
+      currentLocationName: currentLocation?.name
+    });
+
+    // Always try to get user's current location first, unless explicitly skipped
     if (!locationInitialized && !skipGeolocation) {
       console.log('🌍 尝试获取用户当前位置...');
       setLocationLoading(true);
+
+      // Check if browser supports geolocation
+      if (!navigator.geolocation) {
+        console.log('❌ 浏览器不支持地理位置');
+        setSkipGeolocation(true);
+        setLocationLoading(false);
+        if (currentLocation) {
+          console.log('🏠 使用默认位置:', currentLocation.name);
+          setLocationInitialized(true);
+        }
+        return;
+      }
+
       getCurrentPosition();
-      
+
       // Set a timeout to fallback to default location if geolocation takes too long
       const timeoutId = setTimeout(() => {
         if (!locationInitialized) {
           console.log('⏰ 位置获取超时，使用默认位置');
+          if (currentLocation) {
+            console.log('🏠 回退使用已有位置:', currentLocation.name);
+            setLocationInitialized(true);
+          }
           setSkipGeolocation(true);
           setLocationLoading(false);
-          setLocationInitialized(true);
         }
       }, 10000); // 10 seconds timeout
-      
+
       return () => clearTimeout(timeoutId);
+    } else if (!locationInitialized && currentLocation) {
+      // If geolocation is skipped and we have a default location, use it
+      console.log('🏠 使用默认位置:', currentLocation.name);
+      setLocationInitialized(true);
     }
   }, [getCurrentPosition, locationInitialized, skipGeolocation, currentLocation]);
 
   // Handle geolocation result
   useEffect(() => {
-    if (!locationInitialized) {
-      if (latitude && longitude && !geoError) {
-        console.log('📍 获取到位置坐标:', { latitude, longitude });
-        setLocationLoading(true);
-        setIsUsingCurrentLocation(true);
-        
-        // Use an async function to handle the geocoding
-        (async () => {
-          try {
-            console.log('🏙️ 正在反向地理编码获取城市名称...');
-            const cityName = await reverseGeocode(latitude, longitude);
-            console.log('🏙️ 获取到城市名称:', cityName);
-            setCurrentLocationCity(cityName);
-            
-            // Set location in store
-            const location = {
-              id: 'current-location',
-              name: cityName || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-              latitude,
-              longitude,
-              country: '',
-              timezone: 'auto'
-            };
-            
-            setCurrentLocation(location);
-            setLocationInitialized(true);
-          } catch (error) {
-            console.error('Failed to process current location:', error);
-            setError(t('errors.locationError'));
-            setSkipGeolocation(true);
-            setLocationInitialized(true);
-          } finally {
-            setLocationLoading(false);
-          }
-        })();
-      } else if (geoError) {
-        console.log('❌ 地理位置获取失败:', geoError);
-        setLocationLoading(false);
-        setIsUsingCurrentLocation(false);
-        setSkipGeolocation(true);
+    console.log('🔍 Geolocation effect triggered:', {
+      locationInitialized,
+      latitude,
+      longitude,
+      geoError: !!geoError,
+      geoLoading
+    });
+
+    if (!locationInitialized && latitude && longitude && !geoError) {
+      console.log('📍 获取到位置坐标:', { latitude, longitude });
+      setLocationLoading(true);
+      setIsUsingCurrentLocation(true);
+
+      // Use an async function to handle the geocoding
+      (async () => {
+        try {
+          console.log('🏙️ 正在反向地理编码获取城市名称...');
+          const cityName = await reverseGeocode(latitude, longitude);
+          console.log('🏙️ 获取到城市名称:', cityName);
+          setCurrentLocationCity(cityName);
+
+          // Set location in store
+          const location = {
+            id: 'current-location',
+            name: cityName || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+            latitude,
+            longitude,
+            country: '',
+            timezone: 'auto'
+          };
+
+          setCurrentLocation(location);
+          setLocationInitialized(true);
+          console.log('✅ 位置设置完成:', location.name);
+        } catch (error) {
+          console.error('Failed to process current location:', error);
+          setError(t('errors.locationError'));
+          setSkipGeolocation(true);
+          setLocationInitialized(true);
+        } finally {
+          setLocationLoading(false);
+        }
+      })();
+    } else if (!locationInitialized && geoError) {
+      console.log('❌ 地理位置获取失败:', geoError);
+      setLocationLoading(false);
+      setIsUsingCurrentLocation(false);
+      setSkipGeolocation(true);
+      // Initialize with default location if available
+      if (currentLocation) {
+        console.log('🏠 回退使用默认位置:', currentLocation.name);
         setLocationInitialized(true);
       }
     }
-  }, [latitude, longitude, geoError, locationInitialized]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [latitude, longitude, geoError, locationInitialized, reverseGeocode, setCurrentLocation, t, currentLocation, geoLoading]);
 
-  const loadDailyHistoricalData = async (isRetry: boolean = false) => {
-    if (!currentLocation) return;
-    
+  const loadDailyHistoricalData = useCallback(async (isRetry: boolean = false) => {
+    if (!currentLocation || !locationInitialized) {
+      console.log('⚠️ 位置未初始化，跳过API调用');
+      return;
+    }
+
     // Check if max retry reached
     if (maxRetryReached) {
       console.log('❌ 已达到最大重试次数，停止重试');
@@ -262,7 +271,7 @@ const HomepageHistoricalDaily: React.FC = () => {
       setData(processedData);
 
       console.log(`🎯 最终显示 ${processedData.length} 年的数据`);
-      
+
       // Reset retry state on success
       setRetryCount(0);
       setMaxRetryReached(false);
@@ -270,15 +279,15 @@ const HomepageHistoricalDaily: React.FC = () => {
     } catch (error) {
       const currentRetry = isRetry ? retryCount : 0;
       console.error(`❌ 获取历史同期数据失败 (尝试 ${currentRetry + 1}/4):`, error);
-      
+
       if (currentRetry < 3) {
         // Retry with exponential backoff
         const retryDelay = Math.pow(2, currentRetry) * 1000; // 1s, 2s, 4s
         console.log(`⏳ ${retryDelay / 1000}秒后重试...`);
-        
+
         setRetryCount(currentRetry + 1);
         setError(t('errors.retryMessage', { current: currentRetry + 1, max: 3 }));
-        
+
         setTimeout(() => {
           loadDailyHistoricalData(true);
         }, retryDelay);
@@ -293,26 +302,27 @@ const HomepageHistoricalDaily: React.FC = () => {
         setLoading(false);
       }
     }
-  };
+  }, [currentLocation, locationInitialized, selectedDate, maxRetryReached, retryCount, t]);
 
   useEffect(() => {
     // Reset retry state when location or date changes
     setRetryCount(0);
     setMaxRetryReached(false);
-    
+
     // Only load data after location is initialized
     if (locationInitialized && currentLocation) {
+      console.log('🚀 位置已初始化，开始加载历史天气数据');
       loadDailyHistoricalData();
+    } else {
+      console.log('⏳ 等待位置初始化...', { locationInitialized, hasLocation: !!currentLocation });
     }
-  }, [selectedDate, currentLocation, locationInitialized]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedDate, currentLocation, locationInitialized, loadDailyHistoricalData]);
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = new Date(event.target.value);
     setSelectedDate(newDate);
   };
 
-  const { i18n } = useTranslation();
-  
   const formatDate = (date: Date) => {
     const isChina = i18n.language.startsWith('zh');
     return format(date, isChina ? 'MM月dd日' : 'MMM dd', { locale: isChina ? zhCN : undefined });
@@ -431,14 +441,14 @@ const HomepageHistoricalDaily: React.FC = () => {
         <p className="text-gray-600 dark:text-gray-300">
           {t('homepage.description')}
         </p>
-        
+
         {/* Current Location Display */}
         {isUsingCurrentLocation && (
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="flex items-center space-x-2">
               <MapPinIcon className="h-5 w-5 text-blue-600" />
               <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                {t('homepage.currentLocation')} 
+                {t('homepage.currentLocation')}
               </span>
               {locationLoading || geoLoading ? (
                 <span className="text-sm text-blue-700 dark:text-blue-300">{t('location.detecting')}</span>
@@ -464,13 +474,13 @@ const HomepageHistoricalDaily: React.FC = () => {
             {t('homepage.analysisLocation')}
           </h2>
         </div>
-        <QuickLocationSelector 
-          compact={false} 
+        <QuickLocationSelector
+          compact={false}
           onLocationChange={() => {
             setIsUsingCurrentLocation(false);
             setLocationInitialized(true);
             // Data will be loaded automatically by the useEffect above
-          }} 
+          }}
         />
       </div>
 
@@ -666,7 +676,7 @@ const HomepageHistoricalDaily: React.FC = () => {
                            focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 
                            transition-colors duration-200"
                 >
-{t('errors.manualRetry')}
+                  {t('errors.manualRetry')}
                 </button>
               </div>
             )}
