@@ -61,7 +61,7 @@ const TestChart: React.FC = () => {
           📊 HistoricalWeatherChart 组件测试页面
         </h1>
         <p className="text-secondary">
-          测试历史天气图表组件的各种配置和功能
+          测试历史气温图表组件的各种配置和功能
         </p>
       </div>
 
@@ -299,7 +299,7 @@ const TestChart: React.FC = () => {
           <p>• <strong>日期范围模式</strong>: 当日期范围&gt;1天时，显示该时间段的连续数据</p>
           <p>• <strong>时区自动检测</strong>: 组件会根据坐标自动检测并使用当地时区</p>
           <p>• <strong>实时数据</strong>: 如果查询今天的数据，会自动获取当前实况天气</p>
-          <p>• <strong>缓存机制</strong>: 历史数据会被缓存，当前天气数据每次都是最新的</p>
+          <p>• <strong>缓存机制</strong>: 历史数据会被缓存，当前气温数据每次都是最新的</p>
         </div>
       </div>
     </div>

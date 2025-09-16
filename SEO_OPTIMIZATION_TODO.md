@@ -56,7 +56,7 @@
 - [ ] **结构化数据**
   - [ ] 添加Organization schema
   - [ ] 添加WebSite schema（包含搜索功能）
-  - [ ] 为天气数据添加WeatherForecast schema
+  - [ ] 为气温数据添加WeatherForecast schema
   - [ ] 实现面包屑导航schema
 
 - [ ] **高级Meta标签**

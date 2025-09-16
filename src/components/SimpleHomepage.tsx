@@ -55,10 +55,10 @@ const SimpleHomepage: React.FC = () => {
       <div className="text-center space-y-6">
         <div className="space-y-4">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-            历史天气数据分析平台
+            历史气温数据分析平台
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            选择位置，即可获取丰富的历史同期天气数据分析
+            选择位置，即可获取丰富的历史同期气温数据分析
           </p>
         </div>
 
@@ -69,7 +69,7 @@ const SimpleHomepage: React.FC = () => {
               <MapPinIcon className="h-6 w-6 text-blue-600" />
             </div>
             <h3 className="font-semibold text-gray-900 dark:text-white mb-1">全球城市支持</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">支持全球任意城市的历史天气查询</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">支持全球任意城市的历史气温查询</p>
           </div>
           
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
@@ -106,7 +106,7 @@ const SimpleHomepage: React.FC = () => {
         <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg border border-blue-200 dark:border-blue-700 p-6">
           <div className="text-center space-y-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              第二步：开始分析 {currentLocation.name} 的历史天气数据
+              第二步：开始分析 {currentLocation.name} 的历史气温数据
             </h2>
             <button
               onClick={handleStartAnalysis}

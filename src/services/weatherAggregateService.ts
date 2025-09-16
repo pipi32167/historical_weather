@@ -1,5 +1,5 @@
 /**
- * 天气数据聚合服务
+ * 气温数据聚合服务
  * 统一处理历史数据和预报数据的获取，解决API边界问题
  */
 
@@ -27,7 +27,7 @@ export interface WeatherDataResponse {
 
 export class WeatherAggregateService {
   /**
-   * 获取日期范围内的天气数据
+   * 获取日期范围内的气温数据
    * 自动判断使用历史API还是预报API，或者两者结合
    */
   async getWeatherDataRange(request: WeatherDataRequest): Promise<WeatherDataResponse> {
@@ -87,7 +87,7 @@ export class WeatherAggregateService {
 
     } catch (error) {
       console.error('WeatherAggregateService: 获取数据失败', error);
-      throw new Error(`获取天气数据失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      throw new Error(`获取气温数据失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
 
@@ -277,9 +277,9 @@ export class WeatherAggregateService {
             sources.push('预报API');
           }
         } catch (error) {
-          console.warn('获取今日预报数据失败，尝试获取当前天气数据:', error);
+          console.warn('获取今日预报数据失败，尝试获取当前气温数据:', error);
           
-          // 降级处理：获取当前天气数据
+          // 降级处理：获取当前气温数据
           try {
             const currentWeather = await openMeteoService.getCurrentWeather(
               location.latitude,
@@ -310,7 +310,7 @@ export class WeatherAggregateService {
               sources.push('实时API');
             }
           } catch (fallbackError) {
-            console.warn('获取当前天气数据也失败，将跳过:', fallbackError);
+            console.warn('获取当前气温数据也失败，将跳过:', fallbackError);
           }
         }
       }
@@ -451,9 +451,9 @@ export class WeatherAggregateService {
           }];
         }
       } catch (error) {
-        console.warn('获取今日预报数据失败，尝试获取当前天气数据:', error);
+        console.warn('获取今日预报数据失败，尝试获取当前气温数据:', error);
         
-        // 降级处理：获取当前天气数据
+        // 降级处理：获取当前气温数据
         const forecastData = await openMeteoService.getCurrentWeather(
           location.latitude,
           location.longitude,

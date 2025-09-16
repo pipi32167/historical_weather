@@ -107,7 +107,7 @@ const HistoricalWeatherChart: React.FC<HistoricalWeatherChartProps> = ({
     return daysDiff <= 1; // 如果日期范围<=1天，使用同期对比模式
   }, [startDate, endDate]);
 
-  // 获取历史天气数据
+  // 获取历史气温数据
   const fetchWeatherData = useCallback(async () => {
     if (!timezoneInfo) return;
 
@@ -155,7 +155,7 @@ const HistoricalWeatherChart: React.FC<HistoricalWeatherChartProps> = ({
       onDataLoaded?.(response.data);
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '获取天气数据失败';
+      const errorMessage = err instanceof Error ? err.message : '获取气温数据失败';
       console.error('HistoricalWeatherChart: 数据获取失败', err);
       setError(errorMessage);
       onError?.(errorMessage);
@@ -204,7 +204,7 @@ const HistoricalWeatherChart: React.FC<HistoricalWeatherChartProps> = ({
     if (useSamePeriodMode) {
       return `${cityName}历史同期数据 - ${format(startDate, 'MM月dd日', { locale: zhCN })}`;
     }
-    return `${cityName}天气数据 - ${format(startDate, 'MM月dd日', { locale: zhCN })} 至 ${format(endDate, 'MM月dd日', { locale: zhCN })}`;
+    return `${cityName}气温数据 - ${format(startDate, 'MM月dd日', { locale: zhCN })} 至 ${format(endDate, 'MM月dd日', { locale: zhCN })}`;
   }, [cityName, startDate, endDate, useSamePeriodMode]);
 
   const chartSubtitle = useMemo(() => {
@@ -213,7 +213,7 @@ const HistoricalWeatherChart: React.FC<HistoricalWeatherChartProps> = ({
     if (useSamePeriodMode) {
       return `${hasCurrentWeather ? '当前实况 + ' : ''}过去${years}年同期温度变化 • ${chartData.length} 个数据点`;
     }
-    return `历史和实时天气数据 • ${chartData.length} 个数据点`;
+    return `历史和实时气温数据 • ${chartData.length} 个数据点`;
   }, [chartData, years, useSamePeriodMode]);
 
   // 处理图表类型变更
@@ -248,12 +248,12 @@ const HistoricalWeatherChart: React.FC<HistoricalWeatherChartProps> = ({
       <div className={`bg-primary border border-custom rounded-lg p-8 text-center ${className}`}>
         <div className="text-4xl mb-4">🌤️</div>
         <h3 className="text-lg font-semibold text-primary mb-2">
-          正在加载{cityName}天气数据...
+          正在加载{cityName}气温数据...
         </h3>
         <p className="text-sm text-secondary">
           {useSamePeriodMode 
             ? `正在分析${format(startDate, 'MM月dd日', { locale: zhCN })}过去${years}年的历史同期数据`
-            : `正在获取${format(startDate, 'MM月dd日', { locale: zhCN })}至${format(endDate, 'MM月dd日', { locale: zhCN })}的天气数据`
+            : `正在获取${format(startDate, 'MM月dd日', { locale: zhCN })}至${format(endDate, 'MM月dd日', { locale: zhCN })}的气温数据`
           }
         </p>
         {timezoneInfo && (

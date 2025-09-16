@@ -186,7 +186,7 @@ const MonthlyTemperatureControls: React.FC<MonthlyTemperatureControlsProps> = ({
               <ul className="space-y-1">
                 <li>• <strong>月度趋势</strong>: 显示指定月份多年的温度变化趋势</li>
                 <li>• <strong>年度概况</strong>: 显示全年12个月的平均温度分布</li>
-                <li>• 数据基于Open-Meteo历史天气API，覆盖1940年至今</li>
+                <li>• 数据基于Open-Meteo历史气温API，覆盖1940年至今</li>
               </ul>
             </div>
           </div>

@@ -2,7 +2,7 @@
 
 ## 🎯 总体目标
 
-将现有的分散式历史天气分析功能整合为统一的**分析工作台**，提升用户体验和代码质量。
+将现有的分散式历史气温分析功能整合为统一的**分析工作台**，提升用户体验和代码质量。
 
 ## 📅 开发时间表
 
@@ -146,7 +146,7 @@ LocationSelector → Store → AnalysisService → Chart → UI → User
 const HomePage = () => (
   <>
     <HeroSection 
-      title="历史天气数据分析平台"
+      title="历史气温数据分析平台"
       subtitle="专业的气候数据分析工具"
       ctaText="开始分析"
       ctaLink="/analysis"

@@ -436,7 +436,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
       <div className="text-xs text-secondary border-t border-custom pt-3">
         <div className="flex items-center justify-between">
           <div>
-            💡 数据来源：Open-Meteo历史天气API，基于再分析数据集
+            💡 数据来源：Open-Meteo历史气温API，基于再分析数据集
           </div>
           {mode === 'monthly-trends' && monthlyTrends && (
             <div>

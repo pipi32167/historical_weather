@@ -40,7 +40,7 @@ const HistoricalControlsPanel: React.FC<HistoricalControlsPanelProps> = ({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-primary">历史同期数据控制面板</h3>
-              <p className="text-sm text-secondary">自定义查询条件，探索历史天气数据</p>
+              <p className="text-sm text-secondary">自定义查询条件，探索历史气温数据</p>
             </div>
           </div>
           <button

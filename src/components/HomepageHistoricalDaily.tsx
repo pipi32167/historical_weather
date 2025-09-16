@@ -311,7 +311,7 @@ const HomepageHistoricalDaily: React.FC = () => {
 
     // Only load data after location is initialized
     if (locationInitialized && currentLocation) {
-      console.log('🚀 位置已初始化，开始加载历史天气数据');
+      console.log('🚀 位置已初始化，开始加载历史气温数据');
       loadDailyHistoricalData();
     } else {
       console.log('⏳ 等待位置初始化...', { locationInitialized, hasLocation: !!currentLocation });

@@ -1,4 +1,4 @@
-# 历史天气数据分析平台 - UI布局设计文档
+# 历史气温数据分析平台 - UI布局设计文档
 
 ## 🎨 设计概览
 
@@ -63,7 +63,7 @@ $breakpoints: (
 Mobile Layout
 ┌─────────────────────────┐
 │    Header (50px)        │
-│ ☰ Historical Weather    │
+│ ☰ Historical Temperature │
 ├─────────────────────────┤
 │                         │
 │    Search Bar           │
@@ -142,7 +142,7 @@ const HeaderLayout = {
   
   // 左侧区域
   left: {
-    logo: 'Historical Weather Analytics',
+    logo: 'Historical Temperature Analytics',
     navigation: ['数据对比', '趋势分析', '实时数据']
   },
   
@@ -790,4 +790,4 @@ const LoadingStates = {
 }
 ```
 
-这个UI布局设计为历史天气数据分析平台提供了完整的界面架构，既满足了功能需求，又考虑了用户体验和开发效率。设计采用了现代化的布局技术和响应式原则，确保在各种设备上都能提供优秀的使用体验。
+这个UI布局设计为历史气温数据分析平台提供了完整的界面架构，既满足了功能需求，又考虑了用户体验和开发效率。设计采用了现代化的布局技术和响应式原则，确保在各种设备上都能提供优秀的使用体验。

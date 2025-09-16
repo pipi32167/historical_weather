@@ -130,16 +130,16 @@ const UserLocationWeather: React.FC<UserLocationWeatherProps> = ({ className = '
               {geoLoading 
                 ? '正在获取您的位置...' 
                 : isUsingFallback 
-                  ? '上海历史天气数据' 
-                  : `${effectiveLocation.name} 历史天气数据`
+                  ? '上海历史气温数据' 
+                  : `${effectiveLocation.name} 历史气温数据`
               }
             </h2>
             <p className="text-sm text-secondary">
               {geoLoading 
-                ? '请允许位置权限以获取您当前位置的天气数据'
+                ? '请允许位置权限以获取您当前位置的气温数据'
                 : isUsingFallback
                   ? '无法获取您的位置，显示上海的数据作为示例'
-                  : `基于您当前位置的历史同期天气分析`
+                  : `基于您当前位置的历史同期气温分析`
               }
             </p>
           </div>
@@ -176,7 +176,7 @@ const UserLocationWeather: React.FC<UserLocationWeatherProps> = ({ className = '
         </div>
       )}
 
-      {/* Main Historical Weather Chart */}
+      {/* Main Historical Temperature Chart */}
       {latitude && longitude ? (
         <div className="space-y-4">
           <HistoricalWeatherChart
@@ -236,7 +236,7 @@ const UserLocationWeather: React.FC<UserLocationWeatherProps> = ({ className = '
             正在定位...
           </h3>
           <p className="text-sm text-secondary">
-            请允许位置权限以获取您当前位置的天气数据
+            请允许位置权限以获取您当前位置的气温数据
           </p>
         </div>
       )}

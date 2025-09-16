@@ -1,8 +1,8 @@
-# 天气数据可视化前端图表库对比分析
+# 气温数据可视化前端图表库对比分析
 
 ## 📊 概述
 
-本文档详细对比了适合天气数据展示的前端图表库，重点关注React生态系统中的解决方案。基于性能、功能、易用性和维护性等维度进行全面评估。
+本文档详细对比了适合气温数据展示的前端图表库，重点关注React生态系统中的解决方案。基于性能、功能、易用性和维护性等维度进行全面评估。
 
 ## 🏆 综合评分对比表
 
@@ -364,7 +364,7 @@ const VirtualizedWeatherList = ({ weatherData }) => (
 ### TypeScript集成
 
 ```typescript
-// 天气数据类型定义
+// 气温数据类型定义
 interface WeatherDataPoint {
   timestamp: string;
   temperature: number;
@@ -397,7 +397,7 @@ const WeatherChart: React.FC<ChartProps> = ({
 
 ### 🎯 最终推荐方案
 
-**历史天气数据项目最佳组合:**
+**历史气温数据项目最佳组合:**
 
 ```
 🥇 主力: Recharts (日常图表)
@@ -415,4 +415,4 @@ const WeatherChart: React.FC<ChartProps> = ({
 - Phase 2: 引入ECharts处理性能瓶颈
 - Phase 3: 集成Observable Plot增强分析能力
 
-这种渐进式集成策略既保证了开发速度，又为未来的功能扩展留出了空间，是历史天气数据可视化项目的最佳实践方案。
+这种渐进式集成策略既保证了开发速度，又为未来的功能扩展留出了空间，是历史气温数据可视化项目的最佳实践方案。

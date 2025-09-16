@@ -2,15 +2,15 @@
 
 ## 概述
 
-本文档调研了2025年可用的完全免费天气API服务，重点关注支持城市名查询、不需要API密钥或注册的解决方案，为历史天气数据分析平台提供技术选型参考。
+本文档调研了2025年可用的完全免费天气API服务，重点关注支持城市名查询、不需要API密钥或注册的解决方案，为历史气温数据分析平台提供技术选型参考。
 
 ## 技术需求
 
 - ✅ 支持城市名查询
 - ✅ 完全免费（无需付费）
 - ✅ 无需API密钥或注册
-- ✅ 支持当前天气数据
-- ✅ 支持历史天气数据
+- ✅ 支持当前气温数据
+- ✅ 支持历史气温数据
 - ✅ 良好的API稳定性和可用性
 
 ## 推荐方案排序
@@ -21,7 +21,7 @@
 
 #### 优势
 - ✅ **完全免费**：非商业用途无需注册或API密钥
-- ✅ **丰富历史数据**：提供80+年历史天气数据，从1940年开始
+- ✅ **丰富历史数据**：提供80+年历史气温数据，从1940年开始
 - ✅ **高精度**：10公里分辨率，每小时数据
 - ✅ **开源**：开源软件，可自托管
 - ✅ **全球覆盖**：支持全球任何地点
@@ -35,7 +35,7 @@ https://geocoding-api.open-meteo.com/v1/search?name={city_name}
 # 当前天气预报
 https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true
 
-# 历史天气数据
+# 历史气温数据
 https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}&start_date={date}&end_date={date}
 ```
 
@@ -48,7 +48,7 @@ const geocodingResponse = await fetch(
 const locations = await geocodingResponse.json();
 const { latitude, longitude } = locations.results[0];
 
-// 2. 获取历史天气数据
+// 2. 获取历史气温数据
 const weatherResponse = await fetch(
   `https://archive-api.open-meteo.com/v1/archive?latitude=${latitude}&longitude=${longitude}&start_date=2023-01-01&end_date=2023-01-31&daily=temperature_2m_max,temperature_2m_min&timezone=Asia/Shanghai`
 );
@@ -106,7 +106,7 @@ const weatherData = await response.json();
 
 #### 方案四：WeatherAPI.com (需要免费注册)  
 - **免费额度**：每月100万次调用
-- **历史数据**：支持历史天气查询
+- **历史数据**：支持历史气温查询
 - **需要注册**：需要获取免费API密钥
 - **功能丰富**：支持天气预警、天文数据等
 
@@ -137,7 +137,7 @@ class FreeWeatherService {
     return data.results || [];
   }
   
-  // 历史天气数据
+  // 历史气温数据
   async getHistoricalWeather(latitude, longitude, startDate, endDate) {
     const params = new URLSearchParams({
       latitude: latitude.toString(),
@@ -152,7 +152,7 @@ class FreeWeatherService {
     return await response.json();
   }
   
-  // 当前天气数据
+  // 当前气温数据
   async getCurrentWeather(latitude, longitude) {
     const response = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`

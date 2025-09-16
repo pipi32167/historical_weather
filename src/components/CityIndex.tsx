@@ -29,15 +29,15 @@ const CityIndex: React.FC = () => {
       <div className="text-center">
         <div className="text-6xl mb-4">🌍</div>
         <h1 className="text-4xl font-bold text-primary mb-4">
-          历史天气数据分析平台
+          历史气温数据分析平台
         </h1>
         <p className="text-lg text-secondary max-w-2xl mx-auto leading-relaxed">
-          通过URL访问不同城市的历史同期天气数据，支持多种图表展示和数据分析功能。
+          通过URL访问不同城市的历史同期气温数据，支持多种图表展示和数据分析功能。
           支持搜索全球任意城市或使用预设城市列表。
         </p>
       </div>
 
-      {/* 用户位置天气数据 */}
+      {/* 用户位置气温数据 */}
       <UserLocationWeather className="max-w-4xl mx-auto" />
 
       {/* 城市搜索框 */}
@@ -122,7 +122,7 @@ const CityIndex: React.FC = () => {
                   </div>
                   
                   <div className="mt-2 pt-2 border-t border-custom text-xs text-secondary">
-                    点击查看历史天气数据
+                    点击查看历史气温数据
                   </div>
                 </button>
               ))}
@@ -187,7 +187,7 @@ const CityIndex: React.FC = () => {
       {/* Footer */}
       <div className="text-center text-sm text-secondary">
         <p>
-          💡 提示：点击任意城市卡片或在浏览器地址栏输入 <code>/城市名</code> 即可访问对应城市的历史天气数据
+          💡 提示：点击任意城市卡片或在浏览器地址栏输入 <code>/城市名</code> 即可访问对应城市的历史气温数据
         </p>
       </div>
     </div>

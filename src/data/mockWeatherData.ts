@@ -45,7 +45,7 @@ export const mockLocations: Location[] = [
   }
 ];
 
-// 生成模拟天气数据的函数
+// 生成模拟气温数据的函数
 export const generateMockWeatherData = (
   location: Location,
   startDate: Date,

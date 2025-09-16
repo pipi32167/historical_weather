@@ -175,10 +175,10 @@ const CityIndex: React.FC = () => {
       <div className="text-center space-y-4">
         <div className="text-6xl mb-4">🌡️</div>
         <h1 className="text-4xl font-bold text-primary mb-4">
-          历史天气数据分析平台
+          历史气温数据分析平台
         </h1>
         <p className="text-xl text-secondary max-w-2xl mx-auto">
-          专业的气候数据分析工具，支持日/月/季/年多维度历史天气对比分析
+          专业的气候数据分析工具，支持日/月/季/年多维度历史气温对比分析
         </p>
       </div>
 
@@ -196,7 +196,7 @@ const CityIndex: React.FC = () => {
             disabled={!currentLocation}
             className="bg-primary-500 hover:bg-primary-600 disabled:bg-gray-400 text-white font-semibold py-3 px-8 rounded-lg text-lg transition-colors"
           >
-            开始分析 {currentLocation?.name} 的历史天气
+            开始分析 {currentLocation?.name} 的历史气温
           </button>
         </div>
       </div>
@@ -308,7 +308,7 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         </div>
         <div className="hidden sm:block">
           <h1 className="text-lg font-semibold text-primary">
-            历史天气分析
+            历史气温分析
           </h1>
         </div>
       </button>

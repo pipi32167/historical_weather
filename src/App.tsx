@@ -22,7 +22,7 @@ function App(): React.ReactElement {
       <Router>
         <MainLayout>
           <Routes>
-            {/* 首页 - 带自动定位的历史天气数据 */}
+            {/* 首页 - 带自动定位的历史气温数据 */}
             <Route path="/" element={<HomepageHistoricalDaily />} />
             
             {/* 原始城市索引页面 - 保留作为备用 */}
@@ -37,10 +37,10 @@ function App(): React.ReactElement {
             {/* 测试页面 - HistoricalWeatherChart 组件测试 */}
             <Route path="/test-chart" element={<TestChart />} />
             
-            {/* 动态位置页面 - 使用坐标显示历史天气数据 */}
+            {/* 动态位置页面 - 使用坐标显示历史气温数据 */}
             <Route path="/location/:coordinates" element={<DynamicLocationWeather />} />
             
-            {/* 城市页面 - 显示特定城市的历史天气数据 */}
+            {/* 城市页面 - 显示特定城市的历史气温数据 */}
             <Route path="/:cityName" element={<CityWeather />} />
             
             {/* 404页面 - 重定向到首页 */}

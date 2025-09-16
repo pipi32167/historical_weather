@@ -305,7 +305,7 @@ const WeatherChart: React.FC<WeatherChartProps> = ({
         <div className="text-center">
           <div className="text-4xl mb-2">📊</div>
           <p className="text-lg font-medium">暂无数据</p>
-          <p className="text-sm mt-1">请选择地点和时间范围来查看天气数据</p>
+          <p className="text-sm mt-1">请选择地点和时间范围来查看气温数据</p>
         </div>
       </div>
     );

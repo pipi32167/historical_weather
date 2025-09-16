@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Historical Weather Data Analysis",
+    "title": "Historical Temperature Data Analysis",
     "loading": "Loading...",
     "error": "An error occurred",
     "retry": "Retry",

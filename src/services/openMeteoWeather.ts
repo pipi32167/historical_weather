@@ -1,6 +1,6 @@
 /**
  * Open-Meteo免费天气API服务
- * 提供地理编码、当前天气和历史天气数据查询功能
+ * 提供地理编码、当前天气和历史气温数据查询功能
  * 集成缓存机制以提升性能和用户体验
  */
 
@@ -178,11 +178,11 @@ export class OpenMeteoWeatherService {
   }
 
   /**
-   * 获取当前天气数据
+   * 获取当前气温数据
    * @param latitude 纬度
    * @param longitude 经度
    * @param timezone 时区 (可选，默认auto)
-   * @returns 当前天气数据
+   * @returns 当前气温数据
    */
   async getCurrentWeather(
     latitude: number,
@@ -194,7 +194,7 @@ export class OpenMeteoWeatherService {
     const cachedResult = cache.get<OpenMeteoForecastData>(cacheKey);
 
     if (cachedResult) {
-      console.log('从缓存获取当前天气数据:', { latitude, longitude });
+      console.log('从缓存获取当前气温数据:', { latitude, longitude });
       return cachedResult;
     }
 
@@ -210,7 +210,7 @@ export class OpenMeteoWeatherService {
     try {
       const result = await fetchWithRetry<OpenMeteoForecastData>(url);
 
-      // 缓存结果（当前天气数据变化较快，缓存时间较短）
+      // 缓存结果（当前气温数据变化较快，缓存时间较短）
       cache.set(cacheKey, result, CACHE_TTL.CURRENT_WEATHER);
 
       return result;
@@ -287,14 +287,14 @@ export class OpenMeteoWeatherService {
   }
 
   /**
-   * 获取历史天气数据
+   * 获取历史气温数据
    * @param latitude 纬度
    * @param longitude 经度
    * @param startDate 开始日期 (YYYY-MM-DD)
    * @param endDate 结束日期 (YYYY-MM-DD)
    * @param timezone 时区 (可选，默认auto)
    * @param dailyParams 需要的每日参数
-   * @returns 历史天气数据
+   * @returns 历史气温数据
    */
   async getHistoricalWeather(
     latitude: number,
@@ -304,17 +304,17 @@ export class OpenMeteoWeatherService {
     timezone: string = 'auto',
     dailyParams: string[] = ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum']
   ): Promise<OpenMeteoHistoricalData> {
-    console.log('请求历史天气数据:', { latitude, longitude, startDate, endDate, timezone, dailyParams });
+    console.log('请求历史气温数据:', { latitude, longitude, startDate, endDate, timezone, dailyParams });
     // 检查缓存
     const cacheKey = cacheKeys.historicalWeather(latitude, longitude, startDate, endDate, dailyParams);
     console.log('生成的缓存键:', cacheKey);
     const cachedResult = cache.get<OpenMeteoHistoricalData>(cacheKey);
 
     if (cachedResult) {
-      console.log('✅ 缓存命中! 从缓存获取历史天气数据:', { latitude, longitude, startDate, endDate });
+      console.log('✅ 缓存命中! 从缓存获取历史气温数据:', { latitude, longitude, startDate, endDate });
       return cachedResult;
     }
-    console.log('❌ 缓存未命中，调用Open-Meteo历史天气API');
+    console.log('❌ 缓存未命中，调用Open-Meteo历史气温API');
 
     const params = new URLSearchParams({
       latitude: latitude.toString(),
@@ -336,8 +336,8 @@ export class OpenMeteoWeatherService {
 
       return result;
     } catch (error) {
-      console.error('Open-Meteo历史天气获取失败:', error);
-      throw new Error(`无法获取坐标(${latitude}, ${longitude})从${startDate}到${endDate}的历史天气: ${error}`);
+      console.error('Open-Meteo历史气温获取失败:', error);
+      throw new Error(`无法获取坐标(${latitude}, ${longitude})从${startDate}到${endDate}的历史气温: ${error}`);
     }
   }
 

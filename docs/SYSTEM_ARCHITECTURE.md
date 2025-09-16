@@ -1,8 +1,8 @@
-# 历史天气数据分析平台 - 系统架构文档
+# 历史气温数据分析平台 - 系统架构文档
 
 ## 1. 系统概览
 
-历史天气数据分析平台是一个基于 React + TypeScript 的现代化 Web 应用，专注于历史天气数据的可视化分析和智能查询。
+历史气温数据分析平台是一个基于 React + TypeScript 的现代化 Web 应用，专注于历史气温数据的可视化分析和智能查询。
 
 ### 1.1 技术栈
 
@@ -311,7 +311,7 @@ graph TB
 
 ```mermaid
 flowchart TD
-    RawData[原始天气数据] --> DataValidation{数据验证}
+    RawData[原始气温数据] --> DataValidation{数据验证}
     DataValidation -->|有效| ProcessData[数据处理]
     DataValidation -->|无效| ShowError[显示错误]
     

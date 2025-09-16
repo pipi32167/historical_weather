@@ -1,4 +1,4 @@
-// 天气数据类型定义
+// 气温数据类型定义
 export interface WeatherDataPoint {
   timestamp: string;
   date: string;

@@ -23,7 +23,7 @@
 
 **主要职责：**
 - 与 Open-Meteo API 通信
-- 提供历史天气数据获取接口
+- 提供历史气温数据获取接口
 - 实现缓存机制和错误重试
 
 **关键方法：**
@@ -616,7 +616,7 @@ const dateLineLocation = { latitude: 0.0, longitude: 179.9 };
 ```typescript
 // 太平洋中心
 const oceanLocation = { latitude: 0.0, longitude: -180.0 };
-// 处理：天气数据可能稀少或使用插值数据
+// 处理：气温数据可能稀少或使用插值数据
 ```
 
 ### 2. 时间边界情况

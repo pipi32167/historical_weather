@@ -95,7 +95,7 @@ curl "https://api.open-meteo.com/v1/forecast?latitude=39.9042&longitude=116.4074
 }
 ```
 
-## 3. 历史天气API
+## 3. 历史气温API
 
 ### 获取上海2023年数据（一年历史数据）
 
@@ -172,7 +172,7 @@ declare -A cities=(
   ["london"]="51.5074,-0.1278"
 )
 
-echo "=== 当前天气数据测试 ==="
+echo "=== 当前气温数据测试 ==="
 for city in "${!cities[@]}"; do
   echo "测试城市: $city"
   IFS=',' read -r lat lon <<< "${cities[$city]}"
@@ -313,16 +313,16 @@ test_current_weather() {
 }
 
 test_historical_weather() {
-    echo -e "${YELLOW}测试历史天气API...${NC}"
+    echo -e "${YELLOW}测试历史气温API...${NC}"
     YESTERDAY=$(date -d '1 day ago' '+%Y-%m-%d')
     RESPONSE=$(curl -s "https://archive-api.open-meteo.com/v1/archive?latitude=31.2304&longitude=121.4737&start_date=${YESTERDAY}&end_date=${YESTERDAY}&daily=temperature_2m_mean&timezone=auto")
     
     if echo "$RESPONSE" | jq -e '.daily.temperature_2m_mean[0]' > /dev/null 2>&1; then
         TEMP=$(echo "$RESPONSE" | jq -r '.daily.temperature_2m_mean[0]')
-        echo -e "${GREEN}✓ 历史天气API正常 - ${YESTERDAY} 平均温度: ${TEMP}°C${NC}"
+        echo -e "${GREEN}✓ 历史气温API正常 - ${YESTERDAY} 平均温度: ${TEMP}°C${NC}"
         return 0
     else
-        echo -e "${RED}✗ 历史天气API异常${NC}"
+        echo -e "${RED}✗ 历史气温API异常${NC}"
         return 1
     fi
 }
@@ -387,4 +387,4 @@ chmod +x test_api.sh
 - `precipitation_sum`: 降水量
 - `weather_code`: 天气代码
 
-这些curl命令可以帮助你测试API的可用性和响应格式，确保我们的应用能够正常获取天气数据。
+这些curl命令可以帮助你测试API的可用性和响应格式，确保我们的应用能够正常获取气温数据。

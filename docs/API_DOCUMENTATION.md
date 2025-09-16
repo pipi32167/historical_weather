@@ -1,8 +1,8 @@
-# API 文档 - 历史天气数据分析平台
+# API 文档 - 历史气温数据分析平台
 
 ## 1. API 概览
 
-本系统主要集成了 Open-Meteo 天气API服务，提供全球范围内的历史和实时天气数据。
+本系统主要集成了 Open-Meteo 天气API服务，提供全球范围内的历史和实时气温数据。
 
 ### 1.1 API 服务架构
 
@@ -51,7 +51,7 @@ class WeatherService {
 
 #### 2.2.1 getCurrentWeather()
 
-获取指定位置的当前天气数据。
+获取指定位置的当前气温数据。
 
 ```typescript
 async getCurrentWeather(location: Location): Promise<WeatherDataPoint>
@@ -61,7 +61,7 @@ async getCurrentWeather(location: Location): Promise<WeatherDataPoint>
 - `location: Location` - 地理位置信息
 
 **返回值:**
-- `Promise<WeatherDataPoint>` - 当前天气数据点
+- `Promise<WeatherDataPoint>` - 当前气温数据点
 
 **API调用流程:**
 ```mermaid
@@ -76,13 +76,13 @@ sequenceDiagram
     
     alt 缓存命中
         Cache-->>Service: 返回缓存数据
-        Service-->>App: 返回天气数据
+        Service-->>App: 返回气温数据
     else 缓存未命中
         Service->>API: 调用 forecast API
         API-->>Service: 返回原始数据
         Service->>Service: 数据转换
         Service->>Cache: 更新缓存
-        Service-->>App: 返回天气数据
+        Service-->>App: 返回气温数据
     end
 ```
 
@@ -100,7 +100,7 @@ const currentWeather = await weatherService.getCurrentWeather({
 
 #### 2.2.2 getHistoricalWeather()
 
-获取指定位置和时间范围的历史天气数据。
+获取指定位置和时间范围的历史气温数据。
 
 ```typescript
 async getHistoricalWeather(
@@ -116,7 +116,7 @@ async getHistoricalWeather(
 - `endDate: Date` - 结束日期
 
 **返回值:**
-- `Promise<WeatherDataPoint[]>` - 历史天气数据数组
+- `Promise<WeatherDataPoint[]>` - 历史气温数据数组
 
 **数据处理流程:**
 ```mermaid
@@ -200,7 +200,7 @@ async searchLocations(query: string): Promise<Location[]>
 | API 类型 | 端点 | 用途 |
 |---------|------|------|
 | Forecast API | `https://api.open-meteo.com/v1/forecast` | 当前和未来天气 |
-| Archive API | `https://archive-api.open-meteo.com/v1/archive` | 历史天气数据 |
+| Archive API | `https://archive-api.open-meteo.com/v1/archive` | 历史气温数据 |
 | Geocoding API | `https://geocoding-api.open-meteo.com/v1/search` | 地理位置搜索 |
 
 ### 3.2 请求参数映射
@@ -561,4 +561,4 @@ graph TD
 4. **监控使用**: 监控API使用量，避免超出限制
 5. **数据验证**: 对返回数据进行验证和清理
 
-通过以上API设计和实现，系统能够高效、稳定地获取和处理天气数据，为用户提供准确的历史天气分析功能。
+通过以上API设计和实现，系统能够高效、稳定地获取和处理气温数据，为用户提供准确的历史气温分析功能。

@@ -95,7 +95,7 @@ curl "https://api.open-meteo.com/v1/forecast?latitude=31.2304&longitude=121.4737
 - `current.wind_direction_10m`: 10米高度风向（度）
 - `current.weather_code`: 天气代码（WMO标准）
 
-## 3. 历史天气API响应格式
+## 3. 历史气温API响应格式
 
 ### 请求示例
 ```bash
@@ -204,7 +204,7 @@ const weatherCodeMap = {
 ### 历史数据处理问题及解决方案
 
 #### 问题1: 湿度数据不可用
-**问题**: 历史天气API的`daily`参数不支持`relative_humidity_2m`
+**问题**: 历史气温API的`daily`参数不支持`relative_humidity_2m`
 **解决方案**: 使用`hourly`参数获取每小时湿度，然后计算日平均值
 
 ```javascript
@@ -309,4 +309,4 @@ interface OpenMeteoHistoricalResponse {
 - **数据压缩**: 只请求必要的参数
 - **智能缓存**: 基于数据特性调整缓存策略
 
-通过以上详细的API响应格式分析和数据处理策略，可以确保应用程序能够正确处理和显示真实的天气数据。
+通过以上详细的API响应格式分析和数据处理策略，可以确保应用程序能够正确处理和显示真实的气温数据。

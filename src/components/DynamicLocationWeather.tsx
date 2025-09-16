@@ -81,7 +81,7 @@ const DynamicLocationWeather: React.FC = () => {
   // 设置页面标题
   useEffect(() => {
     if (currentLocation) {
-      const title = `${currentLocation.name} - 历史天气数据分析`;
+      const title = `${currentLocation.name} - 历史气温数据分析`;
       document.title = title;
     }
   }, [currentLocation]);
@@ -147,7 +147,7 @@ const DynamicLocationWeather: React.FC = () => {
               <div className="text-4xl">🗺️</div>
               <div>
                 <h1 className="text-2xl font-bold text-primary">
-                  {locationName} 历史天气分析
+                  {locationName} 历史气温分析
                 </h1>
                 <p className="text-secondary mt-1">
                   📍 搜索位置 • {latitude.toFixed(4)}°N, {Math.abs(longitude).toFixed(4)}°{longitude >= 0 ? 'E' : 'W'}
@@ -181,7 +181,7 @@ const DynamicLocationWeather: React.FC = () => {
           />
         )}
 
-        {/* Main Historical Weather Chart */}
+        {/* Main Historical Temperature Chart */}
         <HistoricalWeatherChart
           cityName={locationName}
           latitude={latitude}
