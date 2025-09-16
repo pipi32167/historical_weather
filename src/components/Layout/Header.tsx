@@ -59,14 +59,14 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
           <span className="text-white font-bold text-sm">🌡️</span>
         </div>
         <div className="hidden sm:block text-left">
-          <h1 className="text-lg font-semibold text-primary">
+          <div className="text-lg font-semibold text-primary">
             {t('app.title')}
-          </h1>
+          </div>
         </div>
         <div className="sm:hidden text-left">
-          <h1 className="text-lg font-semibold text-primary">
+          <div className="text-lg font-semibold text-primary">
             {t('weather.temperature')}
-          </h1>
+          </div>
         </div>
       </button>
 
