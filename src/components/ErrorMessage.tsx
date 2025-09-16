@@ -5,6 +5,7 @@
 
 import React from 'react';
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 
 interface ErrorMessageProps {
   message: string;
@@ -19,6 +20,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
   className = '',
   variant = 'default'
 }) => {
+  const { t } = useTranslation();
   if (variant === 'inline') {
     return (
       <div className={clsx('flex items-center space-x-2 text-sm text-red-600 dark:text-red-400', className)}>
@@ -29,7 +31,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
             onClick={onRetry}
             className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 underline"
           >
-            重试
+            {t('app.retry')}
           </button>
         )}
       </div>
@@ -42,7 +44,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
         <div className="text-red-500 text-xl">⚠️</div>
         <div className="flex-1">
           <h4 className="text-sm font-semibold text-red-800 dark:text-red-200 mb-1">
-            加载失败
+            {t('errors.loadingFailed')}
           </h4>
           <p className="text-sm text-red-700 dark:text-red-300">
             {message}
@@ -52,7 +54,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
               onClick={onRetry}
               className="mt-3 px-3 py-1 text-sm bg-red-100 hover:bg-red-200 dark:bg-red-800 dark:hover:bg-red-700 text-red-800 dark:text-red-200 rounded-md transition-colors"
             >
-              重试加载
+              {t('errors.retryLoading')}
             </button>
           )}
         </div>

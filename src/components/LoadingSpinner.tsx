@@ -5,6 +5,7 @@
 
 import React from 'react';
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 
 interface LoadingSpinnerProps {
   size?: 'small' | 'medium' | 'large';
@@ -17,6 +18,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   className = '',
   color = 'primary'
 }) => {
+  const { t } = useTranslation();
   const sizeClasses = {
     small: 'h-4 w-4',
     medium: 'h-6 w-6',
@@ -32,7 +34,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   return (
     <div className={clsx('inline-block animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]', sizeClasses[size], colorClasses[color], className)} role="status">
       <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
-        Loading...
+        {t('app.loading')}
       </span>
     </div>
   );

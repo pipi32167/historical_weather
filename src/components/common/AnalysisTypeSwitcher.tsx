@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   CalendarDaysIcon, 
@@ -26,44 +27,45 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
   compact = false, 
   className = '' 
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
   const analysisTypes: AnalysisType[] = [
     {
       id: 'daily',
-      name: '本日历史同期',
-      shortName: '日',
+      name: t('navigation.daily'),
+      shortName: t('analysisTypes.dailyShort'),
       path: '/historical/daily',
       icon: CalendarDaysIcon,
-      description: '查看指定日期在历史年份中的天气表现',
+      description: t('analysisTypes.dailyDescription'),
       color: 'blue'
     },
     {
       id: 'monthly',
-      name: '本月历史同期',
-      shortName: '月',
+      name: t('navigation.monthly'),
+      shortName: t('analysisTypes.monthlyShort'),
       path: '/historical/monthly',
       icon: ClockIcon,
-      description: '分析指定月份在多年中的温度变化趋势',
+      description: t('analysisTypes.monthlyDescription'),
       color: 'green'
     },
     {
       id: 'quarterly',
-      name: '本季度历史同期',
-      shortName: '季',
+      name: t('navigation.quarterly'),
+      shortName: t('analysisTypes.quarterlyShort'),
       path: '/historical/quarterly',
       icon: ChartBarSquareIcon,
-      description: '了解季节性气候特征和长期变化规律',
+      description: t('analysisTypes.quarterlyDescription'),
       color: 'orange'
     },
     {
       id: 'yearly',
-      name: '本年度历史同期',
-      shortName: '年',
+      name: t('navigation.yearly'),
+      shortName: t('analysisTypes.yearlyShort'),
       path: '/historical/yearly',
       icon: PresentationChartLineIcon,
-      description: '分析多年的年度温度变化趋势',
+      description: t('analysisTypes.yearlyDescription'),
       color: 'purple'
     }
   ];
@@ -125,11 +127,11 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            分析类型
+            {t('analysisTypes.title')}
           </h3>
           {currentType && (
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              当前: {currentType.name}
+              {t('analysisTypes.current')}: {currentType.name}
             </span>
           )}
         </div>
@@ -152,7 +154,7 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
                     {type.shortName}
                   </div>
                   <div className="text-xs opacity-75 truncate">
-                    {type.name.replace('本', '').replace('历史同期', '')}
+                    {type.name}
                   </div>
                 </div>
               </button>

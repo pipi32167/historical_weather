@@ -37,7 +37,7 @@ const HistoricalQuarterly: React.FC = () => {
   const [yearRange, setYearRange] = useState({ start: 2014, end: new Date().getFullYear() });
   const { currentLocation } = useLocationStore();
 
-  const quarterNames = ['第一季度', '第二季度', '第三季度', '第四季度'];
+  const quarterNames = [t('time.firstQuarter'), t('time.secondQuarter'), t('time.thirdQuarter'), t('time.fourthQuarter')];
   const quarterMonths = [
     [1, 2, 3],    // Q1: 1-3月
     [4, 5, 6],    // Q2: 4-6月

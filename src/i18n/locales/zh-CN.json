@@ -26,7 +26,12 @@
     "favorites": "收藏夹",
     "addToFavorites": "添加到收藏",
     "removeFromFavorites": "从收藏中移除",
-    "notSelected": "未选择位置"
+    "notSelected": "未选择位置",
+    "currentSelection": "当前选择",
+    "popularCities": "热门城市",
+    "noRecentLocations": "还没有最近使用的位置",
+    "noFavoriteLocations": "还没有收藏的位置",
+    "favoriteInstruction": "点击城市旁边的心形图标来收藏"
   },
   "weather": {
     "temperature": "温度",
@@ -80,7 +85,23 @@
     "selectMonth": "选择月份",
     "yearRange": "年份范围",
     "to": "至",
-    "selectQuarter": "选择季度"
+    "selectQuarter": "选择季度",
+    "firstQuarter": "第一季度",
+    "secondQuarter": "第二季度",
+    "thirdQuarter": "第三季度",
+    "fourthQuarter": "第四季度",
+    "january": "1月",
+    "february": "2月",
+    "march": "3月",
+    "april": "4月",
+    "may": "5月",
+    "june": "6月",
+    "july": "7月",
+    "august": "8月",
+    "september": "9月",
+    "october": "10月",
+    "november": "11月",
+    "december": "12月"
   },
   "analysis": {
     "historical": "历史数据",
@@ -150,12 +171,66 @@
     "retryLimitReached": "已达到最大重试次数",
     "retryMessage": "数据获取失败，正在重试... ({{current}}/{{max}})",
     "maxRetryMessage": "获取历史同期数据失败，已达到最大重试次数。请检查网络连接或稍后再试。",
-    "manualRetry": "手动重试"
+    "manualRetry": "手动重试",
+    "loadingFailed": "加载失败",
+    "retryLoading": "重试加载"
   },
   "language": {
     "switch": "语言切换",
     "chinese": "中文",
     "english": "English",
     "current": "当前语言"
+  },
+  "cities": {
+    "beijing": "北京",
+    "shanghai": "上海",
+    "guangzhou": "广州",
+    "shenzhen": "深圳",
+    "chengdu": "成都",
+    "hangzhou": "杭州",
+    "tokyo": "东京",
+    "newyork": "纽约",
+    "london": "伦敦",
+    "paris": "巴黎",
+    "sydney": "悉尼",
+    "singapore": "新加坡"
+  },
+  "countries": {
+    "china": "中国",
+    "japan": "日本",
+    "usa": "美国",
+    "uk": "英国",
+    "france": "法国",
+    "australia": "澳大利亚",
+    "singapore": "新加坡"
+  },
+  "analysisTypes": {
+    "title": "分析类型",
+    "current": "当前",
+    "dailyShort": "日",
+    "monthlyShort": "月",
+    "quarterlyShort": "季",
+    "yearlyShort": "年",
+    "dailyDescription": "查看指定日期在历史年份中的天气表现",
+    "monthlyDescription": "分析指定月份在多年中的温度变化趋势",
+    "quarterlyDescription": "了解季节性气候特征和长期变化规律",
+    "yearlyDescription": "分析多年的年度温度变化趋势"
+  },
+  "charts": {
+    "yearlyRecordHigh": "年最高温",
+    "yearlyAvgMaxTemp": "年平均最高温",
+    "yearlyAvgTemp": "年平均温度",
+    "yearlyAvgMinTemp": "年平均最低温",
+    "yearlyRecordLow": "年最低温",
+    "quarterlyRecordHigh": "季度最高温",
+    "quarterlyAvgMaxTemp": "季度平均最高温",
+    "quarterlyAvgTemp": "季度平均温度",
+    "quarterlyAvgMinTemp": "季度平均最低温",
+    "quarterlyRecordLow": "季度最低温",
+    "monthlyRecordHigh": "月最高温",
+    "monthlyAvgMaxTemp": "月平均最高温",
+    "monthlyAvgTemp": "月平均温度",
+    "monthlyAvgMinTemp": "月平均最低温",
+    "monthlyRecordLow": "月最低温"
   }
 }

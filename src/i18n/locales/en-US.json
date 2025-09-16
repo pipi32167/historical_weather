@@ -26,7 +26,12 @@
     "favorites": "Favorites",
     "addToFavorites": "Add to favorites",
     "removeFromFavorites": "Remove from favorites",
-    "notSelected": "No location selected"
+    "notSelected": "No location selected",
+    "currentSelection": "Current Selection",
+    "popularCities": "Popular Cities",
+    "noRecentLocations": "No recent locations yet",
+    "noFavoriteLocations": "No favorite locations yet",
+    "favoriteInstruction": "Click the heart icon next to cities to favorite them"
   },
   "weather": {
     "temperature": "Temperature",
@@ -80,7 +85,23 @@
     "selectMonth": "Select Month",
     "yearRange": "Year Range",
     "to": "to",
-    "selectQuarter": "Select Quarter"
+    "selectQuarter": "Select Quarter",
+    "firstQuarter": "Q1",
+    "secondQuarter": "Q2",
+    "thirdQuarter": "Q3",
+    "fourthQuarter": "Q4",
+    "january": "Jan",
+    "february": "Feb",
+    "march": "Mar",
+    "april": "Apr",
+    "may": "May",
+    "june": "Jun",
+    "july": "Jul",
+    "august": "Aug",
+    "september": "Sep",
+    "october": "Oct",
+    "november": "Nov",
+    "december": "Dec"
   },
   "analysis": {
     "historical": "Historical Data",
@@ -150,12 +171,66 @@
     "retryLimitReached": "Maximum retry limit reached",
     "retryMessage": "Data retrieval failed, retrying... ({{current}}/{{max}})",
     "maxRetryMessage": "Failed to retrieve historical data, maximum retry limit reached. Please check your network connection or try again later.",
-    "manualRetry": "Manual Retry"
+    "manualRetry": "Manual Retry",
+    "loadingFailed": "Loading Failed",
+    "retryLoading": "Retry Loading"
   },
   "language": {
     "switch": "Language Switch",
     "chinese": "中文",
     "english": "English", 
     "current": "Current Language"
+  },
+  "cities": {
+    "beijing": "Beijing",
+    "shanghai": "Shanghai",
+    "guangzhou": "Guangzhou",
+    "shenzhen": "Shenzhen",
+    "chengdu": "Chengdu",
+    "hangzhou": "Hangzhou",
+    "tokyo": "Tokyo",
+    "newyork": "New York",
+    "london": "London",
+    "paris": "Paris",
+    "sydney": "Sydney",
+    "singapore": "Singapore"
+  },
+  "countries": {
+    "china": "China",
+    "japan": "Japan",
+    "usa": "United States",
+    "uk": "United Kingdom",
+    "france": "France",
+    "australia": "Australia",
+    "singapore": "Singapore"
+  },
+  "analysisTypes": {
+    "title": "Analysis Type",
+    "current": "Current",
+    "dailyShort": "Daily",
+    "monthlyShort": "Monthly",
+    "quarterlyShort": "Quarterly",
+    "yearlyShort": "Yearly",
+    "dailyDescription": "View weather performance for a specific date across historical years",
+    "monthlyDescription": "Analyze temperature trends of specific months across multiple years",
+    "quarterlyDescription": "Understand seasonal climate characteristics and long-term changes",
+    "yearlyDescription": "Analyze annual temperature trends across multiple years"
+  },
+  "charts": {
+    "yearlyRecordHigh": "Annual Record High",
+    "yearlyAvgMaxTemp": "Annual Avg Max Temp",
+    "yearlyAvgTemp": "Annual Avg Temp",
+    "yearlyAvgMinTemp": "Annual Avg Min Temp",
+    "yearlyRecordLow": "Annual Record Low",
+    "quarterlyRecordHigh": "Quarterly Record High",
+    "quarterlyAvgMaxTemp": "Quarterly Avg Max Temp",
+    "quarterlyAvgTemp": "Quarterly Avg Temp",
+    "quarterlyAvgMinTemp": "Quarterly Avg Min Temp",
+    "quarterlyRecordLow": "Quarterly Record Low",
+    "monthlyRecordHigh": "Monthly Record High",
+    "monthlyAvgMaxTemp": "Monthly Avg Max Temp",
+    "monthlyAvgTemp": "Monthly Avg Temp",
+    "monthlyAvgMinTemp": "Monthly Avg Min Temp",
+    "monthlyRecordLow": "Monthly Record Low"
   }
 }

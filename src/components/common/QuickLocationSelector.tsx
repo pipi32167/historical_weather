@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocationStore } from '../../store/locationStore';
 import { MapPinIcon, StarIcon, HeartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
@@ -15,6 +16,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
   showFavorites = true,
   onLocationChange
 }) => {
+  const { t } = useTranslation();
   const {
     currentLocation,
     recentLocations,
@@ -27,18 +29,18 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
   const [activeTab, setActiveTab] = useState<'preset' | 'recent' | 'favorites'>('preset');
 
   const presetLocations: Location[] = [
-    { id: 'beijing', name: '北京', latitude: 39.9042, longitude: 116.4074, country: '中国', timezone: 'Asia/Shanghai' },
-    { id: 'shanghai', name: '上海', latitude: 31.2304, longitude: 121.4737, country: '中国', timezone: 'Asia/Shanghai' },
-    { id: 'guangzhou', name: '广州', latitude: 23.1291, longitude: 113.2644, country: '中国', timezone: 'Asia/Shanghai' },
-    { id: 'shenzhen', name: '深圳', latitude: 22.5431, longitude: 114.0579, country: '中国', timezone: 'Asia/Shanghai' },
-    { id: 'chengdu', name: '成都', latitude: 30.5728, longitude: 104.0668, country: '中国', timezone: 'Asia/Shanghai' },
-    { id: 'hangzhou', name: '杭州', latitude: 30.2741, longitude: 120.1551, country: '中国', timezone: 'Asia/Shanghai' },
-    { id: 'tokyo', name: '东京', latitude: 35.6762, longitude: 139.6503, country: '日本', timezone: 'Asia/Tokyo' },
-    { id: 'newyork', name: '纽约', latitude: 40.7128, longitude: -74.0060, country: '美国', timezone: 'America/New_York' },
-    { id: 'london', name: '伦敦', latitude: 51.5074, longitude: -0.1278, country: '英国', timezone: 'Europe/London' },
-    { id: 'paris', name: '巴黎', latitude: 48.8566, longitude: 2.3522, country: '法国', timezone: 'Europe/Paris' },
-    { id: 'sydney', name: '悉尼', latitude: -33.8688, longitude: 151.2093, country: '澳大利亚', timezone: 'Australia/Sydney' },
-    { id: 'singapore', name: '新加坡', latitude: 1.3521, longitude: 103.8198, country: '新加坡', timezone: 'Asia/Singapore' },
+    { id: 'beijing', name: t('cities.beijing'), latitude: 39.9042, longitude: 116.4074, country: t('countries.china'), timezone: 'Asia/Shanghai' },
+    { id: 'shanghai', name: t('cities.shanghai'), latitude: 31.2304, longitude: 121.4737, country: t('countries.china'), timezone: 'Asia/Shanghai' },
+    { id: 'guangzhou', name: t('cities.guangzhou'), latitude: 23.1291, longitude: 113.2644, country: t('countries.china'), timezone: 'Asia/Shanghai' },
+    { id: 'shenzhen', name: t('cities.shenzhen'), latitude: 22.5431, longitude: 114.0579, country: t('countries.china'), timezone: 'Asia/Shanghai' },
+    { id: 'chengdu', name: t('cities.chengdu'), latitude: 30.5728, longitude: 104.0668, country: t('countries.china'), timezone: 'Asia/Shanghai' },
+    { id: 'hangzhou', name: t('cities.hangzhou'), latitude: 30.2741, longitude: 120.1551, country: t('countries.china'), timezone: 'Asia/Shanghai' },
+    { id: 'tokyo', name: t('cities.tokyo'), latitude: 35.6762, longitude: 139.6503, country: t('countries.japan'), timezone: 'Asia/Tokyo' },
+    { id: 'newyork', name: t('cities.newyork'), latitude: 40.7128, longitude: -74.0060, country: t('countries.usa'), timezone: 'America/New_York' },
+    { id: 'london', name: t('cities.london'), latitude: 51.5074, longitude: -0.1278, country: t('countries.uk'), timezone: 'Europe/London' },
+    { id: 'paris', name: t('cities.paris'), latitude: 48.8566, longitude: 2.3522, country: t('countries.france'), timezone: 'Europe/Paris' },
+    { id: 'sydney', name: t('cities.sydney'), latitude: -33.8688, longitude: 151.2093, country: t('countries.australia'), timezone: 'Australia/Sydney' },
+    { id: 'singapore', name: t('cities.singapore'), latitude: 1.3521, longitude: 103.8198, country: t('countries.singapore'), timezone: 'Asia/Singapore' },
   ];
 
   const handleLocationSelect = (location: Location) => {
@@ -107,7 +109,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
           <div className="flex items-center space-x-2">
             <MapPinIcon className="h-4 w-4 text-gray-500" />
             <span className="font-medium text-gray-900 dark:text-white text-sm">
-              {currentLocation?.name || '未选择位置'}
+              {currentLocation?.name || t('location.notSelected')}
             </span>
           </div>
         </div>
@@ -123,7 +125,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
         <div className="flex items-center space-x-2">
           <MapPinIcon className="h-5 w-5 text-gray-500" />
           <span className="font-medium text-gray-900 dark:text-white">
-            当前选择: {currentLocation?.name || '未选择位置'}
+            {t('location.currentSelection')}: {currentLocation?.name || t('location.notSelected')}
           </span>
           {currentLocation && (
             <span className="text-sm text-gray-500">
@@ -144,7 +146,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
                 : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
-            热门城市
+            {t('location.popularCities')}
           </button>
           {recentLocations.length > 1 && (
             <button
@@ -155,7 +157,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
                   : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              最近使用 ({recentLocations.length})
+              {t('location.recent')} ({recentLocations.length})
             </button>
           )}
           {showFavorites && favoriteLocations.length > 0 && (
@@ -169,7 +171,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
             >
               <div className="flex items-center space-x-1">
                 <StarIcon className="h-3 w-3" />
-                <span>收藏 ({favoriteLocations.length})</span>
+                <span>{t('location.favorites')} ({favoriteLocations.length})</span>
               </div>
             </button>
           )}
@@ -189,15 +191,15 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
         {activeTab === 'recent' && recentLocations.length <= 1 && (
           <div className="text-center text-gray-500 dark:text-gray-400 py-8">
             <MapPinIcon className="h-8 w-8 mx-auto mb-2" />
-            <p>还没有最近使用的位置</p>
+            <p>{t('location.noRecentLocations')}</p>
           </div>
         )}
         
         {activeTab === 'favorites' && favoriteLocations.length === 0 && (
           <div className="text-center text-gray-500 dark:text-gray-400 py-8">
             <HeartIcon className="h-8 w-8 mx-auto mb-2" />
-            <p>还没有收藏的位置</p>
-            <p className="text-sm mt-1">点击城市旁边的心形图标来收藏</p>
+            <p>{t('location.noFavoriteLocations')}</p>
+            <p className="text-sm mt-1">{t('location.favoriteInstruction')}</p>
           </div>
         )}
       </div>

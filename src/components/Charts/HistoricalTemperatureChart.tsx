@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export interface HistoricalChartData {
@@ -87,29 +88,30 @@ const HistoricalTemperatureChart: React.FC<HistoricalTemperatureChartProps> = ({
   yearRange,
   className = ''
 }) => {
+  const { t } = useTranslation();
   // 根据图表类型生成标签 - 按显示顺序排列
   const getLabel = (dataKey: string): string => {
     const labelMap = {
       yearly: {
-        recordHigh: '年最高温',      // 1. 最高温
-        maxTemp: '年平均最高温',     // 2. 平均最高温
-        avgTemp: '年平均温度',       // 3. 平均温度
-        minTemp: '年平均最低温',     // 4. 平均最低温
-        recordLow: '年最低温'        // 5. 最低温
+        recordHigh: t('charts.yearlyRecordHigh'),      // 1. 最高温
+        maxTemp: t('charts.yearlyAvgMaxTemp'),         // 2. 平均最高温
+        avgTemp: t('charts.yearlyAvgTemp'),            // 3. 平均温度
+        minTemp: t('charts.yearlyAvgMinTemp'),         // 4. 平均最低温
+        recordLow: t('charts.yearlyRecordLow')         // 5. 最低温
       },
       quarterly: {
-        recordHigh: '季度最高温',    // 1. 最高温
-        maxTemp: '季度平均最高温',   // 2. 平均最高温
-        avgTemp: '季度平均温度',     // 3. 平均温度
-        minTemp: '季度平均最低温',   // 4. 平均最低温
-        recordLow: '季度最低温'      // 5. 最低温
+        recordHigh: t('charts.quarterlyRecordHigh'),   // 1. 最高温
+        maxTemp: t('charts.quarterlyAvgMaxTemp'),      // 2. 平均最高温
+        avgTemp: t('charts.quarterlyAvgTemp'),         // 3. 平均温度
+        minTemp: t('charts.quarterlyAvgMinTemp'),      // 4. 平均最低温
+        recordLow: t('charts.quarterlyRecordLow')      // 5. 最低温
       },
       monthly: {
-        recordHigh: '月最高温',      // 1. 最高温
-        maxTemp: '月平均最高温',     // 2. 平均最高温
-        avgTemp: '月平均温度',       // 3. 平均温度
-        minTemp: '月平均最低温',     // 4. 平均最低温
-        recordLow: '月最低温'        // 5. 最低温
+        recordHigh: t('charts.monthlyRecordHigh'),     // 1. 最高温
+        maxTemp: t('charts.monthlyAvgMaxTemp'),        // 2. 平均最高温
+        avgTemp: t('charts.monthlyAvgTemp'),           // 3. 平均温度
+        minTemp: t('charts.monthlyAvgMinTemp'),        // 4. 平均最低温
+        recordLow: t('charts.monthlyRecordLow')        // 5. 最低温
       }
     };
 
@@ -131,7 +133,7 @@ const HistoricalTemperatureChart: React.FC<HistoricalTemperatureChartProps> = ({
 
       return (
         <div style={CHART_STYLES.tooltip} className="p-3 shadow-lg">
-          <p className="text-sm font-medium mb-2">{`${label}年`}</p>
+          <p className="text-sm font-medium mb-2">{`${label}${t('time.year')}`}</p>
           <div className="space-y-1">
             {sortedPayload.map((entry, index) => (
               <div key={index} className="flex items-center space-x-2">

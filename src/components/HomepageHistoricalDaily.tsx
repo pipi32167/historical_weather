@@ -160,7 +160,7 @@ const HomepageHistoricalDaily: React.FC = () => {
             setLocationInitialized(true);
           } catch (error) {
             console.error('Failed to process current location:', error);
-            setError('无法获取当前位置信息');
+            setError(t('errors.locationError'));
             setSkipGeolocation(true);
             setLocationInitialized(true);
           } finally {
@@ -311,8 +311,11 @@ const HomepageHistoricalDaily: React.FC = () => {
     setSelectedDate(newDate);
   };
 
+  const { i18n } = useTranslation();
+  
   const formatDate = (date: Date) => {
-    return format(date, 'MM月dd日', { locale: zhCN });
+    const isChina = i18n.language.startsWith('zh');
+    return format(date, isChina ? 'MM月dd日' : 'MMM dd', { locale: isChina ? zhCN : undefined });
   };
 
   const getTemperatureColor = (temp: number) => {
@@ -384,11 +387,11 @@ const HomepageHistoricalDaily: React.FC = () => {
   const getTrendDescription = (trend: 'warming' | 'cooling' | 'stable', trendValue: number) => {
     switch (trend) {
       case 'warming':
-        return `升温趋势 +${Math.abs(trendValue).toFixed(3)}°C/年`;
+        return t('analysis.warmingTrend', { value: Math.abs(trendValue).toFixed(3) });
       case 'cooling':
-        return `降温趋势 ${trendValue.toFixed(3)}°C/年`;
+        return t('analysis.coolingTrend', { value: trendValue.toFixed(3) });
       case 'stable':
-        return '温度稳定';
+        return t('analysis.stableTemperature');
     }
   };
 
@@ -397,7 +400,7 @@ const HomepageHistoricalDaily: React.FC = () => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg p-3 shadow-lg">
-          <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">{label}年</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">{label}{t('time.year')}</p>
           <div className="space-y-1 text-xs">
             {payload.map((entry: any, index: number) => (
               <p key={index} className="text-gray-700 dark:text-gray-300">
@@ -498,16 +501,16 @@ const HomepageHistoricalDaily: React.FC = () => {
           {/* Current Analysis Info */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              当前分析
+              {t('analysis.current')}
             </label>
             <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <MapPinIcon className="h-4 w-4 text-gray-500" />
               <span className="text-gray-900 dark:text-white">
-                {currentLocation?.name || '未选择位置'}
+                {currentLocation?.name || t('location.notSelected')}
               </span>
               {currentLocation && (
                 <span className="text-gray-500 text-sm">
-                  - {formatDate(selectedDate)}历史同期
+                  - {formatDate(selectedDate)}{t('analysis.historicalSamePeriod')}
                 </span>
               )}
             </div>
@@ -522,7 +525,7 @@ const HomepageHistoricalDaily: React.FC = () => {
             <div className="flex items-center space-x-3">
               <FireIcon className="h-6 w-6 text-red-500" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">历史平均最高温</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgMax')}</p>
                 <p className={`text-2xl font-bold ${getTemperatureColor(avgMaxTemp)}`}>
                   {avgMaxTemp}°C
                 </p>
@@ -534,7 +537,7 @@ const HomepageHistoricalDaily: React.FC = () => {
             <div className="flex items-center space-x-3">
               <FireIcon className="h-6 w-6 text-blue-500" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">历史平均最低温</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgMin')}</p>
                 <p className={`text-2xl font-bold ${getTemperatureColor(avgMinTemp)}`}>
                   {avgMinTemp}°C
                 </p>
@@ -546,7 +549,7 @@ const HomepageHistoricalDaily: React.FC = () => {
             <div className="flex items-center space-x-3">
               <FireIcon className="h-6 w-6 text-green-500" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">历史平均温度</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgTemp')}</p>
                 <p className={`text-2xl font-bold ${getTemperatureColor(avgAvgTemp)}`}>
                   {avgAvgTemp}°C
                 </p>
@@ -561,11 +564,11 @@ const HomepageHistoricalDaily: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {formatDate(selectedDate)} 历史同期温度趋势图
+              {formatDate(selectedDate)} {t('analysis.temperatureTrendChart')}
             </h2>
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                显示历年{formatDate(selectedDate)}的温度变化趋势 ({currentData.length} 年数据)
+                {t('analysis.showTrendDescription', { date: formatDate(selectedDate), years: currentData.length })}
               </p>
               {currentData.length > 2 && (
                 <div className="flex items-center space-x-2 text-sm">
@@ -594,8 +597,8 @@ const HomepageHistoricalDaily: React.FC = () => {
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   formatter={(value: string) =>
-                    value === 'maxTemp' ? '最高温度' :
-                      value === 'minTemp' ? '最低温度' : '平均温度'
+                    value === 'maxTemp' ? t('weather.maxTemp') :
+                      value === 'minTemp' ? t('weather.minTemp') : t('weather.avgTemp')
                   }
                 />
                 <Line
@@ -604,7 +607,7 @@ const HomepageHistoricalDaily: React.FC = () => {
                   stroke="#ef4444"
                   strokeWidth={2}
                   dot={{ r: 4 }}
-                  name="最高温度"
+                  name={t('weather.maxTemp')}
                 />
                 <Line
                   type="monotone"
@@ -612,7 +615,7 @@ const HomepageHistoricalDaily: React.FC = () => {
                   stroke="#10b981"
                   strokeWidth={2}
                   dot={{ r: 4 }}
-                  name="平均温度"
+                  name={t('weather.avgTemp')}
                 />
                 <Line
                   type="monotone"
@@ -620,7 +623,7 @@ const HomepageHistoricalDaily: React.FC = () => {
                   stroke="#3b82f6"
                   strokeWidth={2}
                   dot={{ r: 4 }}
-                  name="最低温度"
+                  name={t('weather.minTemp')}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -632,7 +635,7 @@ const HomepageHistoricalDaily: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {formatDate(selectedDate)} 历史同期数据 ({currentData.length} 年)
+            {formatDate(selectedDate)} {t('analysis.historicalDataTitle', { years: currentData.length })}
           </h2>
         </div>
 
@@ -676,22 +679,22 @@ const HomepageHistoricalDaily: React.FC = () => {
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    年份
+                    {t('time.year')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    日期
+                    {t('time.date')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    最高温 (°C)
+                    {t('weather.maxTemp')} (°C)
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    最低温 (°C)
+                    {t('weather.minTemp')} (°C)
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    平均温 (°C)
+                    {t('weather.avgTemp')} (°C)
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    降水量 (mm)
+                    {t('weather.precipitation')} (mm)
                   </th>
                 </tr>
               </thead>
@@ -726,7 +729,7 @@ const HomepageHistoricalDaily: React.FC = () => {
         {!loading && !error && locationInitialized && currentData.length === 0 && (
           <div className="p-8 text-center">
             <p className="text-gray-500 dark:text-gray-400">
-              暂无数据
+              {t('app.noData')}
             </p>
           </div>
         )}

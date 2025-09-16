@@ -26,8 +26,8 @@ i18n
   .use(initReactI18next) // Pass the i18n instance to react-i18next
   .init({
     resources,
-    fallbackLng: 'zh-CN', // Default language
-    lng: 'zh-CN', // Force initial language
+    fallbackLng: 'en-US', // Default language
+    lng: 'en-US', // Force initial language
     debug: process.env.NODE_ENV === 'development',
     
     interpolation: {
@@ -44,7 +44,7 @@ i18n
     supportedLngs: ['zh-CN', 'zh', 'en-US', 'en'],
     // Don't load missing translations as en-US for zh variants
     load: 'languageOnly',
-    // Fallback to zh-CN for any unsupported language
+    // Fallback to en-US for any unsupported language
     cleanCode: true,
     // Only load specified languages
     nonExplicitSupportedLngs: true

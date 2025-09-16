@@ -102,8 +102,9 @@ const HistoricalYearly: React.FC = () => {
           const recordLow = Math.min(...monthData.map(d => d.minTemp));
 
           const monthNames = [
-            '1月', '2月', '3月', '4月', '5月', '6月',
-            '7月', '8月', '9月', '10月', '11月', '12月'
+            t('time.january'), t('time.february'), t('time.march'), t('time.april'), 
+            t('time.may'), t('time.june'), t('time.july'), t('time.august'), 
+            t('time.september'), t('time.october'), t('time.november'), t('time.december')
           ];
 
           yearDataMap[year].push({
