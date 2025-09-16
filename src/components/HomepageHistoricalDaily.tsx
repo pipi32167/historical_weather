@@ -57,7 +57,7 @@ const HomepageHistoricalDaily: React.FC = () => {
       geoError: !!geoError,
       geoLoading
     });
-    
+
     // 清理过期的OSM缓存
     osmGeocodingService.cleanExpiredCache();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -67,7 +67,7 @@ const HomepageHistoricalDaily: React.FC = () => {
     // 获取当前语言设置
     const currentLanguage = i18n.language || 'zh-CN';
     const languageParam = osmGeocodingService.getLanguageParam(currentLanguage);
-    
+
     return await osmGeocodingService.reverseGeocode(lat, lon, {
       language: languageParam,
       zoom: 10,
@@ -441,7 +441,7 @@ const HomepageHistoricalDaily: React.FC = () => {
         <p className="text-gray-600 dark:text-gray-300 mb-4">
           {t('homepage.description')}
         </p>
-        
+
         {/* SEO优化内容 */}
         <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
           <div className="grid md:grid-cols-3 gap-4 text-sm">
@@ -470,7 +470,7 @@ const HomepageHistoricalDaily: React.FC = () => {
         </div>
 
         {/* Current Location Display */}
-        {isUsingCurrentLocation && (
+        {/* {isUsingCurrentLocation && (
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="flex items-center space-x-2">
               <MapPinIcon className="h-5 w-5 text-blue-600" />
@@ -490,17 +490,17 @@ const HomepageHistoricalDaily: React.FC = () => {
               )}
             </div>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Location Selector */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <div className="flex items-center space-x-3 mb-4">
+        {/* <div className="flex items-center space-x-3 mb-4">
           <MapPinIcon className="h-5 w-5 text-primary-600" />
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             {t('homepage.analysisLocation')}
           </h2>
-        </div>
+        </div> */}
         <QuickLocationSelector
           compact={false}
           onLocationChange={() => {
