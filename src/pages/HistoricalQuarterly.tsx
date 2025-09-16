@@ -34,7 +34,7 @@ const HistoricalQuarterly: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedQuarter, setSelectedQuarter] = useState<number>(Math.ceil((new Date().getMonth() + 1) / 3));
-  const [yearRange, setYearRange] = useState({ start: 2014, end: new Date().getFullYear() });
+  const [yearRange, setYearRange] = useState({ start: new Date().getFullYear() - 20, end: new Date().getFullYear() });
   const { currentLocation } = useLocationStore();
 
   const quarterNames = [t('time.firstQuarter'), t('time.secondQuarter'), t('time.thirdQuarter'), t('time.fourthQuarter')];

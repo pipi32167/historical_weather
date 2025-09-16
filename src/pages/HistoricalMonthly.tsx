@@ -15,7 +15,7 @@ const HistoricalMonthly: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-  const [yearRange, setYearRange] = useState({ start: 2004, end: new Date().getFullYear() });
+  const [yearRange, setYearRange] = useState({ start: new Date().getFullYear() - 20, end: new Date().getFullYear() });
   const { currentLocation } = useLocationStore();
 
   const loadMonthlyData = async () => {
@@ -79,8 +79,8 @@ const HistoricalMonthly: React.FC = () => {
 
 
   const monthNames = [
-    t('time.january'), t('time.february'), t('time.march'), t('time.april'), 
-    t('time.may'), t('time.june'), t('time.july'), t('time.august'), 
+    t('time.january'), t('time.february'), t('time.march'), t('time.april'),
+    t('time.may'), t('time.june'), t('time.july'), t('time.august'),
     t('time.september'), t('time.october'), t('time.november'), t('time.december')
   ];
 

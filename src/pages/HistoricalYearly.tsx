@@ -27,7 +27,7 @@ const HistoricalYearly: React.FC = () => {
   const [data, setData] = useState<YearlyData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [yearRange, setYearRange] = useState({ start: 2014, end: new Date().getFullYear() });
+  const [yearRange, setYearRange] = useState({ start: new Date().getFullYear() - 20, end: new Date().getFullYear() });
   const [viewMode, setViewMode] = useState<'trends' | 'profile'>('trends');
   const { currentLocation } = useLocationStore();
 
@@ -102,8 +102,8 @@ const HistoricalYearly: React.FC = () => {
           const recordLow = Math.min(...monthData.map(d => d.minTemp));
 
           const monthNames = [
-            t('time.january'), t('time.february'), t('time.march'), t('time.april'), 
-            t('time.may'), t('time.june'), t('time.july'), t('time.august'), 
+            t('time.january'), t('time.february'), t('time.march'), t('time.april'),
+            t('time.may'), t('time.june'), t('time.july'), t('time.august'),
             t('time.september'), t('time.october'), t('time.november'), t('time.december')
           ];
 
