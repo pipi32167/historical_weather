@@ -5,6 +5,8 @@ import HomepageHistoricalDaily from './components/HomepageHistoricalDaily';
 import CityIndex from './components/CityIndex';
 import CityWeather from './components/CityWeather';
 import DynamicLocationWeather from './components/DynamicLocationWeather';
+import About from './components/About';
+import NotFound from './components/NotFound';
 import TestChart from './pages/TestChart';
 import HistoricalDaily from './pages/HistoricalDaily';
 import HistoricalMonthly from './pages/HistoricalMonthly';
@@ -34,6 +36,9 @@ function App(): React.ReactElement {
             <Route path="/historical/quarterly" element={<HistoricalQuarterly />} />
             <Route path="/historical/yearly" element={<HistoricalYearly />} />
             
+            {/* 关于我们页面 */}
+            <Route path="/about" element={<About />} />
+            
             {/* 测试页面 - HistoricalWeatherChart 组件测试 */}
             <Route path="/test-chart" element={<TestChart />} />
             
@@ -43,8 +48,8 @@ function App(): React.ReactElement {
             {/* 城市页面 - 显示特定城市的历史气温数据 */}
             <Route path="/:cityName" element={<CityWeather />} />
             
-            {/* 404页面 - 重定向到首页 */}
-            <Route path="*" element={<CityIndex />} />
+            {/* 404错误页面 */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </MainLayout>
       </Router>

@@ -12,7 +12,9 @@
     "monthly": "Monthly Analysis",
     "quarterly": "Quarterly Analysis",
     "yearly": "Yearly Analysis",
-    "cities": "Cities"
+    "cities": "Cities",
+    "about": "About Us",
+    "aboutDescription": "Learn about platform features and technical architecture"
   },
   "location": {
     "title": "Location Selection",
@@ -232,5 +234,98 @@
     "monthlyAvgTemp": "Monthly Avg Temp",
     "monthlyAvgMinTemp": "Monthly Avg Min Temp",
     "monthlyRecordLow": "Monthly Record Low"
+  },
+  "about": {
+    "title": "About Historical Temperature Analytics Platform",
+    "subtitle": "Professional historical temperature data query and analysis platform, providing accurate and detailed meteorological data analysis services for global users",
+    "platformIntro": {
+      "title": "Platform Overview",
+      "description1": "Historical Temperature Analytics Platform is a professional meteorological data analysis tool built with modern Web technologies. We are dedicated to providing intuitive and accurate historical temperature data query and analysis services for researchers, data analysts, educators, and weather enthusiasts.",
+      "description2": "The platform integrates authoritative meteorological data sources such as Open-Meteo, covering major cities and regions worldwide, providing detailed historical temperature records from 1940 to present, supporting multi-dimensional data analysis and visualization in daily, monthly, quarterly, and annual formats."
+    },
+    "features": {
+      "title": "Core Features",
+      "historicalComparison": {
+        "title": "Historical Temperature Comparison",
+        "description": "Support comparative analysis of temperatures for the same date across different years, clearly displaying temperature change trends and helping users identify climate change patterns."
+      },
+      "globalCoverage": {
+        "title": "Global Data Coverage",
+        "description": "Covers major cities and regions worldwide, supporting queries for historical temperature data from any location through city names, coordinate positioning, and other methods."
+      },
+      "longTermData": {
+        "title": "Long-term Data Records",
+        "description": "Provides detailed historical temperature records from 1940 to present, with long data time span to meet various long-term climate research needs."
+      },
+      "professionalAnalysis": {
+        "title": "Professional Data Analysis",
+        "description": "Provides detailed indicators including maximum, minimum, and average temperatures, supporting statistical analysis and trend prediction, suitable for professional research use."
+      },
+      "smartVisualization": {
+        "title": "Smart Visualization",
+        "description": "Uses modern charting technology to provide interactive data visualization, making complex meteorological data intuitive and easy to understand."
+      },
+      "authoritativeData": {
+        "title": "Authoritative Data Sources",
+        "description": "Integrates authoritative meteorological data APIs such as Open-Meteo to ensure data accuracy and reliability, supporting academic research and commercial applications."
+      }
+    },
+    "techStack": {
+      "title": "Technical Architecture",
+      "frontend": {
+        "title": "Frontend Technologies",
+        "items": [
+          "React 19 + TypeScript - Modern frontend framework",
+          "Tailwind CSS - Responsive UI design",
+          "Recharts - Professional data visualization",
+          "React i18next - Internationalization support"
+        ]
+      },
+      "backend": {
+        "title": "Data Services",
+        "items": [
+          "Open-Meteo API - Historical meteorological data",
+          "OSM Geocoding - Geographic location services",
+          "Smart caching system - Optimized access speed",
+          "Real-time data updates - Ensures data timeliness"
+        ]
+      }
+    },
+    "useCases": {
+      "title": "Use Cases",
+      "academic": {
+        "title": "Academic Research",
+        "items": [
+          "Climate change trend research",
+          "Environmental science data analysis",
+          "Agricultural meteorology research",
+          "Urban planning reference"
+        ]
+      },
+      "business": {
+        "title": "Business Applications",
+        "items": [
+          "Business decision support",
+          "Market trend analysis",
+          "Risk assessment models",
+          "Product planning reference"
+        ]
+      }
+    },
+    "dataInfo": {
+      "title": "Data Information",
+      "source": "Data Source: Open-Meteo historical meteorological data API, based on ERA5 reanalysis dataset",
+      "range": "Data Range: 1940 to present, covering major cities and regions worldwide",
+      "frequency": "Update Frequency: Historical data is stable, current day data is updated in real-time",
+      "precision": "Precision: Temperature accuracy ±0.1°C, geographic location accuracy ±0.01°",
+      "disclaimer": "Disclaimer: The data on this platform is for reference only. For formal research or commercial use, it is recommended to verify with authoritative meteorological institutions"
+    },
+    "contact": {
+      "title": "Contact Us",
+      "description": "If you have any questions, suggestions, or collaboration intentions, please feel free to contact us through the following methods",
+      "email": "Email: contact@historical-temperature.com",
+      "website": "Website: https://historical-temperature.com",
+      "github": "GitHub: github.com/historical-temperature"
+    }
   }
 }

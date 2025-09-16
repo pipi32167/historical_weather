@@ -41,6 +41,12 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
       path: '/cities',
       icon: CalendarDaysIcon,
       description: t('location.search')
+    },
+    {
+      name: t('navigation.about', { defaultValue: '关于我们' }),
+      path: '/about',
+      icon: CalendarDaysIcon,
+      description: t('navigation.aboutDescription', { defaultValue: '了解平台功能和技术架构' })
     }
   ];
 
