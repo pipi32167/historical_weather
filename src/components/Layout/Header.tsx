@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   SunIcon, 
   MoonIcon,
@@ -7,6 +8,7 @@ import {
   ChartBarSquareIcon
 } from '@heroicons/react/24/outline';
 import { useAppStore } from '../../store/appStore';
+import LanguageSwitcher from '../common/LanguageSwitcher';
 import clsx from 'clsx';
 
 interface HeaderProps {
@@ -17,6 +19,7 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, setTheme } = useAppStore();
+  const { t } = useTranslation();
 
   const handleThemeToggle = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
@@ -28,16 +31,16 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
 
   const navigationItems = [
     {
-      name: '历史分析',
+      name: t('navigation.daily'),
       path: '/historical/daily',
       icon: ChartBarSquareIcon,
-      description: '历史天气数据分析'
+      description: t('analysis.historical')
     },
     {
-      name: '城市索引',
+      name: t('navigation.cities'),
       path: '/cities',
       icon: CalendarDaysIcon,
-      description: '查看所有支持的城市'
+      description: t('location.search')
     }
   ];
 
@@ -57,12 +60,12 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         </div>
         <div className="hidden sm:block text-left">
           <h1 className="text-lg font-semibold text-primary">
-            历史天气分析
+            {t('app.title')}
           </h1>
         </div>
         <div className="sm:hidden text-left">
           <h1 className="text-lg font-semibold text-primary">
-            天气分析
+            {t('weather.temperature')}
           </h1>
         </div>
       </button>
@@ -78,7 +81,7 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
               : 'text-secondary hover:bg-secondary hover:text-primary'
           )}
         >
-          首页
+{t('navigation.home')}
         </button>
         {navigationItems.map((item) => {
           const IconComponent = item.icon;
@@ -121,21 +124,24 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         </button>
       </div>
 
-      {/* Right section - Theme toggle */}
-      <button
-        onClick={handleThemeToggle}
-        className={clsx(
-          'p-2 rounded-lg text-secondary hover:bg-secondary',
-          'transition-colors duration-200'
-        )}
-        aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-      >
-        {theme === 'light' ? (
-          <MoonIcon className="h-5 w-5" />
-        ) : (
-          <SunIcon className="h-5 w-5" />
-        )}
-      </button>
+      {/* Right section - Language switcher and Theme toggle */}
+      <div className="flex items-center space-x-2">
+        <LanguageSwitcher />
+        <button
+          onClick={handleThemeToggle}
+          className={clsx(
+            'p-2 rounded-lg text-secondary hover:bg-secondary',
+            'transition-colors duration-200'
+          )}
+          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+        >
+          {theme === 'light' ? (
+            <MoonIcon className="h-5 w-5" />
+          ) : (
+            <SunIcon className="h-5 w-5" />
+          )}
+        </button>
+      </div>
     </header>
   );
 };

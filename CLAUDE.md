@@ -181,3 +181,58 @@ useEffect(() => {
   }
 }, [geolocation, locationInitialized]);
 ```
+
+## Internationalization (i18n)
+
+### Implementation
+- **Library**: react-i18next + i18next + i18next-browser-languagedetector
+- **Supported Languages**: Chinese (zh-CN) and English (en-US)
+- **Default Language**: Chinese (zh-CN)
+- **Language Detection**: Browser language → localStorage → Navigator → HTML tag
+
+### File Structure
+```
+src/i18n/
+├── index.ts              # i18n configuration
+└── locales/
+    ├── zh-CN.json        # Chinese translations
+    └── en-US.json        # English translations
+```
+
+### Usage Guidelines
+1. **Import useTranslation hook**:
+   ```typescript
+   import { useTranslation } from 'react-i18next';
+   const { t } = useTranslation();
+   ```
+
+2. **Use translation keys**:
+   ```typescript
+   // Simple translation
+   {t('app.title')}
+   
+   // With interpolation
+   {t('homepage.trendDescription', { date: formatDate(date), count: data.length })}
+   ```
+
+3. **Language Switcher**: Available in header component
+   - Hover/click to show language options
+   - Saves selection to localStorage
+   - Immediately updates all translated text
+
+### Translation Key Categories
+- `app.*` - General application terms
+- `navigation.*` - Navigation menu items
+- `location.*` - Location-related terms
+- `weather.*` - Weather data terms
+- `time.*` - Time and date related terms
+- `analysis.*` - Data analysis terms
+- `homepage.*` - Homepage specific terms
+- `errors.*` - Error messages and retry logic
+- `language.*` - Language switcher terms
+
+### Adding New Translations
+1. Add new keys to both `zh-CN.json` and `en-US.json`
+2. Use dot notation for nested organization
+3. Use interpolation for dynamic values: `{{variable}}`
+4. Keep keys descriptive and organized by feature/component

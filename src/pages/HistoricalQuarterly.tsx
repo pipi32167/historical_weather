@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChartBarSquareIcon, MapPinIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, MinusIcon } from '@heroicons/react/24/outline';
 import { MonthlyTemperatureStats } from '../services/monthlyTemperatureService';
 import { unifiedHistoricalService } from '../services/unifiedHistoricalService';
@@ -28,6 +29,7 @@ interface QuarterlyYearData {
 }
 
 const HistoricalQuarterly: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<QuarterlyYearData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -256,11 +258,11 @@ const HistoricalQuarterly: React.FC = () => {
   const getTrendDescription = (trend: 'warming' | 'cooling' | 'stable', trendValue: number) => {
     switch (trend) {
       case 'warming':
-        return `升温趋势 +${Math.abs(trendValue).toFixed(3)}°C/年`;
+        return t('analysis.warmingTrend', { value: Math.abs(trendValue).toFixed(3) });
       case 'cooling':
-        return `降温趋势 ${trendValue.toFixed(3)}°C/年`;
+        return t('analysis.coolingTrend', { value: trendValue.toFixed(3) });
       case 'stable':
-        return '温度稳定';
+        return t('analysis.stableTemperature');
     }
   };
 
@@ -292,11 +294,11 @@ const HistoricalQuarterly: React.FC = () => {
         <div className="flex items-center space-x-3 mb-4">
           <ChartBarSquareIcon className="h-6 w-6 text-primary-600" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            本季度历史同期数据
+            {t('navigation.quarterly')}
           </h1>
         </div>
         <p className="text-gray-600 dark:text-gray-300">
-          分析指定季度在多年中的温度变化趋势，了解季节性气候特征和长期变化规律
+          {t('analysis.quarterlyDescription')}
         </p>
       </div>
 
@@ -305,7 +307,7 @@ const HistoricalQuarterly: React.FC = () => {
         <div className="flex items-center space-x-3 mb-4">
           <MapPinIcon className="h-5 w-5 text-primary-600" />
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            选择分析位置
+            {t('homepage.analysisLocation')}
           </h2>
         </div>
         <QuickLocationSelector compact={false} onLocationChange={loadQuarterlyData} />
@@ -320,7 +322,7 @@ const HistoricalQuarterly: React.FC = () => {
           {/* Quarter Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              选择季度
+              {t('time.selectQuarter')}
             </label>
             <select
               value={selectedQuarter}
@@ -340,7 +342,7 @@ const HistoricalQuarterly: React.FC = () => {
           {/* Year Range */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              年份范围
+              {t('time.yearRange')}
             </label>
             <div className="flex space-x-2">
               <input
@@ -353,7 +355,7 @@ const HistoricalQuarterly: React.FC = () => {
                          bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                          focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
-              <span className="px-2 py-2 text-gray-500">至</span>
+              <span className="px-2 py-2 text-gray-500">{t('time.to')}</span>
               <input
                 type="number"
                 value={yearRange.end}
@@ -370,16 +372,16 @@ const HistoricalQuarterly: React.FC = () => {
           {/* Current Analysis Info */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              当前分析
+              {t('analysis.current')}
             </label>
             <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <MapPinIcon className="h-4 w-4 text-gray-500" />
               <span className="text-gray-900 dark:text-white">
-                {currentLocation?.name || '未选择位置'}
+                {currentLocation?.name || t('location.notSelected')}
               </span>
               {currentLocation && (
                 <span className="text-gray-500 text-sm">
-                  - {quarterNames[selectedQuarter - 1]}分析
+                  - {quarterNames[selectedQuarter - 1]}{t('analysis.quarterlyAnalysisSuffix')}
                 </span>
               )}
             </div>
@@ -414,13 +416,13 @@ const HistoricalQuarterly: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {quarterNames[selectedQuarter - 1]}平均温度
+                    {quarterNames[selectedQuarter - 1]}{t('weather.avgTempSuffix')}
                   </p>
                   <p className={`text-2xl font-bold ${getTemperatureColor(avgQuarterTemp)}`}>
                     {avgQuarterTemp}°C
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    基于 {selectedQuarterData.length} 年数据
+                    {t('analysis.basedOnYearsData', { years: selectedQuarterData.length })}
                   </p>
                 </div>
               </div>
@@ -433,7 +435,7 @@ const HistoricalQuarterly: React.FC = () => {
                   {getTrendIcon(trend)}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">温度趋势</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.temperatureTrend')}</p>
                   <p className={`text-lg font-semibold ${getTrendColor(trend).split(' ')[0]}`}>
                     {getTrendDescription(trend, trendValue)}
                   </p>
@@ -448,12 +450,12 @@ const HistoricalQuarterly: React.FC = () => {
                   <ChartBarSquareIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">数据年份</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.dataYears')}</p>
                   <p className="text-lg font-semibold text-gray-900 dark:text-white">
                     {yearRange.start} - {yearRange.end}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    共 {selectedQuarterData.length} 年
+                    {t('analysis.totalYears', { years: selectedQuarterData.length })}
                   </p>
                 </div>
               </div>
@@ -464,8 +466,8 @@ const HistoricalQuarterly: React.FC = () => {
           <HistoricalTemperatureChart
             data={chartData}
             type="quarterly"
-            title={`${quarterNames[selectedQuarter - 1]}温度趋势图`}
-            subtitle={`显示历年${quarterNames[selectedQuarter - 1]}的平均温度变化趋势`}
+            title={`${quarterNames[selectedQuarter - 1]}${t('analysis.temperatureTrendChart')}`}
+            subtitle={t('analysis.showQuarterlyTrendDescription', { quarter: quarterNames[selectedQuarter - 1] })}
             yearRange={yearRange}
           />
 
@@ -473,7 +475,7 @@ const HistoricalQuarterly: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {quarterNames[selectedQuarter - 1]}详细数据 ({selectedQuarterData.length} 年)
+                {quarterNames[selectedQuarter - 1]}{t('analysis.detailedDataTitle', { years: selectedQuarterData.length })}
               </h2>
             </div>
 
@@ -482,25 +484,25 @@ const HistoricalQuarterly: React.FC = () => {
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      年份
+                      {t('time.year')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      季度平均温度 (°C)
+                      {t('weather.quarterlyAvgTemp')} (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      季度平均最高温 (°C)
+                      {t('weather.quarterlyAvgMaxTemp')} (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      季度平均最低温 (°C)
+                      {t('weather.quarterlyAvgMinTemp')} (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      季度最高温 (°C)
+                      {t('weather.quarterlyMaxTemp')} (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      季度最低温 (°C)
+                      {t('weather.quarterlyMinTemp')} (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      数据天数
+                      {t('analysis.dataDays')}
                     </th>
                   </tr>
                 </thead>
@@ -541,7 +543,7 @@ const HistoricalQuarterly: React.FC = () => {
       {!loading && !error && selectedQuarterData.length === 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
           <p className="text-gray-500 dark:text-gray-400">
-            暂无数据
+            {t('app.noData')}
           </p>
         </div>
       )}

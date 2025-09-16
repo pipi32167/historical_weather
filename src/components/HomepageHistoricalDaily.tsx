@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CalendarDaysIcon, MapPinIcon, FireIcon } from '@heroicons/react/24/outline';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { unifiedHistoricalService } from '../services/unifiedHistoricalService';
@@ -22,6 +23,7 @@ interface DailyHistoricalData {
 }
 
 const HomepageHistoricalDaily: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<DailyHistoricalData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -181,7 +183,7 @@ const HomepageHistoricalDaily: React.FC = () => {
     // Check if max retry reached
     if (maxRetryReached) {
       console.log('❌ 已达到最大重试次数，停止重试');
-      setError('数据获取失败，已达到最大重试次数。请稍后再试或手动刷新页面。');
+      setError(t('errors.maxRetryMessage'));
       return;
     }
 
@@ -275,7 +277,7 @@ const HomepageHistoricalDaily: React.FC = () => {
         console.log(`⏳ ${retryDelay / 1000}秒后重试...`);
         
         setRetryCount(currentRetry + 1);
-        setError(`数据获取失败，正在重试... (${currentRetry + 1}/3)`);
+        setError(t('errors.retryMessage', { current: currentRetry + 1, max: 3 }));
         
         setTimeout(() => {
           loadDailyHistoricalData(true);
@@ -283,7 +285,7 @@ const HomepageHistoricalDaily: React.FC = () => {
       } else {
         // Max retries reached
         setMaxRetryReached(true);
-        setError('获取历史同期数据失败，已达到最大重试次数。请检查网络连接或稍后再试。');
+        setError(t('errors.maxRetryMessage'));
         console.error('🚫 已达到最大重试次数 (3次)');
       }
     } finally {
@@ -420,11 +422,11 @@ const HomepageHistoricalDaily: React.FC = () => {
         <div className="flex items-center space-x-3 mb-4">
           <CalendarDaysIcon className="h-6 w-6 text-primary-600" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            本日历史同期数据
+            {t('homepage.title')}
           </h1>
         </div>
         <p className="text-gray-600 dark:text-gray-300">
-          查看指定日期在历史年份中的天气表现，分析同期温度变化趋势
+          {t('homepage.description')}
         </p>
         
         {/* Current Location Display */}
@@ -433,17 +435,17 @@ const HomepageHistoricalDaily: React.FC = () => {
             <div className="flex items-center space-x-2">
               <MapPinIcon className="h-5 w-5 text-blue-600" />
               <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                当前位置: 
+                {t('homepage.currentLocation')} 
               </span>
               {locationLoading || geoLoading ? (
-                <span className="text-sm text-blue-700 dark:text-blue-300">正在获取位置...</span>
+                <span className="text-sm text-blue-700 dark:text-blue-300">{t('location.detecting')}</span>
               ) : currentLocationCity ? (
                 <span className="text-sm text-blue-800 dark:text-blue-200">{currentLocationCity}</span>
               ) : geoError ? (
-                <span className="text-sm text-red-600 dark:text-red-400">位置获取失败</span>
+                <span className="text-sm text-red-600 dark:text-red-400">{t('location.failed')}</span>
               ) : (
                 <span className="text-sm text-blue-700 dark:text-blue-300">
-                  {latitude && longitude ? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` : '未知位置'}
+                  {latitude && longitude ? `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` : t('app.noData')}
                 </span>
               )}
             </div>
@@ -456,7 +458,7 @@ const HomepageHistoricalDaily: React.FC = () => {
         <div className="flex items-center space-x-3 mb-4">
           <MapPinIcon className="h-5 w-5 text-primary-600" />
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            选择分析位置
+            {t('homepage.analysisLocation')}
           </h2>
         </div>
         <QuickLocationSelector 
@@ -478,7 +480,7 @@ const HomepageHistoricalDaily: React.FC = () => {
           {/* Date Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              选择日期
+              {t('time.selectDate')}
             </label>
             <input
               type="date"
@@ -489,7 +491,7 @@ const HomepageHistoricalDaily: React.FC = () => {
                        focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              当前选择: {formatDate(selectedDate)}
+              {t('time.currentSelection')}: {formatDate(selectedDate)}
             </p>
           </div>
 
@@ -639,7 +641,7 @@ const HomepageHistoricalDaily: React.FC = () => {
             <LoadingSpinner />
             {!locationInitialized && (
               <p className="text-center text-gray-600 dark:text-gray-300 mt-4">
-                正在初始化位置信息...
+                {t('homepage.initializingLocation')}
               </p>
             )}
           </div>
@@ -661,7 +663,7 @@ const HomepageHistoricalDaily: React.FC = () => {
                            focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 
                            transition-colors duration-200"
                 >
-                  手动重试
+{t('errors.manualRetry')}
                 </button>
               </div>
             )}

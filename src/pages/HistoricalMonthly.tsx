@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ClockIcon, MapPinIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, MinusIcon } from '@heroicons/react/24/outline';
 import { monthlyTemperatureService, MonthlyTemperatureTrends } from '../services/monthlyTemperatureService';
 import HistoricalTemperatureChart from '../components/Charts/HistoricalTemperatureChart';
@@ -9,6 +10,7 @@ import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher'
 import { useLocationStore } from '../store/locationStore';
 
 const HistoricalMonthly: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<MonthlyTemperatureTrends | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,11 +105,11 @@ const HistoricalMonthly: React.FC = () => {
   const getTrendDescription = (trend: 'warming' | 'cooling' | 'stable', trendValue: number) => {
     switch (trend) {
       case 'warming':
-        return `升温趋势 +${Math.abs(trendValue).toFixed(3)}°C/年`;
+        return t('analysis.warmingTrend', { value: Math.abs(trendValue).toFixed(3) });
       case 'cooling':
-        return `降温趋势 ${trendValue.toFixed(3)}°C/年`;
+        return t('analysis.coolingTrend', { value: trendValue.toFixed(3) });
       case 'stable':
-        return '温度稳定';
+        return t('analysis.stableTemperature');
     }
   };
 
@@ -139,11 +141,11 @@ const HistoricalMonthly: React.FC = () => {
         <div className="flex items-center space-x-3 mb-4">
           <ClockIcon className="h-6 w-6 text-primary-600" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            本月历史同期数据
+            {t('navigation.monthly')}
           </h1>
         </div>
         <p className="text-gray-600 dark:text-gray-300">
-          分析指定月份在多年中的温度变化趋势，了解月度气候特征和长期变化规律
+          {t('analysis.monthlyDescription')}
         </p>
       </div>
 
@@ -152,7 +154,7 @@ const HistoricalMonthly: React.FC = () => {
         <div className="flex items-center space-x-3 mb-4">
           <MapPinIcon className="h-5 w-5 text-primary-600" />
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            选择分析位置
+            {t('homepage.analysisLocation')}
           </h2>
         </div>
         <QuickLocationSelector compact={false} onLocationChange={loadMonthlyData} />
@@ -167,7 +169,7 @@ const HistoricalMonthly: React.FC = () => {
           {/* Month Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              选择月份
+              {t('time.selectMonth')}
             </label>
             <select
               value={selectedMonth}
@@ -187,7 +189,7 @@ const HistoricalMonthly: React.FC = () => {
           {/* Year Range */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              年份范围
+              {t('time.yearRange')}
             </label>
             <div className="flex space-x-2">
               <input
@@ -200,7 +202,7 @@ const HistoricalMonthly: React.FC = () => {
                          bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                          focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
-              <span className="px-2 py-2 text-gray-500">至</span>
+              <span className="px-2 py-2 text-gray-500">{t('time.to')}</span>
               <input
                 type="number"
                 value={yearRange.end}
@@ -217,16 +219,16 @@ const HistoricalMonthly: React.FC = () => {
           {/* Current Analysis Info */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              当前分析
+              {t('analysis.current')}
             </label>
             <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <MapPinIcon className="h-4 w-4 text-gray-500" />
               <span className="text-gray-900 dark:text-white">
-                {currentLocation?.name || '未选择位置'}
+                {currentLocation?.name || t('location.notSelected')}
               </span>
               {currentLocation && (
                 <span className="text-gray-500 text-sm">
-                  - {monthNames[selectedMonth - 1]}份分析
+                  - {monthNames[selectedMonth - 1]}{t('analysis.monthlyAnalysis')}
                 </span>
               )}
             </div>
@@ -261,13 +263,13 @@ const HistoricalMonthly: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {data.monthName}平均温度
+                    {data.monthName}{t('weather.avgTempSuffix')}
                   </p>
                   <p className={`text-2xl font-bold ${getTemperatureColor(data.averageTemp)}`}>
                     {data.averageTemp}°C
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    基于 {data.years.length} 年数据
+                    {t('analysis.basedOnYearsData', { years: data.years.length })}
                   </p>
                 </div>
               </div>
@@ -280,7 +282,7 @@ const HistoricalMonthly: React.FC = () => {
                   {getTrendIcon(data.trend)}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">温度趋势</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.temperatureTrend')}</p>
                   <p className={`text-lg font-semibold ${getTrendColor(data.trend).split(' ')[0]}`}>
                     {getTrendDescription(data.trend, data.trendValue)}
                   </p>
@@ -295,12 +297,12 @@ const HistoricalMonthly: React.FC = () => {
                   <ClockIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">数据年份</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.dataYears')}</p>
                   <p className="text-lg font-semibold text-gray-900 dark:text-white">
                     {yearRange.start} - {yearRange.end}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    共 {data.years.length} 年
+                    {t('analysis.totalYears', { years: data.years.length })}
                   </p>
                 </div>
               </div>
@@ -311,8 +313,8 @@ const HistoricalMonthly: React.FC = () => {
           <HistoricalTemperatureChart
             data={chartData}
             type="monthly"
-            title={`${data.monthName}温度趋势图`}
-            subtitle={`显示历年${data.monthName}的平均温度变化趋势`}
+            title={`${data.monthName}${t('analysis.temperatureTrendChart')}`}
+            subtitle={t('analysis.showMonthlyTrendDescription', { month: data.monthName })}
             yearRange={yearRange}
           />
 
@@ -320,7 +322,7 @@ const HistoricalMonthly: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {data.monthName}详细数据 ({data.years.length} 年)
+                {data.monthName}{t('analysis.detailedDataTitle', { years: data.years.length })}
               </h2>
             </div>
 
@@ -329,25 +331,25 @@ const HistoricalMonthly: React.FC = () => {
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      年份
+                      {t('time.year')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      月平均温度 (°C)
+                      {t('weather.monthlyAvgTemp')} (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      月平均最高温 (°C)
+                      {t('weather.monthlyAvgMaxTemp')} (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      月平均最低温 (°C)
+                      {t('weather.monthlyAvgMinTemp')} (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      月最高温 (°C)
+                      {t('weather.monthlyMaxTemp')} (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      月最低温 (°C)
+                      {t('weather.monthlyMinTemp')} (°C)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      数据天数
+                      {t('analysis.dataDays')}
                     </th>
                   </tr>
                 </thead>
@@ -388,7 +390,7 @@ const HistoricalMonthly: React.FC = () => {
       {!loading && !error && !data && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
           <p className="text-gray-500 dark:text-gray-400">
-            暂无数据
+            {t('app.noData')}
           </p>
         </div>
       )}
