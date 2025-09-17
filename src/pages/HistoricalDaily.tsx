@@ -240,102 +240,38 @@ const HistoricalDaily: React.FC = () => {
         </p>
       </div>
 
-      {/* Location Selector */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <div className="flex items-center space-x-3 mb-4">
-          <MapPinIcon className="h-5 w-5 text-primary-600" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {t('homepage.analysisLocation')}
-          </h2>
-        </div>
-        <QuickLocationSelector compact={false} onLocationChange={loadDailyHistoricalData} />
-      </div>
-
-      {/* Analysis Type Switcher */}
-      <AnalysisTypeSwitcher />
-
-      {/* Controls */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Date Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('time.selectDate')}
-            </label>
-            <input
-              type="date"
-              value={format(selectedDate, 'yyyy-MM-dd')}
-              onChange={handleDateChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                       focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {t('time.currentSelection')}: {formatDate(selectedDate)}
+      {/* 1. 当前位置信息卡片 */}
+      <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <MapPinIcon className="h-6 w-6 text-primary-600" />
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {currentLocation?.name || t('location.notSelected')}
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                {currentLocation ? (
+                  <>
+                    {formatDate(selectedDate)}{t('analysis.historicalSamePeriod')}
+                  </>
+                ) : (
+                  t('homepage.pleaseSelectLocation')
+                )}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
+              {formatDate(selectedDate)}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {t('analysis.analysisDate')}
             </p>
           </div>
-
-          {/* Current Analysis Info */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('analysis.current')}
-            </label>
-            <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <MapPinIcon className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-900 dark:text-white">
-                {currentLocation?.name || t('location.notSelected')}
-              </span>
-              {currentLocation && (
-                <span className="text-gray-500 text-sm">
-                  - {formatDate(selectedDate)}{t('analysis.historicalSamePeriod')}
-                </span>
-              )}
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Statistics Summary */}
-      {currentData.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <div className="flex items-center space-x-3">
-              <FireIcon className="h-6 w-6 text-red-500" />
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgMax')}</p>
-                <p className={`text-2xl font-bold ${getTemperatureColor(avgMaxTemp)}`}>
-                  {avgMaxTemp}°C
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <div className="flex items-center space-x-3">
-              <FireIcon className="h-6 w-6 text-blue-500" />
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgMin')}</p>
-                <p className={`text-2xl font-bold ${getTemperatureColor(avgMinTemp)}`}>
-                  {avgMinTemp}°C
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <div className="flex items-center space-x-3">
-              <FireIcon className="h-6 w-6 text-green-500" />
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgTemp')}</p>
-                <p className={`text-2xl font-bold ${getTemperatureColor(avgAvgTemp)}`}>
-                  {avgAvgTemp}°C
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* 2. 核心图表 */}
       {/* Chart */}
       {!loading && !error && currentData.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
@@ -407,6 +343,97 @@ const HistoricalDaily: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Statistics Summary - 移到图表下方 */}
+      {currentData.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+            <div className="flex items-center space-x-3">
+              <FireIcon className="h-6 w-6 text-red-500" />
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgMax')}</p>
+                <p className={`text-2xl font-bold ${getTemperatureColor(avgMaxTemp)}`}>
+                  {avgMaxTemp}°C
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+            <div className="flex items-center space-x-3">
+              <FireIcon className="h-6 w-6 text-blue-500" />
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgMin')}</p>
+                <p className={`text-2xl font-bold ${getTemperatureColor(avgMinTemp)}`}>
+                  {avgMinTemp}°C
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+            <div className="flex items-center space-x-3">
+              <FireIcon className="h-6 w-6 text-green-500" />
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgTemp')}</p>
+                <p className={`text-2xl font-bold ${getTemperatureColor(avgAvgTemp)}`}>
+                  {avgAvgTemp}°C
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. 控制面板 */}
+      {/* Analysis Type Switcher */}
+      <AnalysisTypeSwitcher />
+
+      {/* Location Selector */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <QuickLocationSelector compact={false} onLocationChange={loadDailyHistoricalData} />
+      </div>
+
+      {/* Controls */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Date Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              {t('time.selectDate')}
+            </label>
+            <input
+              type="date"
+              value={format(selectedDate, 'yyyy-MM-dd')}
+              onChange={handleDateChange}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                       focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {t('time.currentSelection')}: {formatDate(selectedDate)}
+            </p>
+          </div>
+
+          {/* Current Analysis Info */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              {t('analysis.current')}
+            </label>
+            <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <MapPinIcon className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-900 dark:text-white">
+                {currentLocation?.name || t('location.notSelected')}
+              </span>
+              {currentLocation && (
+                <span className="text-gray-500 text-sm">
+                  - {formatDate(selectedDate)}{t('analysis.historicalSamePeriod')}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Data Table */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">

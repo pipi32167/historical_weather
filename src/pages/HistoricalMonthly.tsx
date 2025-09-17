@@ -150,19 +150,129 @@ const HistoricalMonthly: React.FC = () => {
         </p>
       </div>
 
-      {/* Location Selector */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <div className="flex items-center space-x-3 mb-4">
-          <MapPinIcon className="h-5 w-5 text-primary-600" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {t('homepage.analysisLocation')}
-          </h2>
+      {/* 1. 当前位置信息卡片 */}
+      <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <MapPinIcon className="h-6 w-6 text-primary-600" />
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {currentLocation?.name || t('location.notSelected')}
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                {currentLocation ? (
+                  <>
+                    {monthNames[selectedMonth - 1]}{t('analysis.monthlyAnalysis')}
+                  </>
+                ) : (
+                  t('homepage.pleaseSelectLocation')
+                )}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
+              {monthNames[selectedMonth - 1]}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {yearRange.start} - {yearRange.end}
+            </p>
+          </div>
         </div>
-        <QuickLocationSelector compact={false} onLocationChange={loadMonthlyData} />
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+          <LoadingSpinner />
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+          <ErrorMessage message={error} />
+        </div>
+      )}
+
+      {/* 2. 核心图表 */}
+      {!loading && !error && data && (
+        <>
+          {/* Chart */}
+          <HistoricalTemperatureChart
+            data={chartData}
+            type="monthly"
+            title={`${data.monthName}${t('analysis.temperatureTrendChart')}`}
+            subtitle={t('analysis.showMonthlyTrendDescription', { month: data.monthName })}
+            yearRange={yearRange}
+          />
+
+          {/* Statistics Summary - 移到图表下方 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Average Temperature */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded-lg bg-green-100 dark:bg-green-900/20`}>
+                  <ClockIcon className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {data.monthName}{t('weather.avgTempSuffix')}
+                  </p>
+                  <p className={`text-2xl font-bold ${getTemperatureColor(data.averageTemp)}`}>
+                    {data.averageTemp}°C
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {t('analysis.basedOnYearsData', { years: data.years.length })}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Temperature Trend */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded-lg ${getTrendColor(data.trend)}`}>
+                  {getTrendIcon(data.trend)}
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.temperatureTrend')}</p>
+                  <p className={`text-lg font-semibold ${getTrendColor(data.trend).split(' ')[0]}`}>
+                    {getTrendDescription(data.trend, data.trendValue)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Data Years */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                  <ClockIcon className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.dataYears')}</p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {yearRange.start} - {yearRange.end}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {t('analysis.totalYears', { years: data.years.length })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 3. 控制面板 */}
       {/* Analysis Type Switcher */}
       <AnalysisTypeSwitcher />
+
+      {/* Location Selector */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+        <QuickLocationSelector compact={false} onLocationChange={loadMonthlyData} />
+      </div>
 
       {/* Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
@@ -237,89 +347,8 @@ const HistoricalMonthly: React.FC = () => {
         </div>
       </div>
 
-      {/* Loading State */}
-      {loading && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
-          <LoadingSpinner />
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <ErrorMessage message={error} />
-        </div>
-      )}
-
-      {/* Data Display */}
-      {!loading && !error && data && (
-        <>
-          {/* Statistics Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Average Temperature */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-lg bg-green-100 dark:bg-green-900/20`}>
-                  <ClockIcon className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {data.monthName}{t('weather.avgTempSuffix')}
-                  </p>
-                  <p className={`text-2xl font-bold ${getTemperatureColor(data.averageTemp)}`}>
-                    {data.averageTemp}°C
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('analysis.basedOnYearsData', { years: data.years.length })}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Temperature Trend */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-lg ${getTrendColor(data.trend)}`}>
-                  {getTrendIcon(data.trend)}
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.temperatureTrend')}</p>
-                  <p className={`text-lg font-semibold ${getTrendColor(data.trend).split(' ')[0]}`}>
-                    {getTrendDescription(data.trend, data.trendValue)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Data Years */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                  <ClockIcon className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.dataYears')}</p>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {yearRange.start} - {yearRange.end}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('analysis.totalYears', { years: data.years.length })}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Chart */}
-          <HistoricalTemperatureChart
-            data={chartData}
-            type="monthly"
-            title={`${data.monthName}${t('analysis.temperatureTrendChart')}`}
-            subtitle={t('analysis.showMonthlyTrendDescription', { month: data.monthName })}
-            yearRange={yearRange}
-          />
-
-          {/* Detailed Data Table */}
+          {/* 4. 详细数据表格 */}
+          {!loading && !error && data && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -384,8 +413,7 @@ const HistoricalMonthly: React.FC = () => {
               </table>
             </div>
           </div>
-        </>
-      )}
+          )}
 
       {/* No Data State */}
       {!loading && !error && !data && (
