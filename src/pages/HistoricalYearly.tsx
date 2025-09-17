@@ -163,7 +163,7 @@ const HistoricalYearly: React.FC = () => {
 
     } catch (error) {
       console.error('获取年度历史数据失败:', error);
-      setError('获取年度历史数据失败，请稍后重试');
+      setError(t('errors.loadingFailed'));
     } finally {
       setLoading(false);
     }

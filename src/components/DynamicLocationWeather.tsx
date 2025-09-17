@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import HistoricalWeatherChart from './Charts/HistoricalWeatherChart';
 import HistoricalControlsPanel from './Controls/HistoricalControlsPanel';
 import HistoricalDataTable from './Tables/HistoricalDataTable';
@@ -12,6 +13,7 @@ const DynamicLocationWeather: React.FC = () => {
   const { coordinates } = useParams<{ coordinates: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [currentDataForTable, setCurrentDataForTable] = useState<WeatherDataPoint[]>([]);
 
@@ -21,7 +23,7 @@ const DynamicLocationWeather: React.FC = () => {
 
   const { isOnline, isSlowConnection } = useNetworkStatus();
 
-  const locationName = searchParams.get('name') || '未知位置';
+  const locationName = searchParams.get('name') || t('common.unknownLocation');
 
   // 解析坐标信息
   const { latitude, longitude, isValidCoordinates } = useMemo(() => {
@@ -73,7 +75,7 @@ const DynamicLocationWeather: React.FC = () => {
       name: locationName,
       latitude,
       longitude,
-      country: '搜索位置',
+      country: t('common.searchLocation'),
       timezone: 'auto'
     };
   }, [latitude, longitude, locationName, isValidCoordinates]);

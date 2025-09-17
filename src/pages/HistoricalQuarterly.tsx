@@ -173,7 +173,7 @@ const HistoricalQuarterly: React.FC = () => {
 
     } catch (error) {
       console.error('获取季度历史数据失败:', error);
-      setError('获取季度历史数据失败，请稍后重试');
+      setError(t('errors.loadingFailed'));
     } finally {
       setLoading(false);
     }
@@ -333,7 +333,7 @@ const HistoricalQuarterly: React.FC = () => {
             >
               {quarterNames.map((name, index) => (
                 <option key={index + 1} value={index + 1}>
-                  {name} ({quarterMonths[index].join('-')}月)
+                  {name} ({quarterMonths[index].join('-')} {t('time.month')})
                 </option>
               ))}
             </select>

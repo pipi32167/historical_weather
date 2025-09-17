@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { monthlyTemperatureService, MonthlyTemperatureStats, MonthlyTemperatureTrends } from '../../services/monthlyTemperatureService';
 import { Location } from '../../types/weather';
@@ -28,6 +29,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
   endYear = new Date().getFullYear() - 1,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const [monthlyTrends, setMonthlyTrends] = useState<MonthlyTemperatureTrends | null>(null);
   const [annualProfile, setAnnualProfile] = useState<MonthlyTemperatureStats[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,7 +61,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
       setMonthlyTrends(trends);
     } catch (err) {
       console.error('加载月度趋势数据失败:', err);
-      setError(err instanceof Error ? err.message : '加载数据失败');
+      setError(err instanceof Error ? err.message : t('common.dataLoadingFailed'));
     } finally {
       setLoading(false);
     }
@@ -89,7 +91,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
       setAnnualProfile(profile);
     } catch (err) {
       console.error('加载年度温度概况数据失败:', err);
-      setError(err instanceof Error ? err.message : '加载数据失败');
+      setError(err instanceof Error ? err.message : t('common.dataLoadingFailed'));
     } finally {
       setLoading(false);
     }
@@ -139,13 +141,13 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
     let colorClass = '';
 
     if (trend === 'warming') {
-      description = `升温趋势 +${Math.abs(trendValue).toFixed(3)}°C/年`;
+      description = t('analysis.warmingTrend', { value: Math.abs(trendValue).toFixed(3) });
       colorClass = 'text-red-600';
     } else if (trend === 'cooling') {
-      description = `降温趋势 ${trendValue.toFixed(3)}°C/年`;
+      description = t('analysis.coolingTrend', { value: trendValue.toFixed(3) });
       colorClass = 'text-blue-600';
     } else {
-      description = '温度稳定';
+      description = t('analysis.stableTemperature');
       colorClass = 'text-green-600';
     }
 
