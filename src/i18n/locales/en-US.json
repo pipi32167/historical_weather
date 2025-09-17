@@ -413,5 +413,24 @@
     "yearlyTitle": "Yearly Historical Comparison",
     "yearlyDescription": "Analyze yearly temperature change trends across multiple years",
     "clickToStart": "Click 'Start Analysis' or select a specific analysis type"
+  },
+  "homepage": {
+    "title": "Historical Temperature Data Query",
+    "description": "Professional historical temperature data query and analysis platform providing global city weather data, temperature trends and meteorological statistics",
+    "analysisLocation": "Analysis Location",
+    "currentLocation": "Current Location",
+    "initializingLocation": "Initializing location...",
+    "historyAvgMax": "Historical Average High",
+    "historyAvgMin": "Historical Average Low",
+    "historyAvgTemp": "Historical Average Temperature",
+    "trendDescription": "Showing temperature trends for {{date}} across years ({{count}} years of data)",
+    "banner": {
+      "historicalTrendAnalysis": "Historical Temperature Trend Analysis",
+      "temperatureChangeComparison": "20-year temperature change comparison",
+      "globalCityTemperatureData": "Global City Temperature Data",
+      "supportAnyLocationQuery": "Support for any location query",
+      "professionalDataVisualization": "Professional Data Visualization",
+      "openMeteoAuthoritativeDataSource": "Open-Meteo authoritative data source"
+    }
   }
 }

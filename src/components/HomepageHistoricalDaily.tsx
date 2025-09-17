@@ -448,22 +448,22 @@ const HomepageHistoricalDaily: React.FC = () => {
             <div className="flex items-center space-x-2">
               <span className="text-2xl">📈</span>
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">历史气温趋势分析</p>
-                <p className="text-gray-600 dark:text-gray-300">20年气温变化对比</p>
+                <p className="font-medium text-gray-900 dark:text-white">{t('homepage.banner.historicalTrendAnalysis')}</p>
+                <p className="text-gray-600 dark:text-gray-300">{t('homepage.banner.temperatureChangeComparison')}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-2xl">🌍</span>
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">全球城市气温数据</p>
-                <p className="text-gray-600 dark:text-gray-300">支持任意地点查询</p>
+                <p className="font-medium text-gray-900 dark:text-white">{t('homepage.banner.globalCityTemperatureData')}</p>
+                <p className="text-gray-600 dark:text-gray-300">{t('homepage.banner.supportAnyLocationQuery')}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-2xl">📊</span>
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">专业数据可视化</p>
-                <p className="text-gray-600 dark:text-gray-300">Open-Meteo权威数据源</p>
+                <p className="font-medium text-gray-900 dark:text-white">{t('homepage.banner.professionalDataVisualization')}</p>
+                <p className="text-gray-600 dark:text-gray-300">{t('homepage.banner.openMeteoAuthoritativeDataSource')}</p>
               </div>
             </div>
           </div>
