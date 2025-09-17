@@ -18,7 +18,6 @@ function App(): React.ReactElement {
 
   return (
     <ErrorBoundary onError={handleError}>
-      <Analytics />
       <Router>
         <MainLayout>
           <Routes>
@@ -37,6 +36,7 @@ function App(): React.ReactElement {
             {/* 404错误页面 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <Analytics />
         </MainLayout>
       </Router>
     </ErrorBoundary>
