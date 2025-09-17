@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CalendarDaysIcon, MapPinIcon, FireIcon } from '@heroicons/react/24/outline';
+import { Calendar, MapPin, Flame } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { unifiedHistoricalService } from '../services/unifiedHistoricalService';
 import LoadingSpinner from './LoadingSpinner';
@@ -10,6 +10,7 @@ import { AnalysisTypeSwitcher } from './common/AnalysisTypeSwitcher';
 import { useLocationStore } from '../store/locationStore';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { osmGeocodingService } from '../services/osmGeocodingService';
+import { useHomePageTitle } from '../hooks/usePageTitle';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 
@@ -24,6 +25,9 @@ interface DailyHistoricalData {
 
 const HomepageHistoricalDaily: React.FC = () => {
   const { t, i18n } = useTranslation();
+  
+  // 设置页面标题
+  useHomePageTitle();
   const [data, setData] = useState<DailyHistoricalData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -433,7 +437,7 @@ const HomepageHistoricalDaily: React.FC = () => {
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <div className="flex items-center space-x-3 mb-4">
-          <CalendarDaysIcon className="h-6 w-6 text-primary-600" />
+          <Calendar className="h-6 w-6 text-primary-600" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t('homepage.title')}
           </h1>
@@ -474,7 +478,7 @@ const HomepageHistoricalDaily: React.FC = () => {
       <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <MapPinIcon className="h-6 w-6 text-primary-600" />
+            <MapPin className="h-6 w-6 text-primary-600" />
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {currentLocation?.name || t('location.notSelected')}
@@ -584,7 +588,7 @@ const HomepageHistoricalDaily: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
             <div className="flex items-center space-x-3">
-              <FireIcon className="h-6 w-6 text-red-500" />
+              <Flame className="h-6 w-6 text-red-500" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgMax')}</p>
                 <p className={`text-2xl font-bold ${getTemperatureColor(avgMaxTemp)}`}>
@@ -596,7 +600,7 @@ const HomepageHistoricalDaily: React.FC = () => {
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
             <div className="flex items-center space-x-3">
-              <FireIcon className="h-6 w-6 text-blue-500" />
+              <Flame className="h-6 w-6 text-blue-500" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgMin')}</p>
                 <p className={`text-2xl font-bold ${getTemperatureColor(avgMinTemp)}`}>
@@ -608,7 +612,7 @@ const HomepageHistoricalDaily: React.FC = () => {
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
             <div className="flex items-center space-x-3">
-              <FireIcon className="h-6 w-6 text-green-500" />
+              <Flame className="h-6 w-6 text-green-500" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgTemp')}</p>
                 <p className={`text-2xl font-bold ${getTemperatureColor(avgAvgTemp)}`}>
@@ -664,7 +668,7 @@ const HomepageHistoricalDaily: React.FC = () => {
               {t('analysis.current')}
             </label>
             <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <MapPinIcon className="h-4 w-4 text-gray-500" />
+              <MapPin className="h-4 w-4 text-gray-500" />
               <span className="text-gray-900 dark:text-white">
                 {currentLocation?.name || t('location.notSelected')}
               </span>

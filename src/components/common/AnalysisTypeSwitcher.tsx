@@ -2,11 +2,11 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  CalendarDaysIcon, 
-  ClockIcon, 
-  ChartBarSquareIcon, 
-  PresentationChartLineIcon 
-} from '@heroicons/react/24/outline';
+  Calendar, 
+  Clock, 
+  BarChart3, 
+  LineChart 
+} from 'lucide-react';
 
 interface AnalysisTypeSwitcherProps {
   compact?: boolean;
@@ -37,7 +37,7 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       name: t('navigation.daily'),
       shortName: t('analysisTypes.dailyShort'),
       path: '/historical/daily',
-      icon: CalendarDaysIcon,
+      icon: Calendar,
       description: t('analysisTypes.dailyDescription'),
       color: 'blue'
     },
@@ -46,7 +46,7 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       name: t('navigation.monthly'),
       shortName: t('analysisTypes.monthlyShort'),
       path: '/historical/monthly',
-      icon: ClockIcon,
+      icon: Clock,
       description: t('analysisTypes.monthlyDescription'),
       color: 'green'
     },
@@ -55,7 +55,7 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       name: t('navigation.quarterly'),
       shortName: t('analysisTypes.quarterlyShort'),
       path: '/historical/quarterly',
-      icon: ChartBarSquareIcon,
+      icon: BarChart3,
       description: t('analysisTypes.quarterlyDescription'),
       color: 'orange'
     },
@@ -64,7 +64,7 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       name: t('navigation.yearly'),
       shortName: t('analysisTypes.yearlyShort'),
       path: '/historical/yearly',
-      icon: PresentationChartLineIcon,
+      icon: LineChart,
       description: t('analysisTypes.yearlyDescription'),
       color: 'purple'
     }

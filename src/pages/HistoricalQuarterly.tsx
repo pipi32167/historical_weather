@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChartBarSquareIcon, MapPinIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, MinusIcon } from '@heroicons/react/24/outline';
+import { BarChart3, MapPin, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { MonthlyTemperatureStats } from '../services/monthlyTemperatureService';
 import { unifiedHistoricalService } from '../services/unifiedHistoricalService';
 import HistoricalTemperatureChart from '../components/Charts/HistoricalTemperatureChart';
@@ -10,6 +10,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
 import { useLocationStore } from '../store/locationStore';
+import { useHistoricalPageTitle } from '../hooks/usePageTitle';
 
 interface QuarterlyData {
   quarter: string;
@@ -36,6 +37,9 @@ const HistoricalQuarterly: React.FC = () => {
   const [selectedQuarter, setSelectedQuarter] = useState<number>(Math.ceil((new Date().getMonth() + 1) / 3));
   const [yearRange, setYearRange] = useState({ start: new Date().getFullYear() - 20, end: new Date().getFullYear() });
   const { currentLocation } = useLocationStore();
+  
+  // 设置页面标题
+  useHistoricalPageTitle('quarterly', currentLocation?.name);
 
   const quarterNames = [t('time.firstQuarter'), t('time.secondQuarter'), t('time.thirdQuarter'), t('time.fourthQuarter')];
   const quarterMonths = [
@@ -247,11 +251,11 @@ const HistoricalQuarterly: React.FC = () => {
   const getTrendIcon = (trend: 'warming' | 'cooling' | 'stable') => {
     switch (trend) {
       case 'warming':
-        return <ArrowTrendingUpIcon className="h-5 w-5 text-red-500" />;
+        return <TrendingUp className="h-5 w-5 text-red-500" />;
       case 'cooling':
-        return <ArrowTrendingDownIcon className="h-5 w-5 text-blue-500" />;
+        return <TrendingDown className="h-5 w-5 text-blue-500" />;
       case 'stable':
-        return <MinusIcon className="h-5 w-5 text-gray-500" />;
+        return <Minus className="h-5 w-5 text-gray-500" />;
     }
   };
 
@@ -292,7 +296,7 @@ const HistoricalQuarterly: React.FC = () => {
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
         <div className="flex items-center space-x-3 mb-4">
-          <ChartBarSquareIcon className="h-6 w-6 text-primary-600" />
+          <BarChart3 className="h-6 w-6 text-primary-600" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t('navigation.quarterly')}
           </h1>
@@ -306,7 +310,7 @@ const HistoricalQuarterly: React.FC = () => {
       <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <MapPinIcon className="h-6 w-6 text-primary-600" />
+            <MapPin className="h-6 w-6 text-primary-600" />
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {currentLocation?.name || t('location.notSelected')}
@@ -365,7 +369,7 @@ const HistoricalQuarterly: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
-                  <ChartBarSquareIcon className="h-6 w-6 text-green-600" />
+                  <BarChart3 className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -400,7 +404,7 @@ const HistoricalQuarterly: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                  <ChartBarSquareIcon className="h-6 w-6 text-blue-600" />
+                  <BarChart3 className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.dataYears')}</p>
@@ -485,7 +489,7 @@ const HistoricalQuarterly: React.FC = () => {
               {t('analysis.current')}
             </label>
             <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <MapPinIcon className="h-4 w-4 text-gray-500" />
+              <MapPin className="h-4 w-4 text-gray-500" />
               <span className="text-gray-900 dark:text-white">
                 {currentLocation?.name || t('location.notSelected')}
               </span>
@@ -522,7 +526,7 @@ const HistoricalQuarterly: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
-                  <ChartBarSquareIcon className="h-6 w-6 text-green-600" />
+                  <BarChart3 className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -557,7 +561,7 @@ const HistoricalQuarterly: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                  <ChartBarSquareIcon className="h-6 w-6 text-blue-600" />
+                  <BarChart3 className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.dataYears')}</p>

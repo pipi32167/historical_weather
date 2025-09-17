@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocationStore } from '../../store/locationStore';
-import { MapPinIcon, StarIcon, HeartIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
-import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
+import { MapPin, Star, Heart, ChevronDown, ChevronUp } from 'lucide-react';
 import { Location } from '../../types/weather';
 
 interface QuickLocationSelectorProps {
@@ -89,9 +88,9 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
                   className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded"
                 >
                   {isFavorite(location) ? (
-                    <HeartIconSolid className="h-3 w-3 text-red-500" />
+                    <Heart className="h-3 w-3 text-red-500 fill-current" />
                   ) : (
-                    <HeartIcon className="h-3 w-3 text-gray-400" />
+                    <Heart className="h-3 w-3 text-gray-400" />
                   )}
                 </button>
               )}
@@ -110,7 +109,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
       <div className="quick-location-selector compact">
         <div className="current-location mb-3">
           <div className="flex items-center space-x-2">
-            <MapPinIcon className="h-4 w-4 text-gray-500" />
+            <MapPin className="h-4 w-4 text-gray-500" />
             <span className="font-medium text-gray-900 dark:text-white text-sm">
               {currentLocation?.name || t('location.notSelected')}
             </span>
@@ -127,7 +126,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
       <div className="current-location mb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <MapPinIcon className="h-5 w-5 text-gray-500" />
+            <MapPin className="h-5 w-5 text-gray-500" />
             <span className="font-medium text-gray-900 dark:text-white">
               {t('location.currentSelection')}: {currentLocation?.name || t('location.notSelected')}
             </span>
@@ -143,9 +142,9 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
           >
             <span>{isCollapsed ? t('location.expand') : t('location.collapse')}</span>
             {isCollapsed ? (
-              <ChevronDownIcon className="h-4 w-4" />
+              <ChevronDown className="h-4 w-4" />
             ) : (
-              <ChevronUpIcon className="h-4 w-4" />
+              <ChevronUp className="h-4 w-4" />
             )}
           </button>
         </div>
@@ -190,7 +189,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
               }`}
             >
               <div className="flex items-center space-x-1">
-                <StarIcon className="h-3 w-3" />
+                <Star className="h-3 w-3" />
                 <span>{t('location.favorites')} ({favoriteLocations.length})</span>
               </div>
             </button>
@@ -210,14 +209,14 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
         
         {activeTab === 'recent' && recentLocations.length <= 1 && (
           <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-            <MapPinIcon className="h-8 w-8 mx-auto mb-2" />
+            <MapPin className="h-8 w-8 mx-auto mb-2" />
             <p>{t('location.noRecentLocations')}</p>
           </div>
         )}
         
         {activeTab === 'favorites' && favoriteLocations.length === 0 && (
           <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-            <HeartIcon className="h-8 w-8 mx-auto mb-2" />
+            <Heart className="h-8 w-8 mx-auto mb-2" />
             <p>{t('location.noFavoriteLocations')}</p>
             <p className="text-sm mt-1">{t('location.favoriteInstruction')}</p>
           </div>

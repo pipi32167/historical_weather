@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { LanguageIcon } from '@heroicons/react/24/outline';
+import { Languages } from 'lucide-react';
 
 const LanguageSwitcher: React.FC = () => {
   const { i18n, t } = useTranslation();
@@ -35,7 +35,7 @@ const LanguageSwitcher: React.FC = () => {
                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           aria-label={t('language.switch')}
         >
-          <LanguageIcon className="h-4 w-4 mr-2" />
+          <Languages className="h-4 w-4 mr-2" />
           <span className="hidden sm:inline">
             {getCurrentLanguageDisplay()}
           </span>

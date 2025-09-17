@@ -1,24 +1,20 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAboutPageTitle } from '../hooks/usePageTitle';
 import { 
-  ChartBarSquareIcon, 
-  GlobeAltIcon, 
-  ClockIcon,
-  AcademicCapIcon,
-  LightBulbIcon,
-  ShieldCheckIcon
-} from '@heroicons/react/24/outline';
+  BarChart3, 
+  Globe, 
+  Clock,
+  GraduationCap,
+  Lightbulb,
+  ShieldCheck
+} from 'lucide-react';
 
 const About: React.FC = () => {
-  const { t, i18n } = useTranslation();
-
+  const { t } = useTranslation();
+  
   // 设置页面标题
-  React.useEffect(() => {
-    const title = i18n.language === 'zh-CN' 
-      ? '关于我们 - 历史气温数据分析平台 | Historical Temperature Analytics'
-      : 'About Us - Historical Temperature Analytics Platform';
-    document.title = title;
-  }, [i18n.language]);
+  useAboutPageTitle();
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 py-6">
@@ -54,7 +50,7 @@ const About: React.FC = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-primary border border-custom rounded-lg p-6">
             <div className="flex items-center space-x-3 mb-4">
-              <ChartBarSquareIcon className="h-8 w-8 text-primary-600" />
+              <BarChart3 className="h-8 w-8 text-primary-600" />
               <h3 className="text-lg font-semibold text-primary">{t('about.features.historicalComparison.title')}</h3>
             </div>
             <p className="text-secondary">
@@ -64,7 +60,7 @@ const About: React.FC = () => {
 
           <div className="bg-primary border border-custom rounded-lg p-6">
             <div className="flex items-center space-x-3 mb-4">
-              <GlobeAltIcon className="h-8 w-8 text-primary-600" />
+              <Globe className="h-8 w-8 text-primary-600" />
               <h3 className="text-lg font-semibold text-primary">{t('about.features.globalCoverage.title')}</h3>
             </div>
             <p className="text-secondary">
@@ -74,7 +70,7 @@ const About: React.FC = () => {
 
           <div className="bg-primary border border-custom rounded-lg p-6">
             <div className="flex items-center space-x-3 mb-4">
-              <ClockIcon className="h-8 w-8 text-primary-600" />
+              <Clock className="h-8 w-8 text-primary-600" />
               <h3 className="text-lg font-semibold text-primary">{t('about.features.longTermData.title')}</h3>
             </div>
             <p className="text-secondary">
@@ -84,7 +80,7 @@ const About: React.FC = () => {
 
           <div className="bg-primary border border-custom rounded-lg p-6">
             <div className="flex items-center space-x-3 mb-4">
-              <AcademicCapIcon className="h-8 w-8 text-primary-600" />
+              <GraduationCap className="h-8 w-8 text-primary-600" />
               <h3 className="text-lg font-semibold text-primary">{t('about.features.professionalAnalysis.title')}</h3>
             </div>
             <p className="text-secondary">
@@ -94,7 +90,7 @@ const About: React.FC = () => {
 
           <div className="bg-primary border border-custom rounded-lg p-6">
             <div className="flex items-center space-x-3 mb-4">
-              <LightBulbIcon className="h-8 w-8 text-primary-600" />
+              <Lightbulb className="h-8 w-8 text-primary-600" />
               <h3 className="text-lg font-semibold text-primary">{t('about.features.smartVisualization.title')}</h3>
             </div>
             <p className="text-secondary">
@@ -104,7 +100,7 @@ const About: React.FC = () => {
 
           <div className="bg-primary border border-custom rounded-lg p-6">
             <div className="flex items-center space-x-3 mb-4">
-              <ShieldCheckIcon className="h-8 w-8 text-primary-600" />
+              <ShieldCheck className="h-8 w-8 text-primary-600" />
               <h3 className="text-lg font-semibold text-primary">{t('about.features.authoritativeData.title')}</h3>
             </div>
             <p className="text-secondary">

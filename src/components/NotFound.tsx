@@ -1,22 +1,21 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useNotFoundPageTitle } from '../hooks/usePageTitle';
 import { 
-  HomeIcon, 
-  MapPinIcon, 
-  ChartBarSquareIcon,
-  MagnifyingGlassIcon
-} from '@heroicons/react/24/outline';
+  Home, 
+  MapPin, 
+  BarChart3,
+  Search
+} from 'lucide-react';
 
 const NotFound: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-
+  
   // 设置页面标题
-  React.useEffect(() => {
-    document.title = t('notFound.subtitle');
-  }, [t]);
+  useNotFoundPageTitle();
 
   // 热门城市建议
   const popularCities = [
@@ -34,19 +33,19 @@ const NotFound: React.FC = () => {
       title: t('notFound.historicalComparison'),
       description: t('notFound.historicalComparisonDesc'),
       path: '/historical/daily',
-      icon: ChartBarSquareIcon
+      icon: BarChart3
     },
     {
       title: t('notFound.monthlyTrendAnalysis'),
       description: t('notFound.monthlyTrendAnalysisDesc'),
       path: '/historical/monthly',
-      icon: ChartBarSquareIcon
+      icon: BarChart3
     },
     {
       title: t('navigation.about'),
       description: t('notFound.aboutUsDesc'),
       path: '/about',
-      icon: MagnifyingGlassIcon
+      icon: Search
     }
   ];
 
@@ -85,7 +84,7 @@ const NotFound: React.FC = () => {
             onClick={handleHomeClick}
             className="flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
           >
-            <HomeIcon className="h-5 w-5" />
+            <Home className="h-5 w-5" />
             <span>{t('notFound.backToHome')}</span>
           </button>
         </div>
@@ -94,7 +93,7 @@ const NotFound: React.FC = () => {
       {/* 热门城市推荐 */}
       <div className="mb-12">
         <h3 className="text-xl font-semibold text-primary mb-6 text-center">
-          <MapPinIcon className="h-6 w-6 inline-block mr-2" />
+          <MapPin className="h-6 w-6 inline-block mr-2" />
           {t('notFound.popularCities')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

@@ -2,13 +2,14 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
-  SunIcon, 
-  MoonIcon,
-  CalendarDaysIcon,
-  ChartBarSquareIcon
-} from '@heroicons/react/24/outline';
+  Sun, 
+  Moon,
+  Calendar,
+  BarChart3
+} from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import LanguageSwitcher from '../common/LanguageSwitcher';
+import Logo from '../common/Logo';
 import clsx from 'clsx';
 
 interface HeaderProps {
@@ -33,13 +34,13 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
     {
       name: t('navigation.daily'),
       path: '/historical/daily',
-      icon: ChartBarSquareIcon,
+      icon: BarChart3,
       description: t('analysis.historical')
     },
     {
       name: t('navigation.about', { defaultValue: '关于我们' }),
       path: '/about',
-      icon: CalendarDaysIcon,
+      icon: Calendar,
       description: t('navigation.aboutDescription', { defaultValue: '了解平台功能和技术架构' })
     }
   ];
@@ -51,24 +52,15 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
       className
     )}>
       {/* Left section - Logo */}
-      <button
-        onClick={handleLogoClick}
-        className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200 cursor-pointer"
-      >
-        <div className="flex items-center justify-center w-8 h-8 bg-primary-500 rounded-lg">
-          <span className="text-white font-bold text-sm">🌡️</span>
-        </div>
-        <div className="hidden sm:block text-left">
-          <div className="text-lg font-semibold text-primary">
-            {t('app.title')}
-          </div>
-        </div>
-        <div className="sm:hidden text-left">
-          <div className="text-lg font-semibold text-primary">
-            {t('weather.temperature')}
-          </div>
-        </div>
-      </button>
+      <div className="flex items-center">
+        <Logo 
+          size="md"
+          showText={true}
+          theme="auto"
+          onClick={handleLogoClick}
+          className="hover:opacity-80 transition-opacity duration-200"
+        />
+      </div>
 
       {/* Center section - Navigation */}
       <nav className="hidden lg:flex items-center space-x-1">
@@ -113,14 +105,14 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
           className="p-2 rounded-lg text-secondary hover:bg-secondary transition-colors duration-200"
           title="历史分析"
         >
-          <ChartBarSquareIcon className="h-5 w-5" />
+          <BarChart3 className="h-5 w-5" />
         </button>
         <button
           onClick={() => navigate('/about')}
           className="p-2 rounded-lg text-secondary hover:bg-secondary transition-colors duration-200"
           title="关于我们"
         >
-          <CalendarDaysIcon className="h-5 w-5" />
+          <Calendar className="h-5 w-5" />
         </button>
       </div>
 
@@ -136,9 +128,9 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
           aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
         >
           {theme === 'light' ? (
-            <MoonIcon className="h-5 w-5" />
+            <Moon className="h-5 w-5" />
           ) : (
-            <SunIcon className="h-5 w-5" />
+            <Sun className="h-5 w-5" />
           )}
         </button>
       </div>

@@ -6,6 +6,18 @@
     "retry": "Retry",
     "noData": "No data available"
   },
+  "page": {
+    "title": {
+      "home": "Historical Temperature Data Query | Professional Weather Analysis Platform",
+      "daily": "Daily Historical Temperature Analysis | {{location}}",
+      "monthly": "Monthly Temperature Trend Analysis | {{location}}",
+      "quarterly": "Quarterly Temperature Statistics | {{location}}",
+      "yearly": "Annual Temperature Change Analysis | {{location}}",
+      "about": "About Us | Historical Temperature Data Platform",
+      "notFound": "Page Not Found | Historical Temperature Data Platform",
+      "suffix": " - Historical Temperature Data Platform"
+    }
+  },
   "navigation": {
     "home": "Home",
     "daily": "Daily Historical", 

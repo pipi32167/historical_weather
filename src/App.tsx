@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Analytics } from "@vercel/analytics/react"
 import MainLayout from './components/Layout/MainLayout';
 import HomepageHistoricalDaily from './components/HomepageHistoricalDaily';
 import About from './components/About';
@@ -17,6 +18,7 @@ function App(): React.ReactElement {
 
   return (
     <ErrorBoundary onError={handleError}>
+      <Analytics />
       <Router>
         <MainLayout>
           <Routes>

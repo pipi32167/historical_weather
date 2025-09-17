@@ -6,6 +6,18 @@
     "retry": "重试",
     "noData": "暂无数据"
   },
+  "page": {
+    "title": {
+      "home": "历史气温数据查询 | 专业气温分析平台",
+      "daily": "历史同期气温分析 | {{location}}",
+      "monthly": "月度气温趋势分析 | {{location}}",
+      "quarterly": "季度气温统计分析 | {{location}}",
+      "yearly": "年度气温变化分析 | {{location}}",
+      "about": "关于我们 | 历史气温数据平台",
+      "notFound": "页面未找到 | 历史气温数据平台",
+      "suffix": " - 历史气温数据查询平台"
+    }
+  },
   "navigation": {
     "home": "首页",
     "daily": "历史同期",
