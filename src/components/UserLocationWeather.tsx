@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { timezoneService, TimezoneInfo } from '../services/timezoneService';
 import HistoricalWeatherChart from './Charts/HistoricalWeatherChart';
@@ -12,7 +13,8 @@ interface UserLocationWeatherProps {
 
 const UserLocationWeather: React.FC<UserLocationWeatherProps> = ({ className = '' }) => {
   const navigate = useNavigate();
-  const [userLocationName, setUserLocationName] = useState<string>('未知位置');
+  const { t } = useTranslation();
+  const [userLocationName, setUserLocationName] = useState<string>(t('common.unknownLocation'));
   const [timezoneInfo, setTimezoneInfo] = useState<TimezoneInfo | null>(null);
 
   // 使用地理位置hook

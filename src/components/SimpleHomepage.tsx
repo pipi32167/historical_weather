@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { MapPinIcon, ChartBarIcon, CalendarDaysIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { QuickLocationSelector } from './common/QuickLocationSelector';
 import { useLocationStore } from '../store/locationStore';
@@ -7,6 +8,7 @@ import { useLocationStore } from '../store/locationStore';
 const SimpleHomepage: React.FC = () => {
   const navigate = useNavigate();
   const { currentLocation } = useLocationStore();
+  const { t } = useTranslation();
 
   const handleStartAnalysis = () => {
     if (currentLocation) {
@@ -17,32 +19,32 @@ const SimpleHomepage: React.FC = () => {
   const analysisTypes = [
     {
       id: 'daily',
-      title: '本日历史同期',
-      description: '查看指定日期在历史年份中的天气表现',
+      title: t('analysisPage.dailyTitle'),
+      description: t('analysisPage.dailyDescription'),
       icon: CalendarDaysIcon,
       path: '/historical/daily',
       color: 'bg-blue-500'
     },
     {
       id: 'monthly', 
-      title: '本月历史同期',
-      description: '分析指定月份在多年中的温度变化趋势',
+      title: t('analysisPage.monthlyTitle'),
+      description: t('analysisPage.monthlyDescription'),
       icon: ClockIcon,
       path: '/historical/monthly',
       color: 'bg-green-500'
     },
     {
       id: 'quarterly',
-      title: '本季度历史同期', 
-      description: '了解季节性气候特征和长期变化规律',
+      title: t('analysisPage.quarterlyTitle'),
+      description: t('analysisPage.quarterlyDescription'),
       icon: ChartBarIcon,
       path: '/historical/quarterly',
       color: 'bg-orange-500'
     },
     {
       id: 'yearly',
-      title: '本年度历史同期',
-      description: '分析多年的年度温度变化趋势',
+      title: t('analysisPage.yearlyTitle'),
+      description: t('analysisPage.yearlyDescription'),
       icon: ChartBarIcon,
       path: '/historical/yearly',
       color: 'bg-purple-500'
@@ -172,7 +174,7 @@ const SimpleHomepage: React.FC = () => {
           </div>
           <div className="flex items-start space-x-2">
             <span className="flex-shrink-0 w-5 h-5 bg-green-100 dark:bg-green-900/20 text-green-600 rounded-full flex items-center justify-center text-xs font-bold">2</span>
-            <span>点击"立即开始分析"或选择具体的分析类型</span>
+            <span>{t('analysisPage.clickToStart')}</span>
           </div>
           <div className="flex items-start space-x-2">
             <span className="flex-shrink-0 w-5 h-5 bg-purple-100 dark:bg-purple-900/20 text-purple-600 rounded-full flex items-center justify-center text-xs font-bold">3</span>
