@@ -33,7 +33,9 @@
     "popularCities": "Popular Cities",
     "noRecentLocations": "No recent locations yet",
     "noFavoriteLocations": "No favorite locations yet",
-    "favoriteInstruction": "Click the heart icon next to cities to favorite them"
+    "favoriteInstruction": "Click the heart icon next to cities to favorite them",
+    "expand": "Expand",
+    "collapse": "Collapse"
   },
   "weather": {
     "temperature": "Temperature",

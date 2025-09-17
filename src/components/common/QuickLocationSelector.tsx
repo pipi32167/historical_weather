@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocationStore } from '../../store/locationStore';
-import { MapPinIcon, StarIcon, HeartIcon } from '@heroicons/react/24/outline';
+import { MapPinIcon, StarIcon, HeartIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { Location } from '../../types/weather';
 
@@ -9,12 +9,14 @@ interface QuickLocationSelectorProps {
   compact?: boolean;
   showFavorites?: boolean;
   onLocationChange?: (location: Location) => void;
+  defaultCollapsed?: boolean;
 }
 
 export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
   compact = false,
   showFavorites = true,
-  onLocationChange
+  onLocationChange,
+  defaultCollapsed = false
 }) => {
   const { t } = useTranslation();
   const {
@@ -27,6 +29,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
   } = useLocationStore();
 
   const [activeTab, setActiveTab] = useState<'preset' | 'recent' | 'favorites'>('preset');
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   const presetLocations: Location[] = [
     { id: 'beijing', name: t('cities.beijing'), latitude: 39.9042, longitude: 116.4074, country: t('countries.china'), timezone: 'Asia/Shanghai' },
@@ -120,23 +123,40 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
 
   return (
     <div className="quick-location-selector">
-      {/* 当前位置显示 */}
+      {/* 当前位置显示和折叠按钮 */}
       <div className="current-location mb-4">
-        <div className="flex items-center space-x-2">
-          <MapPinIcon className="h-5 w-5 text-gray-500" />
-          <span className="font-medium text-gray-900 dark:text-white">
-            {t('location.currentSelection')}: {currentLocation?.name || t('location.notSelected')}
-          </span>
-          {currentLocation && (
-            <span className="text-sm text-gray-500">
-              ({currentLocation.latitude.toFixed(2)}, {currentLocation.longitude.toFixed(2)})
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <MapPinIcon className="h-5 w-5 text-gray-500" />
+            <span className="font-medium text-gray-900 dark:text-white">
+              {t('location.currentSelection')}: {currentLocation?.name || t('location.notSelected')}
             </span>
-          )}
+            {currentLocation && (
+              <span className="text-sm text-gray-500">
+                ({currentLocation.latitude.toFixed(2)}, {currentLocation.longitude.toFixed(2)})
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+          >
+            <span>{isCollapsed ? t('location.expand') : t('location.collapse')}</span>
+            {isCollapsed ? (
+              <ChevronDownIcon className="h-4 w-4" />
+            ) : (
+              <ChevronUpIcon className="h-4 w-4" />
+            )}
+          </button>
         </div>
       </div>
 
-      {/* 标签切换 */}
-      <div className="tabs mb-4">
+      {/* 标签切换和位置网格 - 可折叠 */}
+      <div className={`location-selector-content overflow-hidden transition-all duration-300 ${
+        isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[1000px] opacity-100'
+      }`}>
+        {/* 标签切换 */}
+        <div className="tabs mb-4">
         <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
           <button
             onClick={() => setActiveTab('preset')}
@@ -202,6 +222,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
             <p className="text-sm mt-1">{t('location.favoriteInstruction')}</p>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

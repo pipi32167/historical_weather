@@ -503,6 +503,7 @@ const HomepageHistoricalDaily: React.FC = () => {
         </div> */}
         <QuickLocationSelector
           compact={false}
+          defaultCollapsed={true}
           onLocationChange={() => {
             setIsUsingCurrentLocation(false);
             setLocationInitialized(true);

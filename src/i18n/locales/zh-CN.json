@@ -33,7 +33,9 @@
     "popularCities": "热门城市",
     "noRecentLocations": "还没有最近使用的位置",
     "noFavoriteLocations": "还没有收藏的位置",
-    "favoriteInstruction": "点击城市旁边的心形图标来收藏"
+    "favoriteInstruction": "点击城市旁边的心形图标来收藏",
+    "expand": "展开",
+    "collapse": "折叠"
   },
   "weather": {
     "temperature": "温度",
