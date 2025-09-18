@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocationStore } from '../../store/locationStore';
-import { MapPin, Star, Heart, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Star, Heart, ChevronDown, ChevronUp, Search, X, Loader2 } from 'lucide-react';
 import { Location } from '../../types/weather';
+import { geocodingService } from '../../services/geocodingService';
+import { useDebounce } from '../../hooks/useDebounce';
 
 interface QuickLocationSelectorProps {
   compact?: boolean;
@@ -17,7 +19,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
   onLocationChange,
   defaultCollapsed = false
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     currentLocation,
     recentLocations,
@@ -27,8 +29,15 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
     removeFromFavorites
   } = useLocationStore();
 
-  const [activeTab, setActiveTab] = useState<'preset' | 'recent' | 'favorites'>('preset');
+  const [activeTab, setActiveTab] = useState<'preset' | 'recent' | 'favorites' | 'search'>('preset');
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Location[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const presetLocations: Location[] = [
     { id: 'beijing', name: t('cities.beijing'), latitude: 39.9042, longitude: 116.4074, country: t('countries.china'), timezone: 'Asia/Shanghai' },
@@ -64,24 +73,119 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
     return favoriteLocations.some(l => l.id === location.id);
   };
 
-  const LocationGrid: React.FC<{ locations: Location[] }> = ({ locations }) => (
+  // 搜索城市
+  const searchCities = useCallback(async (query: string) => {
+    if (!query || query.trim().length < 2) {
+      setSearchResults([]);
+      setSearchError(null);
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError(null);
+
+    try {
+      const results = await geocodingService.searchCities(query, i18n.language);
+      setSearchResults(results);
+      setSelectedIndex(-1); // 重置选择索引
+    } catch (error) {
+      setSearchError(error instanceof Error ? error.message : t('location.searchError'));
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [t, i18n.language]);
+
+  // 处理搜索输入
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setSelectedIndex(-1);
+    
+    if (!value.trim()) {
+      setSearchResults([]);
+      setSearchError(null);
+    }
+  };
+
+  // 处理键盘导航
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (searchResults.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev => 
+          prev < searchResults.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => 
+          prev > 0 ? prev - 1 : searchResults.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < searchResults.length) {
+          handleLocationSelect(searchResults[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        setSearchQuery('');
+        setSearchResults([]);
+        setSelectedIndex(-1);
+        break;
+    }
+  };
+
+  // 清除搜索
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setSearchError(null);
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  };
+
+  // 切换到搜索tab时聚焦输入框
+  const handleSearchTabClick = () => {
+    setActiveTab('search');
+    setTimeout(() => {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+    }, 100);
+  };
+
+  // 监听防抖查询，执行搜索
+  useEffect(() => {
+    if (activeTab === 'search' && debouncedSearchQuery) {
+      searchCities(debouncedSearchQuery);
+    }
+  }, [debouncedSearchQuery, activeTab, searchCities]);
+
+  const LocationGrid: React.FC<{ locations: Location[]; isSearchMode?: boolean }> = ({ locations, isSearchMode = false }) => (
     <div className={`grid gap-2 ${
       compact 
         ? 'grid-cols-3 lg:grid-cols-6' 
         : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'
     }`}>
-      {locations.map(location => (
+      {locations.map((location, index) => (
         <div key={location.id} className="relative group">
           <button
             onClick={() => handleLocationSelect(location)}
             className={`w-full p-3 text-left rounded-lg border transition-all duration-200 ${
               currentLocation?.id === location.id
                 ? 'bg-primary-50 border-primary-200 text-primary-700 dark:bg-primary-900/20 dark:border-primary-700 dark:text-primary-400'
+                : isSearchMode && selectedIndex === index
+                ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-400'
                 : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-primary-200 hover:bg-primary-50 dark:hover:bg-gray-700'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-medium text-sm">{location.name}</span>
+              <span className="font-medium text-sm">{location.displayName || location.name}</span>
               {showFavorites && (
                 <button
                   onClick={(e) => handleToggleFavorite(location, e)}
@@ -167,6 +271,19 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
           >
             {t('location.popularCities')}
           </button>
+          <button
+            onClick={handleSearchTabClick}
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              activeTab === 'search'
+                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+            }`}
+          >
+            <div className="flex items-center space-x-1">
+              <Search className="h-3 w-3" />
+              <span>{t('location.search')}</span>
+            </div>
+          </button>
           {recentLocations.length > 1 && (
             <button
               onClick={() => setActiveTab('recent')}
@@ -197,6 +314,37 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
         </div>
       </div>
 
+      {/* 搜索输入框 */}
+      {activeTab === 'search' && (
+        <div className="search-input mb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder={t('location.searchPlaceholder')}
+              className="w-full pl-10 pr-10 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            {searchQuery && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              >
+                <X className="h-4 w-4 text-gray-400" />
+              </button>
+            )}
+            {isSearching && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <Loader2 className="h-4 w-4 text-gray-400 animate-spin" />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 位置网格 */}
       <div className="locations-content">
         {activeTab === 'preset' && <LocationGrid locations={presetLocations} />}
@@ -205,6 +353,37 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
         )}
         {activeTab === 'favorites' && favoriteLocations.length > 0 && (
           <LocationGrid locations={favoriteLocations} />
+        )}
+        {activeTab === 'search' && (
+          <>
+            {searchError && (
+              <div className="text-center text-red-500 dark:text-red-400 py-4">
+                <p>{searchError}</p>
+              </div>
+            )}
+            {!searchError && searchResults.length > 0 && (
+              <LocationGrid locations={searchResults} isSearchMode={true} />
+            )}
+            {!searchError && !isSearching && searchQuery.length >= 2 && searchResults.length === 0 && (
+              <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                <Search className="h-8 w-8 mx-auto mb-2" />
+                <p>{t('location.noResults')}</p>
+              </div>
+            )}
+            {!searchQuery && (
+              <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                <Search className="h-8 w-8 mx-auto mb-2" />
+                <p>{t('location.searchCity')}</p>
+                <p className="text-sm mt-1">{t('location.searchPlaceholder')}</p>
+              </div>
+            )}
+            {isSearching && (
+              <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
+                <p>{t('location.searching')}</p>
+              </div>
+            )}
+          </>
         )}
         
         {activeTab === 'recent' && recentLocations.length <= 1 && (

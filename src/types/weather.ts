@@ -26,6 +26,7 @@ export interface Location {
   timezone: string;
   admin1?: string;
   admin2?: string;
+  displayName?: string; // 用于搜索结果的显示名称
 }
 
 // 查询参数

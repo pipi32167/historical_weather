@@ -49,7 +49,13 @@
     "noFavoriteLocations": "还没有收藏的位置",
     "favoriteInstruction": "点击城市旁边的心形图标来收藏",
     "expand": "展开",
-    "collapse": "折叠"
+    "collapse": "折叠",
+    "search": "搜索",
+    "searchCity": "搜索城市",
+    "searchPlaceholder": "输入城市名称...",
+    "searching": "搜索中...",
+    "noResults": "未找到匹配的城市",
+    "searchError": "搜索失败，请重试"
   },
   "weather": {
     "temperature": "温度",
