@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, MapPin, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { monthlyTemperatureService, MonthlyTemperatureTrends } from '../services/monthlyTemperatureService';
@@ -12,6 +12,15 @@ import { useHistoricalPageTitle } from '../hooks/usePageTitle';
 
 const HistoricalMonthly: React.FC = () => {
   const { t } = useTranslation();
+  
+  // 获取月份名称的函数
+  const getMonthName = useCallback((monthNumber: number): string => {
+    const monthKeys = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december'
+    ];
+    return t(`time.${monthKeys[monthNumber - 1]}`);
+  }, [t]);
   const [data, setData] = useState<MonthlyTemperatureTrends | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -206,8 +215,8 @@ const HistoricalMonthly: React.FC = () => {
           <HistoricalTemperatureChart
             data={chartData}
             type="monthly"
-            title={`${data.monthName}${t('analysis.temperatureTrendChart')}`}
-            subtitle={t('analysis.showMonthlyTrendDescription', { month: data.monthName })}
+            title={`${getMonthName(data.month)}${t('analysis.temperatureTrendChart')}`}
+            subtitle={t('analysis.showMonthlyTrendDescription', { month: getMonthName(data.month) })}
             yearRange={yearRange}
           />
 
@@ -221,7 +230,7 @@ const HistoricalMonthly: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {data.monthName}{t('weather.avgTempSuffix')}
+                    {getMonthName(data.month)}{t('weather.avgTempSuffix')}
                   </p>
                   <p className={`text-2xl font-bold ${getTemperatureColor(data.averageTemp)}`}>
                     {data.averageTemp}°C
@@ -356,7 +365,7 @@ const HistoricalMonthly: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {data.monthName}{t('analysis.detailedDataTitle', { years: data.years.length })}
+{getMonthName(data.month)}{t('analysis.detailedDataTitle', { years: data.years.length })}
               </h2>
             </div>
 

@@ -3,7 +3,7 @@
  * 展示指定位置的月度温度统计和趋势分析
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { monthlyTemperatureService, MonthlyTemperatureStats, MonthlyTemperatureTrends } from '../../services/monthlyTemperatureService';
@@ -30,6 +30,15 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
   className = ''
 }) => {
   const { t } = useTranslation();
+  
+  // 获取月份名称的函数
+  const getMonthName = useCallback((monthNumber: number): string => {
+    const monthKeys = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december'
+    ];
+    return t(`time.${monthKeys[monthNumber - 1]}`);
+  }, [t]);
   const [monthlyTrends, setMonthlyTrends] = useState<MonthlyTemperatureTrends | null>(null);
   const [annualProfile, setAnnualProfile] = useState<MonthlyTemperatureStats[]>([]);
   const [loading, setLoading] = useState(false);
@@ -124,7 +133,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
   // 年度概况图表数据
   const profileChartData = useMemo(() => {
     return annualProfile.map(data => ({
-      month: data.monthName,
+      month: getMonthName(data.month),
       monthNum: data.month,
       avgTemp: data.avgTemp,
       maxTemp: data.avgMaxTemp,
@@ -132,7 +141,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
       recordHigh: data.recordHigh,
       recordLow: data.recordLow
     }));
-  }, [annualProfile]);
+  }, [annualProfile, getMonthName]);
 
   // 趋势描述
   const getTrendDescription = (trends: MonthlyTemperatureTrends) => {
@@ -240,7 +249,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
     return (
       <div className={`bg-primary border border-custom rounded-lg p-6 ${className}`}>
         <div className="text-center text-secondary">
-          <p>暂无{selectedMonth}月份的温度趋势数据</p>
+          <p>{t('time.noDataForMonth', { month: getMonthName(selectedMonth) })}</p>
         </div>
       </div>
     );
@@ -250,7 +259,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
     return (
       <div className={`bg-primary border border-custom rounded-lg p-6 ${className}`}>
         <div className="text-center text-secondary">
-          <p>暂无年度温度概况数据</p>
+          <p>{t('time.noAnnualData')}</p>
         </div>
       </div>
     );
@@ -264,7 +273,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-primary">
-                📊 {location.name} {monthlyTrends.monthName}份温度趋势
+                📊 {location.name} {getMonthName(monthlyTrends.month)}温度趋势
               </h3>
               <div className="text-xs text-secondary">
                 {startYear}-{endYear}年 ({monthlyTrends.years.length}年数据)

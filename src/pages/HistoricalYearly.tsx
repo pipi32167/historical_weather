@@ -105,16 +105,10 @@ const HistoricalYearly: React.FC = () => {
           const recordHigh = Math.max(...monthData.map(d => d.maxTemp));
           const recordLow = Math.min(...monthData.map(d => d.minTemp));
 
-          const monthNames = [
-            t('time.january'), t('time.february'), t('time.march'), t('time.april'),
-            t('time.may'), t('time.june'), t('time.july'), t('time.august'),
-            t('time.september'), t('time.october'), t('time.november'), t('time.december')
-          ];
 
           yearDataMap[year].push({
             year,
             month,
-            monthName: monthNames[month - 1],
             avgTemp: Math.round(avgTemp * 10) / 10,
             avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
             avgMinTemp: Math.round(avgMinTemp * 10) / 10,

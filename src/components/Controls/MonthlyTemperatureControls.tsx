@@ -5,6 +5,7 @@
 
 import React from 'react';
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 
 interface MonthlyTemperatureControlsProps {
   mode: 'monthly-trends' | 'annual-profile';
@@ -27,20 +28,22 @@ const MonthlyTemperatureControls: React.FC<MonthlyTemperatureControlsProps> = ({
   onYearRangeChange,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
+  
   const months = [
-    { value: 1, name: '1月', shortName: '1月' },
-    { value: 2, name: '2月', shortName: '2月' },
-    { value: 3, name: '3月', shortName: '3月' },
-    { value: 4, name: '4月', shortName: '4月' },
-    { value: 5, name: '5月', shortName: '5月' },
-    { value: 6, name: '6月', shortName: '6月' },
-    { value: 7, name: '7月', shortName: '7月' },
-    { value: 8, name: '8月', shortName: '8月' },
-    { value: 9, name: '9月', shortName: '9月' },
-    { value: 10, name: '10月', shortName: '10月' },
-    { value: 11, name: '11月', shortName: '11月' },
-    { value: 12, name: '12月', shortName: '12月' }
+    { value: 1, name: t('time.january'), shortName: t('time.january') },
+    { value: 2, name: t('time.february'), shortName: t('time.february') },
+    { value: 3, name: t('time.march'), shortName: t('time.march') },
+    { value: 4, name: t('time.april'), shortName: t('time.april') },
+    { value: 5, name: t('time.may'), shortName: t('time.may') },
+    { value: 6, name: t('time.june'), shortName: t('time.june') },
+    { value: 7, name: t('time.july'), shortName: t('time.july') },
+    { value: 8, name: t('time.august'), shortName: t('time.august') },
+    { value: 9, name: t('time.september'), shortName: t('time.september') },
+    { value: 10, name: t('time.october'), shortName: t('time.october') },
+    { value: 11, name: t('time.november'), shortName: t('time.november') },
+    { value: 12, name: t('time.december'), shortName: t('time.december') }
   ];
 
   const handlePresetRange = (years: number) => {
@@ -55,7 +58,7 @@ const MonthlyTemperatureControls: React.FC<MonthlyTemperatureControlsProps> = ({
         {/* 显示模式切换 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-primary">
-            📊 显示模式
+            📊 {t('time.displayMode')}
           </label>
           <div className="flex space-x-2">
             <button
@@ -67,7 +70,7 @@ const MonthlyTemperatureControls: React.FC<MonthlyTemperatureControlsProps> = ({
                   : 'bg-secondary border border-custom text-secondary hover:bg-tertiary'
               )}
             >
-              月度趋势
+              {t('time.monthlyTrends')}
             </button>
             <button
               onClick={() => onModeChange('annual-profile')}
@@ -78,7 +81,7 @@ const MonthlyTemperatureControls: React.FC<MonthlyTemperatureControlsProps> = ({
                   : 'bg-secondary border border-custom text-secondary hover:bg-tertiary'
               )}
             >
-              年度概况
+              {t('time.annualProfile')}
             </button>
           </div>
         </div>
@@ -87,7 +90,7 @@ const MonthlyTemperatureControls: React.FC<MonthlyTemperatureControlsProps> = ({
         {mode === 'monthly-trends' && (
           <div className="space-y-2">
             <label className="block text-sm font-medium text-primary">
-              📅 选择月份
+              📅 {t('time.selectMonth')}
             </label>
             <div className="grid grid-cols-6 sm:grid-cols-12 gap-1">
               {months.map((month) => (
@@ -111,7 +114,7 @@ const MonthlyTemperatureControls: React.FC<MonthlyTemperatureControlsProps> = ({
         {/* 年份范围选择 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-primary">
-            🗓️ 年份范围
+            🗓️ {t('time.yearRange')}
           </label>
           
           {/* 预设年份范围 */}
@@ -120,26 +123,26 @@ const MonthlyTemperatureControls: React.FC<MonthlyTemperatureControlsProps> = ({
               onClick={() => handlePresetRange(10)}
               className="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 rounded"
             >
-              最近10年
+              {t('time.recentYears', { years: 10 })}
             </button>
             <button
               onClick={() => handlePresetRange(20)}
               className="px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-800 rounded"
             >
-              最近20年
+              {t('time.recentYears', { years: 20 })}
             </button>
             <button
               onClick={() => handlePresetRange(30)}
               className="px-2 py-1 text-xs bg-purple-100 hover:bg-purple-200 text-purple-800 rounded"
             >
-              最近30年
+              {t('time.recentYears', { years: 30 })}
             </button>
           </div>
 
           {/* 自定义年份范围 */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-secondary mb-1">开始年份</label>
+              <label className="block text-xs text-secondary mb-1">{t('time.startYear')}</label>
               <select
                 value={startYear}
                 onChange={(e) => onYearRangeChange(parseInt(e.target.value), endYear)}
@@ -149,13 +152,13 @@ const MonthlyTemperatureControls: React.FC<MonthlyTemperatureControlsProps> = ({
                   .reverse()
                   .map(year => (
                     <option key={year} value={year}>
-                      {year}年
+                      {year}{t('time.year')}
                     </option>
                   ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-secondary mb-1">结束年份</label>
+              <label className="block text-xs text-secondary mb-1">{t('time.endYear')}</label>
               <select
                 value={endYear}
                 onChange={(e) => onYearRangeChange(startYear, parseInt(e.target.value))}
@@ -165,7 +168,7 @@ const MonthlyTemperatureControls: React.FC<MonthlyTemperatureControlsProps> = ({
                   .reverse()
                   .map(year => (
                     <option key={year} value={year}>
-                      {year}年
+                      {year}{t('time.year')}
                     </option>
                   ))}
               </select>
@@ -173,7 +176,7 @@ const MonthlyTemperatureControls: React.FC<MonthlyTemperatureControlsProps> = ({
           </div>
 
           <div className="text-xs text-secondary">
-            数据范围: {endYear - startYear + 1}年 ({startYear}-{endYear})
+            {t('time.dataRange')}: {t('time.dataRangeValue', { count: endYear - startYear + 1, start: startYear, end: endYear })}
           </div>
         </div>
 
@@ -182,11 +185,11 @@ const MonthlyTemperatureControls: React.FC<MonthlyTemperatureControlsProps> = ({
           <div className="flex items-start space-x-2">
             <span className="text-blue-600 dark:text-blue-400">ℹ️</span>
             <div className="text-xs text-blue-800 dark:text-blue-200">
-              <div className="font-medium mb-1">使用提示</div>
+              <div className="font-medium mb-1">{t('time.usageTips')}</div>
               <ul className="space-y-1">
-                <li>• <strong>月度趋势</strong>: 显示指定月份多年的温度变化趋势</li>
-                <li>• <strong>年度概况</strong>: 显示全年12个月的平均温度分布</li>
-                <li>• 数据基于Open-Meteo历史气温API，覆盖1940年至今</li>
+                <li>• <strong>{t('time.monthlyTrends')}</strong>: {t('time.monthlyTrendsDesc')}</li>
+                <li>• <strong>{t('time.annualProfile')}</strong>: {t('time.annualProfileDesc')}</li>
+                <li>• {t('time.dataSourceDesc')}</li>
               </ul>
             </div>
           </div>

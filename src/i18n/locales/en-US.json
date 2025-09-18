@@ -119,7 +119,21 @@
     "september": "Sep",
     "october": "Oct",
     "november": "Nov",
-    "december": "Dec"
+    "december": "Dec",
+    "displayMode": "Display Mode",
+    "monthlyTrends": "Monthly Trends",
+    "annualProfile": "Annual Profile",
+    "startYear": "Start Year",
+    "endYear": "End Year",
+    "recentYears": "Recent {{years}} Years",
+    "dataRange": "Data Range",
+    "dataRangeValue": "{{count}} years ({{start}}-{{end}})",
+    "usageTips": "Usage Tips",
+    "monthlyTrendsDesc": "Shows temperature change trends for specific months across multiple years",
+    "annualProfileDesc": "Shows average temperature distribution across all 12 months",
+    "dataSourceDesc": "Data based on Open-Meteo historical weather API, covering 1940 to present",
+    "noDataForMonth": "No temperature trend data available for {{month}}",
+    "noAnnualData": "No annual temperature profile data available"
   },
   "analysis": {
     "historical": "Historical Data",

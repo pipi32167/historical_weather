@@ -260,11 +260,6 @@ class UnifiedHistoricalService {
     // 过滤指定月份的数据并按年份分组
     const monthlyDataByYear = this.filterByMonth(historicalData, targetMonth);
 
-    const monthNames = [
-      '1月', '2月', '3月', '4月', '5月', '6月',
-      '7月', '8月', '9月', '10月', '11月', '12月'
-    ];
-
     const results = [];
 
     for (let year = startYear; year <= endYear; year++) {
@@ -280,7 +275,6 @@ class UnifiedHistoricalService {
         results.push({
           year,
           month: targetMonth,
-          monthName: monthNames[targetMonth - 1],
           avgTemp: Math.round(avgTemp * 10) / 10,
           avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
           avgMinTemp: Math.round(avgMinTemp * 10) / 10,
@@ -317,7 +311,6 @@ class UnifiedHistoricalService {
       latitude: location.latitude,
       longitude: location.longitude,
       month: targetMonth,
-      monthName: monthNames[targetMonth - 1],
       years: results,
       averageTemp: Math.round(averageTemp * 10) / 10,
       trend,

@@ -9,7 +9,6 @@ import { getYear, getMonth, getDaysInMonth } from 'date-fns';
 export interface MonthlyTemperatureStats {
   year: number;
   month: number; // 1-12
-  monthName: string;
   avgTemp: number;
   avgMaxTemp: number;
   avgMinTemp: number;
@@ -27,7 +26,6 @@ export interface MonthlyTemperatureTrends {
   latitude: number;
   longitude: number;
   month: number;
-  monthName: string;
   years: MonthlyTemperatureStats[];
   averageTemp: number;
   trend: 'warming' | 'cooling' | 'stable';
@@ -66,11 +64,6 @@ class MonthlyTemperatureAggregator {
     const year = getYear(firstDate);
     const month = getMonth(firstDate) + 1; // getMonth返回0-11，我们需要1-12
 
-    const monthNames = [
-      '1月', '2月', '3月', '4月', '5月', '6月',
-      '7月', '8月', '9月', '10月', '11月', '12月'
-    ];
-
     const validData = dailyData.filter(d =>
       !isNaN(d.temperature) &&
       !isNaN(d.temperatureMax) &&
@@ -94,7 +87,6 @@ class MonthlyTemperatureAggregator {
     return {
       year,
       month,
-      monthName: monthNames[month - 1],
       avgTemp: Math.round(avgTemp * 10) / 10,
       avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
       avgMinTemp: Math.round(avgMinTemp * 10) / 10,
@@ -237,7 +229,6 @@ export class MonthlyTemperatureService {
           monthlyProfiles.push({
             year: Math.round((startYear + endYear) / 2),
             month,
-            monthName: monthTrends.monthName,
             avgTemp: Math.round(avgTemp * 10) / 10,
             avgMaxTemp: Math.round(avgMaxTemp * 10) / 10,
             avgMinTemp: Math.round(avgMinTemp * 10) / 10,
