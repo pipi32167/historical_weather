@@ -1,6 +1,8 @@
 {
   "app": {
     "title": "Historical Temperature Data Analysis",
+    "name": "HistoricalWeather",
+    "subtitle": "Historical Temperature Data",
     "loading": "Loading...",
     "error": "An error occurred",
     "retry": "Retry",

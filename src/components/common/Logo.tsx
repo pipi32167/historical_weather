@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface LogoProps {
   /** Logo尺寸 */
@@ -20,6 +21,7 @@ const Logo: React.FC<LogoProps> = ({
   className = '',
   onClick 
 }) => {
+  const { t } = useTranslation();
   // 根据尺寸设置大小
   const sizeClasses = {
     sm: 'h-6 w-6',
@@ -143,14 +145,14 @@ const Logo: React.FC<LogoProps> = ({
             className={`font-bold ${textSizeClasses[size]} text-gray-900 dark:text-white`}
             style={{ color: theme !== 'auto' ? colors.text : undefined }}
           >
-            HistoricalWeather
+            {t('app.name')}
           </span>
           {size !== 'sm' && (
             <span 
               className={`text-xs text-gray-600 dark:text-gray-300 -mt-1`}
               style={{ color: theme !== 'auto' ? colors.text : undefined, opacity: 0.7 }}
             >
-              历史气温数据
+              {t('app.subtitle')}
             </span>
           )}
         </div>
