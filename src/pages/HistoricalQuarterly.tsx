@@ -364,61 +364,6 @@ const HistoricalQuarterly: React.FC = () => {
             yearRange={yearRange}
           />
 
-          {/* Statistics Summary - 移到图表下方 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Average Temperature */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
-                  <BarChart3 className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {quarterNames[selectedQuarter - 1]}{t('weather.avgTempSuffix')}
-                  </p>
-                  <p className={`text-2xl font-bold ${getTemperatureColor(avgQuarterTemp)}`}>
-                    {avgQuarterTemp}°C
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('analysis.basedOnYearsData', { years: selectedQuarterData.length })}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Temperature Trend */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-lg ${getTrendColor(trend)}`}>
-                  {getTrendIcon(trend)}
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.temperatureTrend')}</p>
-                  <p className={`text-lg font-semibold ${getTrendColor(trend).split(' ')[0]}`}>
-                    {getTrendDescription(trend, trendValue)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Data Years */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                  <BarChart3 className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.dataYears')}</p>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {yearRange.start} - {yearRange.end}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('analysis.totalYears', { years: selectedQuarterData.length })}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
         </>
       )}
 
@@ -554,15 +499,6 @@ const HistoricalQuarterly: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Chart */}
-          <HistoricalTemperatureChart
-            data={chartData}
-            type="quarterly"
-            title={`${quarterNames[selectedQuarter - 1]}${t('analysis.temperatureTrendChart')}`}
-            subtitle={t('analysis.showQuarterlyTrendDescription', { quarter: quarterNames[selectedQuarter - 1] })}
-            yearRange={yearRange}
-          />
 
           {/* Detailed Data Table */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">

@@ -500,108 +500,9 @@ const HistoricalYearly: React.FC = () => {
         </div>
       )}
 
-      {/* Data Display */}
+      {/* Data Table */}
       {!loading && !error && data.length > 0 && (
-        <>
-          {/* Statistics Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {/* Average Temperature */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20">
-                  <LineChart className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('weather.multiYearAvgTemp')}</p>
-                  <p className={`text-2xl font-bold ${getTemperatureColor(avgYearlyTemp)}`}>
-                    {avgYearlyTemp}°C
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('analysis.basedOnYearsData', { years: data.length })}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Temperature Trend */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-lg ${getTrendColor(trend)}`}>
-                  {getTrendIcon(trend)}
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('analysis.yearlyTrend')}</p>
-                  <p className={`text-lg font-semibold ${getTrendColor(trend).split(' ')[0]}`}>
-                    {getTrendDescription(trend, trendValue)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Record High */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/20">
-                  <TrendingUp className="h-6 w-6 text-red-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('weather.historicalMaxTemp')}</p>
-                  <p className={`text-2xl font-bold ${getTemperatureColor(overallRecordHigh)}`}>
-                    {overallRecordHigh}°C
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Record Low */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                  <TrendingDown className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('weather.historicalMinTemp')}</p>
-                  <p className={`text-2xl font-bold ${getTemperatureColor(overallRecordLow)}`}>
-                    {overallRecordLow}°C
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Charts */}
-          {viewMode === 'trends' && (
-            <HistoricalTemperatureChart
-              data={yearlyChartData}
-              type="yearly"
-              title={t('analysis.yearlyTrendChartTitle')}
-              subtitle={t('analysis.yearlyTrendChartSubtitle')}
-              yearRange={yearRange}
-            />
-          )}
-
-          {viewMode === 'profile' && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {t('analysis.multiYearMonthlyProfile', { startYear: yearRange.start, endYear: yearRange.end })}
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {t('analysis.monthlyProfileDescription')}
-                </p>
-              </div>
-
-              <MonthlyTemperatureChart
-                location={currentLocation!}
-                mode="annual-profile"
-                startYear={yearRange.start}
-                endYear={yearRange.end}
-              />
-            </div>
-          )}
-
-          {/* Detailed Data Table */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {t('analysis.yearlyDetailedDataTitle', { years: data.length })}
@@ -664,8 +565,7 @@ const HistoricalYearly: React.FC = () => {
                 </tbody>
               </table>
             </div>
-          </div>
-        </>
+        </div>
       )}
 
       {/* No Data State */}
