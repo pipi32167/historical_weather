@@ -80,6 +80,102 @@ The application is currently in its initial state with the default CRA template 
 
 ## React Development Best Practices
 
+### Component Development Guidelines
+
+#### Multilingual Support (i18n)
+**CRITICAL**: All new components must support internationalization:
+
+1. **Import and Use Translation Hook**:
+   ```typescript
+   import { useTranslation } from 'react-i18next';
+   const { t, i18n } = useTranslation();
+   ```
+
+2. **Never Use Hardcoded Text**:
+   - Replace all user-facing text with translation keys
+   - Use descriptive, hierarchical keys: `t('component.action.description')`
+   - Add translation keys to both `zh-CN.json` and `en-US.json`
+
+3. **Handle Dynamic Content**:
+   ```typescript
+   // Use interpolation for dynamic values
+   {t('location.dataRangeValue', { count: 10, start: 2020, end: 2024 })}
+   
+   // For arrays/lists, create individual keys
+   const monthKeys = ['january', 'february', ...];
+   const monthName = t(`time.${monthKeys[index]}`);
+   ```
+
+4. **Language-Aware API Calls**:
+   - Pass `i18n.language` to services that support localization
+   - Handle language-specific data formatting
+   - Cache API results per language when necessary
+
+#### Component Integration and Interoperability
+**CRITICAL**: All components must integrate seamlessly with the existing ecosystem:
+
+1. **State Management Integration**:
+   ```typescript
+   // Always use global stores for shared state
+   import { useLocationStore } from '../store/locationStore';
+   const { currentLocation, setCurrentLocation } = useLocationStore();
+   
+   // Emit changes to parent components via callbacks
+   onLocationChange?.(newLocation);
+   ```
+
+2. **Prop Interface Design**:
+   ```typescript
+   interface ComponentProps {
+     // Always include callback props for state changes
+     onDataChange?: (data: DataType) => void;
+     onLocationChange?: (location: Location) => void;
+     
+     // Support external control
+     defaultValue?: ValueType;
+     controlled?: boolean;
+   }
+   ```
+
+3. **Event Propagation**:
+   - Use standard event patterns for user interactions
+   - Support both controlled and uncontrolled component modes
+   - Emit events that other components can subscribe to
+
+4. **Data Flow Requirements**:
+   ```typescript
+   // Components must react to global state changes
+   useEffect(() => {
+     // Re-fetch data when location changes
+     loadData();
+   }, [currentLocation]);
+   
+   // Components must update global state appropriately
+   const handleSelectionChange = (newValue) => {
+     setGlobalState(newValue);
+     onSelectionChange?.(newValue);
+   };
+   ```
+
+5. **Cross-Component Communication**:
+   - Use shared stores for persistent state (location, preferences)
+   - Use prop callbacks for immediate parent-child communication
+   - Use context for deep component tree communication
+   - Emit custom events for loose coupling when needed
+
+6. **Performance Considerations**:
+   ```typescript
+   // Wrap functions that may be used as dependencies
+   const stableFunction = useCallback(() => {
+     // function logic
+   }, [dependencies]);
+   
+   // Memoize expensive computations
+   const computedValue = useMemo(() => {
+     return expensiveComputation(data);
+   }, [data]);
+   ```
+
 ### Preventing Infinite Render Loops
 **CRITICAL**: This codebase has experienced multiple instances of infinite render loops causing excessive API calls. Follow these guidelines strictly:
 
