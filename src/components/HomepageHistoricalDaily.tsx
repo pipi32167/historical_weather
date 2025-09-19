@@ -7,6 +7,7 @@ import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
 import { QuickLocationSelector } from './common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from './common/AnalysisTypeSwitcher';
+import { YearRangeSelector } from './common/YearRangeSelector';
 import { useLocationStore } from '../store/locationStore';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { osmGeocodingService } from '../services/osmGeocodingService';
@@ -32,6 +33,7 @@ const HomepageHistoricalDaily: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [yearRange, setYearRange] = useState({ start: new Date().getFullYear() - 20, end: new Date().getFullYear() });
   const [currentLocationCity, setCurrentLocationCity] = useState<string | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [isUsingCurrentLocation, setIsUsingCurrentLocation] = useState(false);
@@ -215,9 +217,8 @@ const HomepageHistoricalDaily: React.FC = () => {
       const targetDay = selectedDate.getDate();
       const isToday = selectedDate.toDateString() === currentDate.toDateString();
 
-      // 数据获取范围：过去20年
-      const years = 20;
-      const startYear = new Date().getFullYear() - years;
+      // 数据获取范围：使用用户选择的年份范围
+      const startYear = yearRange.start;
 
       // 1. 获取统一的历史数据（从startYear-01-01到昨天）
       console.log(`📅 获取历史数据范围: ${startYear}-01-01 到昨天`);
@@ -306,7 +307,7 @@ const HomepageHistoricalDaily: React.FC = () => {
         setLoading(false);
       }
     }
-  }, [currentLocation, locationInitialized, selectedDate, maxRetryReached, retryCount, t]);
+  }, [currentLocation, locationInitialized, selectedDate, yearRange, maxRetryReached, retryCount, t]);
 
   useEffect(() => {
     // Reset retry state when location or date changes
@@ -320,11 +321,15 @@ const HomepageHistoricalDaily: React.FC = () => {
     } else {
       console.log('⏳ 等待位置初始化...', { locationInitialized, hasLocation: !!currentLocation });
     }
-  }, [selectedDate, currentLocation, locationInitialized, loadDailyHistoricalData]);
+  }, [selectedDate, yearRange, currentLocation, locationInitialized, loadDailyHistoricalData]);
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = new Date(event.target.value);
     setSelectedDate(newDate);
+  };
+
+  const handleYearRangeChange = (start: number, end: number) => {
+    setYearRange({ start, end });
   };
 
   const formatDate = (date: Date) => {
@@ -643,7 +648,7 @@ const HomepageHistoricalDaily: React.FC = () => {
 
       {/* Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Date Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -660,6 +665,14 @@ const HomepageHistoricalDaily: React.FC = () => {
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {t('time.currentSelection')}: {formatDate(selectedDate)}
             </p>
+          </div>
+
+          {/* Year Range */}
+          <div>
+            <YearRangeSelector
+              yearRange={yearRange}
+              onChange={handleYearRangeChange}
+            />
           </div>
 
           {/* Current Analysis Info */}

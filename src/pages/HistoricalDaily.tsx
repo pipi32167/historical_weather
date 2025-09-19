@@ -7,6 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
+import { YearRangeSelector } from '../components/common/YearRangeSelector';
 import { useLocationStore } from '../store/locationStore';
 import { useHistoricalPageTitle } from '../hooks/usePageTitle';
 import { format } from 'date-fns';
@@ -27,6 +28,7 @@ const HistoricalDaily: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [yearRange, setYearRange] = useState({ start: new Date().getFullYear() - 20, end: new Date().getFullYear() });
   const { currentLocation } = useLocationStore();
   
   // 设置页面标题
@@ -46,9 +48,8 @@ const HistoricalDaily: React.FC = () => {
       const targetDay = selectedDate.getDate();
       const isToday = selectedDate.toDateString() === currentDate.toDateString();
 
-      // 数据获取范围：过去20年
-      const years = 20;
-      const startYear = new Date().getFullYear() - years;
+      // 数据获取范围：使用用户选择的年份范围
+      const startYear = yearRange.start;
 
       // 1. 获取统一的历史数据（从startYear-01-01到昨天）
       console.log(`📅 获取历史数据范围: ${startYear}-01-01 到昨天`);
@@ -117,11 +118,15 @@ const HistoricalDaily: React.FC = () => {
 
   useEffect(() => {
     loadDailyHistoricalData();
-  }, [selectedDate, currentLocation]);
+  }, [selectedDate, yearRange, currentLocation]);
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = new Date(event.target.value);
     setSelectedDate(newDate);
+  };
+
+  const handleYearRangeChange = (start: number, end: number) => {
+    setYearRange({ start, end });
   };
 
 
@@ -400,7 +405,7 @@ const HistoricalDaily: React.FC = () => {
 
       {/* Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Date Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -417,6 +422,14 @@ const HistoricalDaily: React.FC = () => {
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {t('time.currentSelection')}: {formatDate(selectedDate)}
             </p>
+          </div>
+
+          {/* Year Range */}
+          <div>
+            <YearRangeSelector
+              yearRange={yearRange}
+              onChange={handleYearRangeChange}
+            />
           </div>
 
           {/* Current Analysis Info */}

@@ -9,6 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
+import { YearRangeSelector } from '../components/common/YearRangeSelector';
 import { useLocationStore } from '../store/locationStore';
 import { useHistoricalPageTitle } from '../hooks/usePageTitle';
 
@@ -459,32 +460,10 @@ const HistoricalYearly: React.FC = () => {
 
           {/* Year Range */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('time.yearRange')}
-            </label>
-            <div className="flex space-x-2">
-              <input
-                type="number"
-                value={yearRange.start}
-                onChange={(e) => handleYearRangeChange(parseInt(e.target.value), yearRange.end)}
-                min="1980"
-                max={new Date().getFullYear()}
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                         focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              <span className="px-2 py-2 text-gray-500">{t('time.to')}</span>
-              <input
-                type="number"
-                value={yearRange.end}
-                onChange={(e) => handleYearRangeChange(yearRange.start, parseInt(e.target.value))}
-                min="1980"
-                max={new Date().getFullYear()}
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                         focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-            </div>
+            <YearRangeSelector
+              yearRange={yearRange}
+              onChange={handleYearRangeChange}
+            />
           </div>
 
           {/* Current Analysis Info */}
