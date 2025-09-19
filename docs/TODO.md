@@ -16,7 +16,7 @@
 - [X] 修改浏览器tab图标
 - [ ] 推广
   - [ ] reddit 天气板块
-  - [ ] v2ex
+  - [X] v2ex
   - [ ] hacker news
   - [ ] zhihu
   - [ ] 
