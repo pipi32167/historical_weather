@@ -3,4 +3,4 @@ User-agent: *
 Disallow:
 
 # Sitemap
-Sitemap: https://yoursite.com/sitemap.xml
+Sitemap: https://historicalweather.org/sitemap.xml
