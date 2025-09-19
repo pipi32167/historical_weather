@@ -10,6 +10,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
 import { YearRangeSelector } from '../components/common/YearRangeSelector';
+import { useYearRangeStore } from '../store/yearRangeStore';
 import { useLocationStore } from '../store/locationStore';
 import { useHistoricalPageTitle } from '../hooks/usePageTitle';
 
@@ -29,7 +30,7 @@ const HistoricalYearly: React.FC = () => {
   const [data, setData] = useState<YearlyData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [yearRange, setYearRange] = useState({ start: new Date().getFullYear() - 20, end: new Date().getFullYear() });
+  const { yearRange } = useYearRangeStore();
   const [viewMode, setViewMode] = useState<'trends' | 'profile'>('trends');
   const { currentLocation } = useLocationStore();
   
@@ -172,9 +173,6 @@ const HistoricalYearly: React.FC = () => {
     loadYearlyData();
   }, [yearRange, currentLocation]);
 
-  const handleYearRangeChange = (start: number, end: number) => {
-    setYearRange({ start, end });
-  };
 
   const getTemperatureColor = (temp: number) => {
     if (temp < 0) return 'text-blue-600';
@@ -460,10 +458,7 @@ const HistoricalYearly: React.FC = () => {
 
           {/* Year Range */}
           <div>
-            <YearRangeSelector
-              yearRange={yearRange}
-              onChange={handleYearRangeChange}
-            />
+            <YearRangeSelector />
           </div>
 
           {/* Current Analysis Info */}

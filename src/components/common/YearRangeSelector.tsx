@@ -5,19 +5,17 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useYearRangeStore } from '../../store/yearRangeStore';
 
 interface YearRangeSelectorProps {
-  yearRange: { start: number; end: number };
-  onChange: (start: number, end: number) => void;
   className?: string;
 }
 
 export const YearRangeSelector: React.FC<YearRangeSelectorProps> = ({
-  yearRange,
-  onChange,
   className = ''
 }) => {
   const { t } = useTranslation();
+  const { yearRange, setYearRange } = useYearRangeStore();
 
   // 计算当前日期相关值
   const currentDate = new Date();
@@ -70,7 +68,7 @@ export const YearRangeSelector: React.FC<YearRangeSelectorProps> = ({
 
     const years = parseInt(value);
     const startYear = currentYear - years;
-    onChange(startYear, currentYear);
+    setYearRange({ start: startYear, end: currentYear });
   };
 
   // 格式化日期范围描述
@@ -112,7 +110,7 @@ export const YearRangeSelector: React.FC<YearRangeSelectorProps> = ({
           <input
             type="number"
             value={yearRange.start}
-            onChange={(e) => onChange(parseInt(e.target.value), yearRange.end)}
+            onChange={(e) => setYearRange({ start: parseInt(e.target.value), end: yearRange.end })}
             min="1980"
             max={currentYear}
             className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
@@ -124,7 +122,7 @@ export const YearRangeSelector: React.FC<YearRangeSelectorProps> = ({
           <input
             type="number"
             value={yearRange.end}
-            onChange={(e) => onChange(yearRange.start, parseInt(e.target.value))}
+            onChange={(e) => setYearRange({ start: yearRange.start, end: parseInt(e.target.value) })}
             min="1980"
             max={currentYear}
             className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 

@@ -10,6 +10,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
 import { YearRangeSelector } from '../components/common/YearRangeSelector';
+import { useYearRangeStore } from '../store/yearRangeStore';
 import { useLocationStore } from '../store/locationStore';
 import { useHistoricalPageTitle } from '../hooks/usePageTitle';
 
@@ -36,7 +37,7 @@ const HistoricalQuarterly: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedQuarter, setSelectedQuarter] = useState<number>(Math.ceil((new Date().getMonth() + 1) / 3));
-  const [yearRange, setYearRange] = useState({ start: new Date().getFullYear() - 20, end: new Date().getFullYear() });
+  const { yearRange } = useYearRangeStore();
   const { currentLocation } = useLocationStore();
   
   // 设置页面标题
@@ -194,9 +195,6 @@ const HistoricalQuarterly: React.FC = () => {
     setSelectedQuarter(parseInt(event.target.value));
   };
 
-  const handleYearRangeChange = (start: number, end: number) => {
-    setYearRange({ start, end });
-  };
 
   const getTemperatureColor = (temp: number) => {
     if (temp < 0) return 'text-blue-600';
@@ -401,10 +399,7 @@ const HistoricalQuarterly: React.FC = () => {
 
           {/* Year Range */}
           <div>
-            <YearRangeSelector
-              yearRange={yearRange}
-              onChange={handleYearRangeChange}
-            />
+            <YearRangeSelector />
           </div>
 
           {/* Current Analysis Info */}

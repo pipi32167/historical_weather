@@ -8,6 +8,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
 import { YearRangeSelector } from '../components/common/YearRangeSelector';
+import { useYearRangeStore } from '../store/yearRangeStore';
 import { useLocationStore } from '../store/locationStore';
 import { useHistoricalPageTitle } from '../hooks/usePageTitle';
 import { format } from 'date-fns';
@@ -28,7 +29,7 @@ const HistoricalDaily: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [yearRange, setYearRange] = useState({ start: new Date().getFullYear() - 20, end: new Date().getFullYear() });
+  const { yearRange } = useYearRangeStore();
   const { currentLocation } = useLocationStore();
   
   // 设置页面标题
@@ -125,9 +126,6 @@ const HistoricalDaily: React.FC = () => {
     setSelectedDate(newDate);
   };
 
-  const handleYearRangeChange = (start: number, end: number) => {
-    setYearRange({ start, end });
-  };
 
 
   const formatDate = (date: Date) => {
@@ -426,10 +424,7 @@ const HistoricalDaily: React.FC = () => {
 
           {/* Year Range */}
           <div>
-            <YearRangeSelector
-              yearRange={yearRange}
-              onChange={handleYearRangeChange}
-            />
+            <YearRangeSelector />
           </div>
 
           {/* Current Analysis Info */}

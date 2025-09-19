@@ -8,6 +8,7 @@ import ErrorMessage from './ErrorMessage';
 import { QuickLocationSelector } from './common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from './common/AnalysisTypeSwitcher';
 import { YearRangeSelector } from './common/YearRangeSelector';
+import { useYearRangeStore } from '../store/yearRangeStore';
 import { useLocationStore } from '../store/locationStore';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { osmGeocodingService } from '../services/osmGeocodingService';
@@ -33,7 +34,7 @@ const HomepageHistoricalDaily: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [yearRange, setYearRange] = useState({ start: new Date().getFullYear() - 20, end: new Date().getFullYear() });
+  const { yearRange } = useYearRangeStore();
   const [currentLocationCity, setCurrentLocationCity] = useState<string | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [isUsingCurrentLocation, setIsUsingCurrentLocation] = useState(false);
@@ -328,9 +329,6 @@ const HomepageHistoricalDaily: React.FC = () => {
     setSelectedDate(newDate);
   };
 
-  const handleYearRangeChange = (start: number, end: number) => {
-    setYearRange({ start, end });
-  };
 
   const formatDate = (date: Date) => {
     const isChina = i18n.language.startsWith('zh');
@@ -669,10 +667,7 @@ const HomepageHistoricalDaily: React.FC = () => {
 
           {/* Year Range */}
           <div>
-            <YearRangeSelector
-              yearRange={yearRange}
-              onChange={handleYearRangeChange}
-            />
+            <YearRangeSelector />
           </div>
 
           {/* Current Analysis Info */}
