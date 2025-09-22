@@ -9,8 +9,7 @@ import { QuickLocationSelector } from '../components/common/QuickLocationSelecto
 import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
 import { useLocationStore } from '../store/locationStore';
 import { useHistoricalPageTitle } from '../hooks/usePageTitle';
-import { format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+// 移除不需要的date-fns imports
 
 interface CustomDateData {
   date: string;
@@ -62,7 +61,6 @@ const HistoricalCustom: React.FC = () => {
 
       for (const dateStr of validDates) {
         try {
-          const date = new Date(dateStr);
           const response = await openMeteoService.getHistoricalWeather(
             currentLocation.latitude,
             currentLocation.longitude,
@@ -74,7 +72,7 @@ const HistoricalCustom: React.FC = () => {
           if (response && response.daily && response.daily.time.length > 0) {
             const dayData = {
               date: dateStr,
-              formattedDate: format(date, 'yyyy年MM月dd日', { locale: zhCN }),
+              formattedDate: dateStr, // 直接使用YYYY-MM-DD格式
               maxTemp: Math.round(response.daily.temperature_2m_max[0] * 10) / 10,
               minTemp: Math.round(response.daily.temperature_2m_min[0] * 10) / 10,
               avgTemp: Math.round(((response.daily.temperature_2m_max[0] + response.daily.temperature_2m_min[0]) / 2) * 10) / 10,
@@ -99,12 +97,21 @@ const HistoricalCustom: React.FC = () => {
     }
   };
 
+  // 只在位置变化时重新加载数据，不自动响应dateInput变化
   useEffect(() => {
-    loadCustomDateData();
-  }, [dateInput, currentLocation]);
+    if (data.length > 0) {
+      loadCustomDateData();
+    }
+  }, [currentLocation]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDateInput(event.target.value);
+  };
+
+  const handleSubmit = () => {
+    if (dateInput.trim()) {
+      loadCustomDateData();
+    }
   };
 
   const getValidDates = () => {
@@ -112,13 +119,7 @@ const HistoricalCustom: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return '';
-    try {
-      const date = new Date(dateString);
-      return format(date, 'yyyy年MM月dd日', { locale: zhCN });
-    } catch {
-      return dateString;
-    }
+    return dateString; // 直接返回YYYY-MM-DD格式
   };
 
   // 计算统计信息
@@ -166,7 +167,7 @@ const HistoricalCustom: React.FC = () => {
             {t('time.customDateList')}
           </h2>
           
-          <div className="space-y-3">
+          <div className="space-y-4">
             <textarea
               value={dateInput}
               onChange={handleInputChange}
@@ -176,9 +177,62 @@ const HistoricalCustom: React.FC = () => {
                        bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                        focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
             />
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t('time.dateInputFormat')}: YYYY-MM-DD, YYYY-MM-DD, ...
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t('time.dateInputFormat')}: YYYY-MM-DD, YYYY-MM-DD, ...
+              </p>
+              <button
+                onClick={handleSubmit}
+                disabled={!dateInput.trim() || loading}
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 
+                         disabled:cursor-not-allowed text-white rounded-lg transition-colors
+                         flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    {t('common.loading')}
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="w-4 h-4" />
+                    {t('common.analyze')}
+                  </>
+                )}
+              </button>
+            </div>
+            
+            {/* AI提示词模板 */}
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+              <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
+                🤖 {t('time.aiPromptTemplate')}
+              </h3>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mb-3">
+                {t('time.aiPromptDescription')}
+              </p>
+              
+              <div className="space-y-2">
+                <div className="bg-white dark:bg-gray-800 rounded border border-blue-200 dark:border-blue-700 p-2">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('time.promptExample')}:</p>
+                  <code className="text-xs text-gray-800 dark:text-gray-200 break-all">
+                    {t('time.promptTemplate1')}
+                  </code>
+                </div>
+                
+                <div className="bg-white dark:bg-gray-800 rounded border border-blue-200 dark:border-blue-700 p-2">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('time.moreExamples')}:</p>
+                  <div className="space-y-1 text-xs text-gray-700 dark:text-gray-300">
+                    <div>• <code>{t('time.promptTemplate2')}</code></div>
+                    <div>• <code>{t('time.promptTemplate3')}</code></div>
+                    <div>• <code>{t('time.promptTemplate4')}</code></div>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                  💡 {t('time.aiPromptTip')}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* 日期预览 */}

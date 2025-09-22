@@ -90,7 +90,8 @@
     "yearlyAvgMaxTemp": "年平均最高温",
     "yearlyAvgMinTemp": "年平均最低温",
     "yearlyMaxTemp": "年最高温",
-    "yearlyMinTemp": "年最低温"
+    "yearlyMinTemp": "年最低温",
+    "totalPrecipitation": "总降水量"
   },
   "units": {
     "celsius": "°C",
@@ -156,7 +157,16 @@
     "annualProfileDesc": "显示全年12个月的平均温度分布",
     "dataSourceDesc": "数据基于Open-Meteo历史气温API，覆盖1940年至今",
     "noDataForMonth": "暂无{{month}}月份的温度趋势数据",
-    "noAnnualData": "暂无年度温度概况数据"
+    "noAnnualData": "暂无年度温度概况数据",
+    "aiPromptTemplate": "AI 提示词模板",
+    "aiPromptDescription": "复制以下提示词到您常用的AI助手，获取特定事件的日期列表",
+    "promptExample": "示例提示词",
+    "promptTemplate1": "往年广州马拉松日期列表，把这些日期展示成这个格式\"YYYY-MM-DD,YYYY-MM-DD,...\"",
+    "moreExamples": "更多示例",
+    "promptTemplate2": "往年春节日期列表，格式:\"YYYY-MM-DD,YYYY-MM-DD,...\"",
+    "promptTemplate3": "往年中秋节日期列表，格式:\"YYYY-MM-DD,YYYY-MM-DD,...\"",
+    "promptTemplate4": "往年国庆节日期列表，格式:\"YYYY-MM-DD,YYYY-MM-DD,...\"",
+    "aiPromptTip": "提示：将这些模板复制到ChatGPT、Claude等AI助手中，替换事件名称即可获取对应的日期列表"
   },
   "analysis": {
     "historical": "历史数据",
@@ -204,7 +214,11 @@
     "yearlyTrendChartSubtitle": "显示历年的平均温度、极值变化趋势",
     "multiYearMonthlyProfile": "多年平均月度概况 ({{startYear}}-{{endYear}})",
     "monthlyProfileDescription": "显示各月份的多年平均温度分布",
-    "yearlyDetailedDataTitle": "年度详细数据 ({{years}} 年)"
+    "yearlyDetailedDataTitle": "年度详细数据 ({{years}} 年)",
+    "statisticsSummary": "统计概览",
+    "avgMaxTemp": "平均最高温",
+    "avgMinTemp": "平均最低温",
+    "detailedData": "详细数据"
   },
   "homepage": {
     "title": "本日历史同期数据",
@@ -397,8 +411,9 @@
     "locationFailed": "无法获取您的位置，显示上海的数据作为示例",
     "basedOnCurrentLocation": "基于您当前位置的历史同期气温分析",
     "relocate": "📍 重新定位",
-    "remove": "删除",
     "loading": "加载中...",
+    "analyze": "分析数据",
+    "remove": "删除",
     "noData": "暂无数据",
     "viewFullAnalysis": "查看完整历史数据分析 →",
     "gettingLocationPermission": "正在定位...",

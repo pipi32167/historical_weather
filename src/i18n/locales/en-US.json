@@ -90,7 +90,8 @@
     "yearlyAvgMaxTemp": "Yearly Avg Max Temp",
     "yearlyAvgMinTemp": "Yearly Avg Min Temp",
     "yearlyMaxTemp": "Yearly Max Temp",
-    "yearlyMinTemp": "Yearly Min Temp"
+    "yearlyMinTemp": "Yearly Min Temp",
+    "totalPrecipitation": "Total Precipitation"
   },
   "units": {
     "celsius": "°C",
@@ -156,7 +157,16 @@
     "annualProfileDesc": "Shows average temperature distribution across all 12 months",
     "dataSourceDesc": "Data based on Open-Meteo historical weather API, covering 1940 to present",
     "noDataForMonth": "No temperature trend data available for {{month}}",
-    "noAnnualData": "No annual temperature profile data available"
+    "noAnnualData": "No annual temperature profile data available",
+    "aiPromptTemplate": "AI Prompt Templates",
+    "aiPromptDescription": "Copy the following prompts to your favorite AI assistant to get date lists for specific events",
+    "promptExample": "Example Prompt",
+    "promptTemplate1": "Historical Guangzhou Marathon dates, display these dates in format \"YYYY-MM-DD,YYYY-MM-DD,...\"",
+    "moreExamples": "More Examples",
+    "promptTemplate2": "Historical Chinese New Year dates, format: \"YYYY-MM-DD,YYYY-MM-DD,...\"",
+    "promptTemplate3": "Historical Mid-Autumn Festival dates, format: \"YYYY-MM-DD,YYYY-MM-DD,...\"",
+    "promptTemplate4": "Historical National Day dates, format: \"YYYY-MM-DD,YYYY-MM-DD,...\"",
+    "aiPromptTip": "Tip: Copy these templates to ChatGPT, Claude or other AI assistants, replace the event name to get corresponding date lists"
   },
   "analysis": {
     "historical": "Historical Data",
@@ -204,7 +214,11 @@
     "yearlyTrendChartSubtitle": "Shows annual average temperature and extreme value trends",
     "multiYearMonthlyProfile": "Multi-Year Monthly Profile ({{startYear}}-{{endYear}})",
     "monthlyProfileDescription": "Shows multi-year average temperature distribution by month",
-    "yearlyDetailedDataTitle": "Annual Detailed Data ({{years}} years)"
+    "yearlyDetailedDataTitle": "Annual Detailed Data ({{years}} years)",
+    "statisticsSummary": "Statistics Summary",
+    "avgMaxTemp": "Average Max Temp",
+    "avgMinTemp": "Average Min Temp",
+    "detailedData": "Detailed Data"
   },
   "homepage": {
     "title": "Daily Historical Data",
@@ -399,6 +413,7 @@
     "relocate": "📍 Relocate",
     "remove": "Remove",
     "loading": "Loading...",
+    "analyze": "Analyze Data",
     "noData": "No data available",
     "viewFullAnalysis": "View Full Historical Data Analysis →",
     "gettingLocationPermission": "Locating...",
