@@ -5,7 +5,8 @@ import {
   Calendar, 
   Clock, 
   BarChart3, 
-  LineChart 
+  LineChart,
+  Settings
 } from 'lucide-react';
 
 interface AnalysisTypeSwitcherProps {
@@ -67,6 +68,15 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       icon: LineChart,
       description: t('analysisTypes.yearlyDescription'),
       color: 'purple'
+    },
+    {
+      id: 'custom',
+      name: t('navigation.historical.custom'),
+      shortName: t('analysisTypes.customShort'),
+      path: '/historical/custom',
+      icon: Settings,
+      description: t('analysisTypes.customDescription'),
+      color: 'gray'
     }
   ];
 
@@ -93,7 +103,10 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
         : 'text-orange-600 hover:bg-orange-50 border-orange-200 dark:text-orange-400 dark:hover:bg-orange-900/10 dark:border-orange-800',
       purple: isActive
         ? 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-700'
-        : 'text-purple-600 hover:bg-purple-50 border-purple-200 dark:text-purple-400 dark:hover:bg-purple-900/10 dark:border-purple-800'
+        : 'text-purple-600 hover:bg-purple-50 border-purple-200 dark:text-purple-400 dark:hover:bg-purple-900/10 dark:border-purple-800',
+      gray: isActive
+        ? 'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-700'
+        : 'text-gray-600 hover:bg-gray-50 border-gray-200 dark:text-gray-400 dark:hover:bg-gray-900/10 dark:border-gray-800'
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
@@ -136,7 +149,7 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
           )}
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           {analysisTypes.map((type) => {
             const isActive = location.pathname === type.path;
             const IconComponent = type.icon;

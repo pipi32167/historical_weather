@@ -15,6 +15,7 @@
       "monthly": "月度气温趋势分析 | {{location}}",
       "quarterly": "季度气温统计分析 | {{location}}",
       "yearly": "年度气温变化分析 | {{location}}",
+      "custom": "自定义日期气温分析 | {{location}}",
       "about": "关于我们 | 历史气温数据平台",
       "notFound": "页面未找到 | 历史气温数据平台",
       "suffix": " - 历史气温数据查询平台"
@@ -28,7 +29,10 @@
     "yearly": "年度分析",
     "cities": "城市列表",
     "about": "关于我们",
-    "aboutDescription": "了解平台功能和技术架构"
+    "aboutDescription": "了解平台功能和技术架构",
+    "historical": {
+      "custom": "自定义日期"
+    }
   },
   "location": {
     "title": "位置选择",
@@ -116,6 +120,11 @@
     "customRange": "自定义",
     "selectedRange": "已选择范围",
     "dateRangeDescription": "{{startDate}} 至 {{endDate}}",
+    "customDateList": "自定义日期列表",
+    "addDate": "添加日期",
+    "selectedDates": "已选择日期",
+    "dateInputFormat": "格式",
+    "validDates": "有效日期",
     "to": "至",
     "selectQuarter": "选择季度",
     "firstQuarter": "第一季度",
@@ -165,6 +174,8 @@
     "current": "当前分析",
     "analysisDate": "分析日期",
     "historicalSamePeriod": "历史同期",
+    "customDateDescription": "输入自定义日期列表，查看这些特定日期的历史天气数据",
+    "noDataForSelectedDates": "所选日期暂无可用数据",
     "temperatureTrendChart": "历史同期温度趋势图",
     "showTrendDescription": "显示历年{{date}}的温度变化趋势 ({{years}} 年数据)",
     "warmingTrend": "升温趋势 +{{value}}°C/年",
@@ -258,10 +269,12 @@
     "monthlyShort": "月",
     "quarterlyShort": "季",
     "yearlyShort": "年",
+    "customShort": "自定义",
     "dailyDescription": "查看指定日期在历史年份中的天气表现",
     "monthlyDescription": "分析指定月份在多年中的温度变化趋势",
     "quarterlyDescription": "了解季节性气候特征和长期变化规律",
-    "yearlyDescription": "分析多年的年度温度变化趋势"
+    "yearlyDescription": "分析多年的年度温度变化趋势",
+    "customDescription": "输入多个自定义日期，分析这些日期的天气数据"
   },
   "charts": {
     "yearlyRecordHigh": "年最高温",
@@ -384,6 +397,9 @@
     "locationFailed": "无法获取您的位置，显示上海的数据作为示例",
     "basedOnCurrentLocation": "基于您当前位置的历史同期气温分析",
     "relocate": "📍 重新定位",
+    "remove": "删除",
+    "loading": "加载中...",
+    "noData": "暂无数据",
     "viewFullAnalysis": "查看完整历史数据分析 →",
     "gettingLocationPermission": "正在定位...",
     "locationPermissionPrompt": "请允许位置权限以获取您当前位置的气温数据",

@@ -9,6 +9,7 @@ import HistoricalDaily from './pages/HistoricalDaily';
 import HistoricalMonthly from './pages/HistoricalMonthly';
 import HistoricalQuarterly from './pages/HistoricalQuarterly';
 import HistoricalYearly from './pages/HistoricalYearly';
+import HistoricalCustom from './pages/HistoricalCustom';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App(): React.ReactElement {
@@ -29,6 +30,7 @@ function App(): React.ReactElement {
             <Route path="/historical/monthly" element={<HistoricalMonthly />} />
             <Route path="/historical/quarterly" element={<HistoricalQuarterly />} />
             <Route path="/historical/yearly" element={<HistoricalYearly />} />
+            <Route path="/historical/custom" element={<HistoricalCustom />} />
 
             {/* 关于我们页面 */}
             <Route path="/about" element={<About />} />

@@ -15,6 +15,7 @@
       "monthly": "Monthly Temperature Trend Analysis | {{location}}",
       "quarterly": "Quarterly Temperature Statistics | {{location}}",
       "yearly": "Annual Temperature Change Analysis | {{location}}",
+      "custom": "Custom Date Temperature Analysis | {{location}}",
       "about": "About Us | Historical Temperature Data Platform",
       "notFound": "Page Not Found | Historical Temperature Data Platform",
       "suffix": " - Historical Temperature Data Platform"
@@ -28,7 +29,10 @@
     "yearly": "Yearly Analysis",
     "cities": "Cities",
     "about": "About Us",
-    "aboutDescription": "Learn about platform features and technical architecture"
+    "aboutDescription": "Learn about platform features and technical architecture",
+    "historical": {
+      "custom": "Custom Dates"
+    }
   },
   "location": {
     "title": "Location Selection",
@@ -116,6 +120,11 @@
     "customRange": "Custom",
     "selectedRange": "Selected Range",
     "dateRangeDescription": "{{startDate}} to {{endDate}}",
+    "customDateList": "Custom Date List",
+    "addDate": "Add Date",
+    "selectedDates": "Selected Dates",
+    "dateInputFormat": "Format",
+    "validDates": "Valid Dates",
     "to": "to",
     "selectQuarter": "Select Quarter",
     "firstQuarter": "Q1",
@@ -165,6 +174,8 @@
     "current": "Current Analysis",
     "analysisDate": "Analysis Date",
     "historicalSamePeriod": " Historical Same Period",
+    "customDateDescription": "Input custom date list to view historical weather data for those specific dates",
+    "noDataForSelectedDates": "No data available for selected dates",
     "temperatureTrendChart": "Historical Temperature Trend Chart",
     "showTrendDescription": "Shows temperature trends for {{date}} across years ({{years}} years of data)",
     "warmingTrend": "Warming trend +{{value}}°C/year",
@@ -258,10 +269,12 @@
     "monthlyShort": "Monthly",
     "quarterlyShort": "Quarterly",
     "yearlyShort": "Yearly",
+    "customShort": "Custom",
     "dailyDescription": "View weather performance for a specific date across historical years",
     "monthlyDescription": "Analyze temperature trends of specific months across multiple years",
     "quarterlyDescription": "Understand seasonal climate characteristics and long-term changes",
-    "yearlyDescription": "Analyze annual temperature trends across multiple years"
+    "yearlyDescription": "Analyze annual temperature trends across multiple years",
+    "customDescription": "Input multiple custom dates to analyze weather data for those specific dates"
   },
   "charts": {
     "yearlyRecordHigh": "Annual Record High",
@@ -384,6 +397,9 @@
     "locationFailed": "Unable to get your location, showing Shanghai data as example",
     "basedOnCurrentLocation": "Historical temperature analysis based on your current location",
     "relocate": "📍 Relocate",
+    "remove": "Remove",
+    "loading": "Loading...",
+    "noData": "No data available",
     "viewFullAnalysis": "View Full Historical Data Analysis →",
     "gettingLocationPermission": "Locating...",
     "locationPermissionPrompt": "Please allow location permission to get temperature data for your current location",
