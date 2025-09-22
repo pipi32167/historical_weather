@@ -42,8 +42,13 @@ const DatePicker: React.FC<DatePickerProps> = ({
           value={selectedDateString}
           max={today}
           onChange={handleDateChange}
+          onClick={(e) => {
+            // 兼容iOS Safari点击无反应的问题
+            (e.target as HTMLInputElement).showPicker();
+          }}
           disabled={disabled}
-          className="w-full px-4 py-2 border border-custom rounded-lg bg-primary text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+          readOnly={false}
+          className="w-full px-4 py-2 border border-custom rounded-lg bg-primary text-primary focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         />
         <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
           <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -27,7 +27,7 @@ interface DailyHistoricalData {
 
 const HomepageHistoricalDaily: React.FC = () => {
   const { t, i18n } = useTranslation();
-  
+
   // 设置页面标题
   useHomePageTitle();
   const [data, setData] = useState<DailyHistoricalData[]>([]);
@@ -656,9 +656,14 @@ const HomepageHistoricalDaily: React.FC = () => {
               type="date"
               value={format(selectedDate, 'yyyy-MM-dd')}
               onChange={handleDateChange}
+              onClick={(e) => {
+                // 兼容iOS Safari点击无反应的问题
+                (e.target as HTMLInputElement).showPicker();
+              }}
+              readOnly={false}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
                        bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                       focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                       focus:ring-2 focus:ring-primary-500 focus:border-transparent cursor-pointer"
             />
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {t('time.currentSelection')}: {formatDate(selectedDate)}
