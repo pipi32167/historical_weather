@@ -91,7 +91,10 @@
     "yearlyAvgMinTemp": "Yearly Avg Min Temp",
     "yearlyMaxTemp": "Yearly Max Temp",
     "yearlyMinTemp": "Yearly Min Temp",
-    "totalPrecipitation": "Total Precipitation"
+    "totalPrecipitation": "Total Precipitation",
+    "todayHourlyForecast": "Today's Hourly Forecast",
+    "forecastDisclaimer": "Forecast data is for reference only, actual weather may differ",
+    "selectTodayForForecast": "Select today's date to view hourly weather forecast"
   },
   "units": {
     "celsius": "°C",

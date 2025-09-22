@@ -66,6 +66,16 @@ export interface OpenMeteoForecastData {
   daily?: Record<string, any[]>;
 }
 
+export interface HourlyWeatherData {
+  time: string;
+  temperature: number;
+  precipitation_probability: number;
+  precipitation: number;
+  weathercode: number;
+  windspeed: number;
+  humidity: number;
+}
+
 /**
  * Open-Meteo API配置
  */
@@ -284,6 +294,68 @@ export class OpenMeteoWeatherService {
   ): Promise<OpenMeteoForecastData> {
     const today = new Date().toISOString().split('T')[0];
     return this.getForecastData(latitude, longitude, today, today, timezone);
+  }
+
+  /**
+   * 获取今日逐小时天气预报
+   * @param latitude 纬度
+   * @param longitude 经度
+   * @param timezone 时区 (可选，默认auto)
+   * @returns 今日逐小时天气数据
+   */
+  async getTodayHourlyForecast(
+    latitude: number,
+    longitude: number,
+    timezone: string = 'auto'
+  ): Promise<HourlyWeatherData[]> {
+    // 检查缓存
+    const cacheKey = cacheKeys.todayHourlyForecast(latitude, longitude);
+    const cachedResult = cache.get<HourlyWeatherData[]>(cacheKey);
+
+    if (cachedResult) {
+      console.log('从缓存获取今日逐小时预报数据:', { latitude, longitude });
+      return cachedResult;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const params = new URLSearchParams({
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      hourly: 'temperature_2m,precipitation_probability,precipitation,weathercode,windspeed_10m,relativehumidity_2m',
+      start_date: today,
+      end_date: today,
+      timezone
+    });
+
+    const url = `${OPEN_METEO_CONFIG.forecast}?${params}`;
+
+    try {
+      const result = await fetchWithRetry<OpenMeteoForecastData>(url);
+      
+      // 处理逐小时数据
+      const hourlyData: HourlyWeatherData[] = [];
+      if (result.hourly && result.hourly.time) {
+        for (let i = 0; i < result.hourly.time.length; i++) {
+          hourlyData.push({
+            time: result.hourly.time[i],
+            temperature: Math.round((result.hourly.temperature_2m?.[i] || 0) * 10) / 10,
+            precipitation_probability: result.hourly.precipitation_probability?.[i] || 0,
+            precipitation: Math.round((result.hourly.precipitation?.[i] || 0) * 10) / 10,
+            weathercode: result.hourly.weathercode?.[i] || 0,
+            windspeed: Math.round((result.hourly.windspeed_10m?.[i] || 0) * 10) / 10,
+            humidity: result.hourly.relativehumidity_2m?.[i] || 0
+          });
+        }
+      }
+
+      // 缓存结果（逐小时预报数据，缓存时间适中）
+      cache.set(cacheKey, hourlyData, CACHE_TTL.FORECAST_DATA);
+
+      return hourlyData;
+    } catch (error) {
+      console.error('Open-Meteo今日逐小时预报获取失败:', error);
+      throw new Error(`无法获取坐标(${latitude}, ${longitude})的今日逐小时预报: ${error}`);
+    }
   }
 
   /**

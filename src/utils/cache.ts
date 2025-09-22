@@ -354,4 +354,5 @@ export const cacheKeys = {
     `forecast:${lat.toFixed(4)},${lon.toFixed(4)}:${startDate}:${endDate}`,
   historicalSamePeriod: (lat: number, lon: number, date: string, years: number) =>
     `same-period:${lat.toFixed(4)},${lon.toFixed(4)}:${date}:${years}`,
+  todayHourlyForecast: (lat: number, lon: number) => `hourly-today:${lat.toFixed(4)},${lon.toFixed(4)}`,
 };

@@ -91,7 +91,10 @@
     "yearlyAvgMinTemp": "年平均最低温",
     "yearlyMaxTemp": "年最高温",
     "yearlyMinTemp": "年最低温",
-    "totalPrecipitation": "总降水量"
+    "totalPrecipitation": "总降水量",
+    "todayHourlyForecast": "今日逐小时预报",
+    "forecastDisclaimer": "预报数据仅供参考，实际天气可能有所不同",
+    "selectTodayForForecast": "选择今天日期查看逐小时天气预报"
   },
   "units": {
     "celsius": "°C",

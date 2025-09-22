@@ -8,6 +8,7 @@ import ErrorMessage from './ErrorMessage';
 import { QuickLocationSelector } from './common/QuickLocationSelector';
 import { AnalysisTypeSwitcher } from './common/AnalysisTypeSwitcher';
 import { YearRangeSelector } from './common/YearRangeSelector';
+import HourlyForecast from './HourlyForecast';
 import { useYearRangeStore } from '../store/yearRangeStore';
 import { useLocationStore } from '../store/locationStore';
 import { useGeolocation } from '../hooks/useGeolocation';
@@ -477,39 +478,61 @@ const HomepageHistoricalDaily: React.FC = () => {
         </div>
       </div>
 
-      {/* 1. 当前位置信息卡片 */}
-      <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <MapPin className="h-6 w-6 text-primary-600" />
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {currentLocation?.name || t('location.notSelected')}
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                {currentLocation ? (
-                  <>
-                    {formatDate(selectedDate)}{t('analysis.historicalSamePeriod')}
-                    {isUsingCurrentLocation && (
-                      <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
-                        {locationLoading || geoLoading ? t('location.detecting') : t('homepage.currentLocation')}
-                      </span>
+      {/* 1. 当前位置信息和天气预报 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 左侧：位置信息 */}
+        <div className="lg:col-span-1">
+          <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800 h-full">
+            <div className="flex flex-col justify-between h-full">
+              <div className="flex items-center space-x-3">
+                <MapPin className="h-6 w-6 text-primary-600" />
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {currentLocation?.name || t('location.notSelected')}
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {currentLocation ? (
+                      <>
+                        {formatDate(selectedDate)}{t('analysis.historicalSamePeriod')}
+                        {isUsingCurrentLocation && (
+                          <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
+                            {locationLoading || geoLoading ? t('location.detecting') : t('homepage.currentLocation')}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      t('homepage.pleaseSelectLocation')
                     )}
-                  </>
-                ) : (
-                  t('homepage.pleaseSelectLocation')
-                )}
-              </p>
+                  </p>
+                </div>
+              </div>
+              <div className="text-right mt-4">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {formatDate(selectedDate)}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {t('analysis.analysisDate')}
+                </p>
+              </div>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {formatDate(selectedDate)}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {t('analysis.analysisDate')}
-            </p>
-          </div>
+        </div>
+
+        {/* 右侧：天气预报 - 首页默认显示今天 */}
+        <div className="lg:col-span-2">
+          {currentLocation ? (
+            <HourlyForecast 
+              latitude={currentLocation.latitude}
+              longitude={currentLocation.longitude}
+              className=""
+            />
+          ) : (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 h-full flex items-center justify-center">
+              <p className="text-gray-500 dark:text-gray-400">
+                {t('homepage.pleaseSelectLocation')}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -585,6 +608,7 @@ const HomepageHistoricalDaily: React.FC = () => {
           </div>
         </div>
       )}
+
 
       {/* Statistics Summary - 移到图表下方 */}
       {currentData.length > 0 && (
