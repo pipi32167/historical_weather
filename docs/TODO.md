@@ -17,7 +17,8 @@
 - 杂事
   - [X] 注册客服邮件 Cloudflare Email Routing
   - [ ] Buy Me a Coffee
-  - [ ] 修正 /about 页面
+    - 需要 Stripe 收款，卡住了
+  - [X] 修正 /about 页面
 - [ ] SEO 优化
   - [ ] 基础优化
   - [ ] 全面优化
