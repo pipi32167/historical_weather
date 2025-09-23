@@ -23,7 +23,7 @@
   },
   "navigation": {
     "home": "Home",
-    "daily": "Daily Historical", 
+    "daily": "Daily Historical",
     "monthly": "Monthly Analysis",
     "quarterly": "Quarterly Analysis",
     "yearly": "Yearly Analysis",
@@ -64,7 +64,7 @@
   "weather": {
     "temperature": "Temperature",
     "maxTemp": "Max Temp",
-    "minTemp": "Min Temp", 
+    "minTemp": "Min Temp",
     "avgTemp": "Avg Temp",
     "precipitation": "Precipitation",
     "humidity": "Humidity",
@@ -181,7 +181,7 @@
     "table": "Table",
     "warming": "Warming trend",
     "cooling": "Cooling trend",
-    "stable": "Temperature stable", 
+    "stable": "Temperature stable",
     "years": "years of data",
     "dataRange": "Data Range",
     "current": "Current Analysis",
@@ -253,7 +253,7 @@
   "language": {
     "switch": "Language Switch",
     "chinese": "中文",
-    "english": "English", 
+    "english": "English",
     "current": "Current Language"
   },
   "cities": {
@@ -398,9 +398,9 @@
     "contact": {
       "title": "Contact Us",
       "description": "If you have any questions, suggestions, or collaboration intentions, please feel free to contact us through the following methods",
-      "email": "Email: contact@historical-temperature.com",
-      "website": "Website: https://historical-temperature.com",
-      "github": "GitHub: github.com/historical-temperature"
+      "email": "Email: support@historicaltemperature.org",
+      "website": "Website: https://historicaltemperature.org",
+      "github": "GitHub: https://github.com/pipi32167/historical_weather_feedback"
     }
   },
   "common": {
@@ -485,7 +485,7 @@
     "dailyDescription": "View weather performance for a specific date across historical years",
     "monthlyTitle": "Monthly Historical Comparison",
     "monthlyDescription": "Analyze temperature change trends for a specific month across multiple years",
-    "quarterlyTitle": "Quarterly Historical Comparison", 
+    "quarterlyTitle": "Quarterly Historical Comparison",
     "quarterlyDescription": "Understand seasonal climate characteristics and long-term change patterns",
     "yearlyTitle": "Yearly Historical Comparison",
     "yearlyDescription": "Analyze yearly temperature change trends across multiple years",

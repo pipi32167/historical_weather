@@ -25,7 +25,7 @@
     "home": "首页",
     "daily": "历史同期",
     "monthly": "月度分析",
-    "quarterly": "季度分析", 
+    "quarterly": "季度分析",
     "yearly": "年度分析",
     "cities": "城市列表",
     "about": "关于我们",
@@ -180,7 +180,7 @@
     "chart": "图表",
     "table": "表格",
     "warming": "升温趋势",
-    "cooling": "降温趋势", 
+    "cooling": "降温趋势",
     "stable": "温度稳定",
     "years": "年数据",
     "dataRange": "数据范围",
@@ -398,9 +398,9 @@
     "contact": {
       "title": "联系我们",
       "description": "如有任何问题、建议或合作意向，欢迎通过以下方式联系我们",
-      "email": "Email: contact@historical-temperature.com",
-      "website": "Website: https://historical-temperature.com",
-      "github": "GitHub: github.com/historical-temperature"
+      "email": "Email: support@historicaltemperature.org",
+      "website": "Website: https://historicaltemperature.org",
+      "github": "GitHub: https://github.com/pipi32167/historical_weather_feedback"
     }
   },
   "common": {
@@ -459,7 +459,7 @@
     "viewHistoricalTemp": "查看历史气温",
     "historicalComparison": "历史气温对比",
     "historicalComparisonDesc": "查看同一日期不同年份的气温变化",
-    "monthlyTrendAnalysis": "月度趋势分析", 
+    "monthlyTrendAnalysis": "月度趋势分析",
     "monthlyTrendAnalysisDesc": "分析月度气温变化趋势和统计数据",
     "aboutUsDesc": "了解平台功能和技术架构",
     "platformDescription": "历史气温数据分析平台是专业的气象数据查询和分析工具，为全球用户提供1940年至今的详细历史气温记录。",
@@ -483,7 +483,7 @@
   "analysisPage": {
     "dailyTitle": "本日历史同期",
     "dailyDescription": "查看指定日期在历史年份中的天气表现",
-    "monthlyTitle": "本月历史同期", 
+    "monthlyTitle": "本月历史同期",
     "monthlyDescription": "分析指定月份在多年中的温度变化趋势",
     "quarterlyTitle": "本季度历史同期",
     "quarterlyDescription": "了解季节性气候特征和长期变化规律",
@@ -499,7 +499,7 @@
     "pleaseSelectLocation": "请选择分析位置",
     "initializingLocation": "正在初始化位置...",
     "historyAvgMax": "历史平均最高温",
-    "historyAvgMin": "历史平均最低温", 
+    "historyAvgMin": "历史平均最低温",
     "historyAvgTemp": "历史平均温度",
     "trendDescription": "显示历年{{date}}的温度变化趋势 ({{count}} 年数据)",
     "banner": {

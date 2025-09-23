@@ -14,7 +14,10 @@
   - [ ] Ask weather
     - [ ] 询问某个循环事件的历史日期，展示这些日期的天气
     - [ ] 使用提示词的方式
-
+- 杂事
+  - [X] 注册客服邮件 Cloudflare Email Routing
+  - [ ] Buy Me a Coffee
+  - [ ] 修正 /about 页面
 - [ ] SEO 优化
   - [ ] 基础优化
   - [ ] 全面优化
