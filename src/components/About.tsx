@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAboutPageTitle } from '../hooks/usePageTitle';
+import { useStructuredData } from './StructuredData';
 import { 
   Github,
   Mail,
@@ -16,6 +17,16 @@ const About: React.FC = () => {
   
   // 设置页面标题
   useAboutPageTitle();
+
+  // 添加结构化数据
+  useStructuredData({
+    type: 'WebPage',
+    title: t('about.developer.name'),
+    description: t('about.developer.bio'),
+    url: 'https://historicalweather.org/about',
+    keywords: ['historical weather', 'weather data', 'climate analysis', 'developer', 'about'],
+    dateModified: new Date().toISOString()
+  });
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 py-6">
