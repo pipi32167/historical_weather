@@ -25,5 +25,8 @@
   "theme_color": "#3B82F6",
   "background_color": "#ffffff",
   "orientation": "portrait-primary",
-  "categories": ["weather", "utilities", "productivity"]
+  "categories": ["weather", "utilities", "productivity"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }

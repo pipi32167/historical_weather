@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Analytics } from "@vercel/analytics/react"
+import AnalyticsWrapper from './components/AnalyticsWrapper';
 import MainLayout from './components/Layout/MainLayout';
 import HomepageHistoricalDaily from './components/HomepageHistoricalDaily';
 import About from './components/About';
@@ -38,7 +38,7 @@ function App(): React.ReactElement {
             {/* 404错误页面 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <Analytics />
+          <AnalyticsWrapper />
         </MainLayout>
       </Router>
     </ErrorBoundary>

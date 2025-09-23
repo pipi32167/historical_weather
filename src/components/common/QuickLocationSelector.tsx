@@ -187,16 +187,30 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
             <div className="flex items-center justify-between">
               <span className="font-medium text-sm">{location.displayName || location.name}</span>
               {showFavorites && (
-                <button
+                <div
                   onClick={(e) => handleToggleFavorite(location, e)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={isFavorite(location) ? t('location.removeFromFavorites') : t('location.addToFavorites')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      // Create a mock mouse event for keyboard interactions
+                      const mockEvent = {
+                        preventDefault: () => {},
+                        stopPropagation: () => e.stopPropagation()
+                      } as React.MouseEvent;
+                      handleToggleFavorite(location, mockEvent);
+                    }
+                  }}
                 >
                   {isFavorite(location) ? (
                     <Heart className="h-3 w-3 text-red-500 fill-current" />
                   ) : (
                     <Heart className="h-3 w-3 text-gray-400" />
                   )}
-                </button>
+                </div>
               )}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
