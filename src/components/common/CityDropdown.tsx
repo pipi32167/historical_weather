@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Globe, Search, MapPin, ChevronDown } from 'lucide-react';
 import { getCitiesByRegion, getCityLocalizedName } from '../../data/cityMappings';
@@ -14,6 +14,7 @@ interface CityDropdownProps {
 const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { setCurrentLocation } = useLocationStore();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -102,18 +103,16 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
 
   // 处理城市选择
   const handleCitySelect = (city: Location | OpenMeteoLocation) => {
-    let location: Location;
+    let selectedLocation: Location;
 
     // 检查是否是cityMappings中的城市（有id字段且在预定义城市列表中）
     if ('id' in city && typeof city.id === 'string' && !city.id.startsWith('search-')) {
       // cityMappings中的Location
-      location = city as Location;
-      // 直接跳转到城市页面
-      navigate(`/city/${location.id}`);
+      selectedLocation = city as Location;
     } else {
       // 搜索结果中的OpenMeteoLocation
       const openMeteoCity = city as OpenMeteoLocation;
-      location = {
+      selectedLocation = {
         id: `search-${openMeteoCity.latitude}-${openMeteoCity.longitude}`,
         name: openMeteoCity.name,
         latitude: openMeteoCity.latitude,
@@ -121,11 +120,18 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
         country: openMeteoCity.country || 'Unknown',
         timezone: 'auto'
       };
-
-      // 对于搜索结果，先设置到store然后跳转首页
-      setCurrentLocation(location);
-      navigate('/');
     }
+
+    // 更新当前位置到store（所有页面都需要）
+    setCurrentLocation(selectedLocation);
+
+    // 根据当前路由决定是否跳转
+    // 如果在首页，且选择的是预定义城市，则跳转到城市页面
+    // 如果已经在分析页面，只更新位置，不跳转
+    if (location.pathname === '/' && 'id' in city && typeof city.id === 'string' && !city.id.startsWith('search-')) {
+      navigate(`/city/${selectedLocation.id}`);
+    }
+    // 其他情况（在分析页面或搜索结果）：保持当前页面，数据会自动更新
 
     setIsOpen(false);
     setSearchQuery('');
@@ -164,7 +170,7 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
       {/* 触发按钮 */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-secondary hover:bg-secondary hover:text-primary transition-colors duration-200"
+        className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-primary hover:bg-secondary hover:text-primary transition-colors duration-200"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >

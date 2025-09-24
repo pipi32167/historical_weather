@@ -6,7 +6,6 @@ import { unifiedHistoricalService } from '../services/unifiedHistoricalService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
-import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
 import { YearRangeSelector } from '../components/common/YearRangeSelector';
 import HourlyForecast from '../components/HourlyForecast';
 import { useYearRangeStore } from '../store/yearRangeStore';
@@ -430,8 +429,6 @@ const HistoricalDaily: React.FC = () => {
       )}
 
       {/* 3. 控制面板 */}
-      {/* Analysis Type Switcher */}
-      <AnalysisTypeSwitcher />
 
       {/* Location Selector */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">

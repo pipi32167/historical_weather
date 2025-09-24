@@ -11,6 +11,7 @@ import LanguageSwitcher from '../common/LanguageSwitcher';
 import TemperatureUnitSwitcher from '../common/TemperatureUnitSwitcher';
 import Logo from '../common/Logo';
 import CityDropdown from '../common/CityDropdown';
+import AnalysisTypeDropdown from '../common/AnalysisTypeDropdown';
 import clsx from 'clsx';
 
 interface HeaderProps {
@@ -57,14 +58,17 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
             'px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
             location.pathname === '/'
               ? 'bg-primary-50 text-primary-600 dark:bg-primary-900 dark:text-primary-400'
-              : 'text-secondary hover:bg-secondary hover:text-primary'
+              : 'text-primary hover:bg-secondary hover:text-primary'
           )}
         >
-{t('navigation.home')}
+          {t('navigation.home')}
         </button>
         
         {/* Cities Dropdown */}
         <CityDropdown />
+        
+        {/* Analysis Type Dropdown */}
+        <AnalysisTypeDropdown />
         
         {/* About Us */}
         <button
@@ -73,7 +77,7 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
             'flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
             location.pathname === '/about'
               ? 'bg-primary-50 text-primary-600 dark:bg-primary-900 dark:text-primary-400'
-              : 'text-secondary hover:bg-secondary hover:text-primary'
+              : 'text-primary hover:bg-secondary hover:text-primary'
           )}
           title={t('navigation.aboutDescription', { defaultValue: '了解平台功能和技术架构' })}
         >
@@ -83,11 +87,22 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
       </nav>
 
       {/* Mobile navigation */}
-      <div className="lg:hidden flex items-center space-x-2">
+      <div className="lg:hidden flex items-center space-x-1">
+        <button
+          onClick={() => navigate('/')}
+          className="p-2 rounded-lg text-primary hover:bg-secondary transition-colors duration-200"
+          title={t('navigation.home')}
+        >
+          <span className="text-xs font-medium">{t('navigation.home')}</span>
+        </button>
         <CityDropdown />
+        
+        {/* Mobile Analysis Type Dropdown */}
+        <AnalysisTypeDropdown />
+        
         <button
           onClick={() => navigate('/about')}
-          className="p-2 rounded-lg text-secondary hover:bg-secondary transition-colors duration-200"
+          className="p-2 rounded-lg text-primary hover:bg-secondary transition-colors duration-200"
           title={t('navigation.about', { defaultValue: '关于我们' })}
         >
           <Calendar className="h-5 w-5" />

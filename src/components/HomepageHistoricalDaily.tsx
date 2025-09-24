@@ -6,7 +6,6 @@ import { unifiedHistoricalService } from '../services/unifiedHistoricalService';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
 import { QuickLocationSelector } from './common/QuickLocationSelector';
-import { AnalysisTypeSwitcher } from './common/AnalysisTypeSwitcher';
 import { YearRangeSelector } from './common/YearRangeSelector';
 import HourlyForecast from './HourlyForecast';
 import { useYearRangeStore } from '../store/yearRangeStore';
@@ -691,8 +690,6 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
       )}
 
       {/* 3. 控制面板 */}
-      {/* Analysis Type Switcher */}
-      <AnalysisTypeSwitcher />
 
       {/* Location Selector - 仅在首页显示 */}
       {!overrideLocation && (
@@ -880,13 +877,6 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* 分析类型切换器 - 只在没有覆盖位置时显示 */}
-      {/* {!overrideLocation && (
-        <div className="mb-6">
-          <AnalysisTypeSwitcher />
-        </div>
-      )} */}
-
       {/* 渲染对应的分析视图 */}
       {renderAnalysisView()}
     </div>
