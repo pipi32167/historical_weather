@@ -4,8 +4,7 @@
  */
 
 import { openMeteoService } from './openMeteoWeather';
-import { Location, WeatherDataPoint } from '../types/weather';
-import { format } from 'date-fns';
+import { Location } from '../types/weather';
 
 interface CachedHistoricalData {
   location: Location;
@@ -75,7 +74,7 @@ class UnifiedHistoricalService {
       startDateStr,
       yesterdayStr,
       location.timezone,
-      ['temperature_2m_max', 'temperature_2m_min', 'temperature_2m_mean', 'precipitation_sum']
+      ['temperature_2m_max', 'temperature_2m_min', 'temperature_2m_mean', 'precipitation_sum', 'windspeed_10m_max', 'weather_code']
     );
 
     // 更新缓存
@@ -152,6 +151,8 @@ class UnifiedHistoricalService {
       minTemp: number;
       avgTemp: number;
       precipitation: number;
+      windSpeed: number;
+      weatherCode: number;
     }> = [];
 
     historicalData.daily.time.forEach((time: string, index: number) => {
@@ -169,13 +170,18 @@ class UnifiedHistoricalService {
           maxTemp >= -60 && maxTemp <= 60 &&
           minTemp >= -60 && minTemp <= 60) {
 
+          const windSpeed = historicalData.daily.windspeed_10m_max?.[index] || 0;
+          const weatherCode = historicalData.daily.weather_code?.[index] || 0;
+
           results.push({
             year: date.getFullYear(),
             date: time,
             maxTemp: Math.round(maxTemp * 10) / 10,
             minTemp: Math.round(minTemp * 10) / 10,
             avgTemp: Math.round((maxTemp + minTemp) / 2 * 10) / 10,
-            precipitation: Math.round((historicalData.daily.precipitation_sum?.[index] || 0) * 10) / 10
+            precipitation: Math.round((historicalData.daily.precipitation_sum?.[index] || 0) * 10) / 10,
+            windSpeed: Math.round(windSpeed * 10) / 10,
+            weatherCode: weatherCode
           });
         }
       }
@@ -200,6 +206,8 @@ class UnifiedHistoricalService {
       minTemp: number;
       avgTemp: number;
       precipitation: number;
+      windSpeed: number;
+      weatherCode: number;
     }>> = {};
 
     historicalData.daily.time.forEach((time: string, index: number) => {
@@ -219,12 +227,17 @@ class UnifiedHistoricalService {
             dataByYear[year] = [];
           }
 
+          const windSpeed = historicalData.daily.windspeed_10m_max?.[index] || 0;
+          const weatherCode = historicalData.daily.weather_code?.[index] || 0;
+
           dataByYear[year].push({
             date: time,
             maxTemp: Math.round(maxTemp * 10) / 10,
             minTemp: Math.round(minTemp * 10) / 10,
             avgTemp: Math.round((maxTemp + minTemp) / 2 * 10) / 10,
-            precipitation: Math.round((historicalData.daily.precipitation_sum?.[index] || 0) * 10) / 10
+            precipitation: Math.round((historicalData.daily.precipitation_sum?.[index] || 0) * 10) / 10,
+            windSpeed: Math.round(windSpeed * 10) / 10,
+            weatherCode: weatherCode
           });
         }
       }

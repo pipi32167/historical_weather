@@ -16,6 +16,7 @@ import { osmGeocodingService } from '../services/osmGeocodingService';
 import { useHomePageTitle } from '../hooks/usePageTitle';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { getWeatherConditionKey } from '../utils/weatherUtils';
 
 interface DailyHistoricalData {
   year: number;
@@ -23,7 +24,9 @@ interface DailyHistoricalData {
   maxTemp: number;
   minTemp: number;
   avgTemp: number;
-  precipitation?: number;
+  precipitation: number;
+  windSpeed: number;
+  weatherCode: number;
 }
 
 const HomepageHistoricalDaily: React.FC = () => {
@@ -36,7 +39,7 @@ const HomepageHistoricalDaily: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { yearRange } = useYearRangeStore();
-  const [currentLocationCity, setCurrentLocationCity] = useState<string | null>(null);
+  // const [currentLocationCity, setCurrentLocationCity] = useState<string | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [isUsingCurrentLocation, setIsUsingCurrentLocation] = useState(false);
   const [locationInitialized, setLocationInitialized] = useState(false);
@@ -154,7 +157,6 @@ const HomepageHistoricalDaily: React.FC = () => {
           console.log('🏙️ 正在反向地理编码获取城市名称...');
           const cityName = await reverseGeocode(latitude, longitude);
           console.log('🏙️ 获取到城市名称:', cityName);
-          setCurrentLocationCity(cityName);
 
           // Set location in store
           const location = {
@@ -254,6 +256,8 @@ const HomepageHistoricalDaily: React.FC = () => {
 
           if (maxTemp != null && minTemp != null && !isNaN(maxTemp) && !isNaN(minTemp)) {
             const currentYear = new Date().getFullYear();
+            const windSpeed = todayData.windspeed_10m_max?.[0] || 0;
+            const weatherCode = todayData.weather_code?.[0] || 0;
 
             processedData.unshift({
               year: currentYear,
@@ -261,7 +265,9 @@ const HomepageHistoricalDaily: React.FC = () => {
               maxTemp: Math.round(maxTemp * 10) / 10,
               minTemp: Math.round(minTemp * 10) / 10,
               avgTemp: Math.round((maxTemp + minTemp) / 2 * 10) / 10,
-              precipitation: Math.round((todayData.precipitation_sum?.[0] || 0) * 10) / 10
+              precipitation: Math.round((todayData.precipitation_sum?.[0] || 0) * 10) / 10,
+              windSpeed: Math.round(windSpeed * 10) / 10,
+              weatherCode: weatherCode
             });
 
             console.log(`✅ 添加今日预报数据: ${currentYear}年`, {
@@ -358,7 +364,9 @@ const HomepageHistoricalDaily: React.FC = () => {
     maxTemp: item.maxTemp,
     minTemp: item.minTemp,
     avgTemp: item.avgTemp,
-    precipitation: item.precipitation || 0
+    precipitation: item.precipitation,
+    windSpeed: item.windSpeed,
+    weatherCode: item.weatherCode
   }));
 
   // 计算温度趋势
@@ -784,6 +792,12 @@ const HomepageHistoricalDaily: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     {t('weather.precipitation')} (mm)
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    {t('weather.windSpeed')} (km/h)
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    {t('weather.condition')}
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -806,6 +820,12 @@ const HomepageHistoricalDaily: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       {item.precipitation}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      {item.windSpeed}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      {t(getWeatherConditionKey(item.weatherCode))}
                     </td>
                   </tr>
                 ))}

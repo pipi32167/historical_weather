@@ -5,7 +5,6 @@
  */
 
 import { cache, CACHE_TTL, cacheKeys } from '../utils/cache';
-import { executeConcurrently } from '../utils/concurrencyController';
 
 export interface OpenMeteoLocation {
   id: number;
@@ -45,6 +44,7 @@ export interface OpenMeteoHistoricalData {
     temperature_2m_mean?: string;
     precipitation_sum?: string;
     windspeed_10m_max?: string;
+    weather_code?: string;
   };
   daily: {
     time: string[];
@@ -53,6 +53,7 @@ export interface OpenMeteoHistoricalData {
     temperature_2m_mean?: number[];
     precipitation_sum?: number[];
     windspeed_10m_max?: number[];
+    weather_code?: number[];
   };
 }
 
@@ -374,7 +375,7 @@ export class OpenMeteoWeatherService {
     startDate: string,
     endDate: string,
     timezone: string = 'auto',
-    dailyParams: string[] = ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum']
+    dailyParams: string[] = ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum', 'windspeed_10m_max', 'weather_code']
   ): Promise<OpenMeteoHistoricalData> {
     console.log('请求历史气温数据:', { latitude, longitude, startDate, endDate, timezone, dailyParams });
     // 检查缓存
