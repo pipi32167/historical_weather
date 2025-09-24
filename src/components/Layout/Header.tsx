@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import LanguageSwitcher from '../common/LanguageSwitcher';
+import TemperatureUnitSwitcher from '../common/TemperatureUnitSwitcher';
 import Logo from '../common/Logo';
 import CityDropdown from '../common/CityDropdown';
 import clsx from 'clsx';
@@ -93,8 +94,9 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         </button>
       </div>
 
-      {/* Right section - Language switcher and Theme toggle */}
+      {/* Right section - Temperature unit, Language switcher and Theme toggle */}
       <div className="flex items-center space-x-2">
+        <TemperatureUnitSwitcher />
         <LanguageSwitcher />
         <button
           onClick={handleThemeToggle}

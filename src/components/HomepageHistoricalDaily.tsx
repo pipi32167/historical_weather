@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { getWeatherConditionKey } from '../utils/weatherUtils';
 import { Location } from '../types/weather';
+import { useTemperatureDisplay } from '../hooks/useTemperatureDisplay';
 
 interface DailyHistoricalData {
   year: number;
@@ -53,6 +54,7 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
   const [maxRetryReached, setMaxRetryReached] = useState(false);
 
   const { currentLocation, setCurrentLocation } = useLocationStore();
+  const { formatTemp, displayTemp, formatChartTick, getUnitSymbol } = useTemperatureDisplay();
   
   // 使用overrideLocation或currentLocation
   const activeLocation = overrideLocation || currentLocation;
@@ -442,7 +444,7 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
                   className="inline-block w-3 h-3 rounded mr-2"
                   style={{ backgroundColor: entry.color }}
                 ></span>
-                {entry.name}: {entry.value}°C
+                {entry.name}: {displayTemp(entry.value)}
               </p>
             ))}
           </div>
@@ -587,7 +589,7 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
                   scale="linear"
                   domain={['dataMin', 'dataMax']}
                 />
-                <YAxis tickFormatter={(value) => `${value}°C`} />
+                <YAxis tickFormatter={formatChartTick} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   formatter={(value: string) =>
@@ -635,7 +637,7 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgMax')}</p>
                 <p className={`text-2xl font-bold ${getTemperatureColor(avgMaxTemp)}`}>
-                  {avgMaxTemp}°C
+                  {displayTemp(avgMaxTemp)}
                 </p>
               </div>
             </div>
@@ -647,7 +649,7 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgMin')}</p>
                 <p className={`text-2xl font-bold ${getTemperatureColor(avgMinTemp)}`}>
-                  {avgMinTemp}°C
+                  {displayTemp(avgMinTemp)}
                 </p>
               </div>
             </div>
@@ -659,7 +661,7 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{t('homepage.historyAvgTemp')}</p>
                 <p className={`text-2xl font-bold ${getTemperatureColor(avgAvgTemp)}`}>
-                  {avgAvgTemp}°C
+                  {displayTemp(avgAvgTemp)}
                 </p>
               </div>
             </div>
@@ -791,13 +793,13 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
                     {t('time.date')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    {t('weather.maxTemp')} (°C)
+                    {t('weather.maxTemp')} ({getUnitSymbol()})
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    {t('weather.minTemp')} (°C)
+                    {t('weather.minTemp')} ({getUnitSymbol()})
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    {t('weather.avgTemp')} (°C)
+                    {t('weather.avgTemp')} ({getUnitSymbol()})
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     {t('weather.precipitation')} (mm)
@@ -820,13 +822,13 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
                       {item.date}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getTemperatureColor(item.maxTemp)}`}>
-                      {item.maxTemp}
+                      {formatTemp(item.maxTemp)}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getTemperatureColor(item.minTemp)}`}>
-                      {item.minTemp}
+                      {formatTemp(item.minTemp)}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getTemperatureColor(item.avgTemp)}`}>
-                      {item.avgTemp}
+                      {formatTemp(item.avgTemp)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                       {item.precipitation}

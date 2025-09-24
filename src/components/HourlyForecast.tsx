@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, Droplets, Wind, Eye } from 'lucide-react';
+import { useTemperatureDisplay } from '../hooks/useTemperatureDisplay';
 import { openMeteoService, HourlyWeatherData } from '../services/openMeteoWeather';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
@@ -17,6 +18,7 @@ export const HourlyForecast: React.FC<HourlyForecastProps> = ({
   className = ''
 }) => {
   const { t } = useTranslation();
+  const { displayTemp } = useTemperatureDisplay();
   const [hourlyData, setHourlyData] = useState<HourlyWeatherData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -132,7 +134,7 @@ export const HourlyForecast: React.FC<HourlyForecastProps> = ({
               
               {/* 温度 */}
               <div className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                {item.temperature}°C
+                {displayTemp(item.temperature)}
               </div>
               
               {/* 降水概率 */}

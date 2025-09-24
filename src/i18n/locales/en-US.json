@@ -140,6 +140,7 @@
   "units": {
     "celsius": "°C",
     "fahrenheit": "°F",
+    "temperatureUnit": "Temperature Unit",
     "mm": "mm",
     "percent": "%",
     "hPa": "hPa",

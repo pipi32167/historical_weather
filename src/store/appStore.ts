@@ -3,8 +3,12 @@ import { devtools, persist } from 'zustand/middleware';
 import { AppState, Location, WeatherQuery, NLQuery } from '../types/weather';
 
 interface AppStore extends AppState {
+  // Temperature unit
+  temperatureUnit: 'celsius' | 'fahrenheit';
+  
   // Actions
   setTheme: (theme: 'light' | 'dark') => void;
+  setTemperatureUnit: (unit: 'celsius' | 'fahrenheit') => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   
@@ -29,6 +33,7 @@ export const useAppStore = create<AppStore>()(
       (set, get) => ({
         // Initial state
         theme: 'light',
+        temperatureUnit: 'celsius',
         sidebarOpen: true,
         selectedLocations: [],
         currentQuery: null,
@@ -46,6 +51,9 @@ export const useAppStore = create<AppStore>()(
             document.documentElement.classList.remove('dark');
           }
         },
+
+        // Temperature unit actions
+        setTemperatureUnit: (unit) => set({ temperatureUnit: unit }),
 
         // Sidebar actions
         toggleSidebar: () => set((state) => ({ 
@@ -89,6 +97,7 @@ export const useAppStore = create<AppStore>()(
         name: 'weather-app-storage',
         partialize: (state) => ({
           theme: state.theme,
+          temperatureUnit: state.temperatureUnit,
           selectedLocations: state.selectedLocations,
           queryHistory: state.queryHistory,
         }),
