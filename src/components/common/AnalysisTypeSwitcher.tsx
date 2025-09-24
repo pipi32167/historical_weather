@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useAnalysisStore, AnalysisType } from '../../store/analysisStore';
 import { 
   Calendar, 
   Clock, 
@@ -14,11 +14,10 @@ interface AnalysisTypeSwitcherProps {
   className?: string;
 }
 
-interface AnalysisType {
-  id: string;
+interface AnalysisTypeConfig {
+  id: AnalysisType;
   name: string;
   shortName: string;
-  path: string;
   icon: React.ComponentType<{ className?: string }>;
   description: string;
   color: string;
@@ -29,15 +28,13 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
   className = '' 
 }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { currentAnalysisType, setAnalysisType } = useAnalysisStore();
 
-  const analysisTypes: AnalysisType[] = [
+  const analysisTypes: AnalysisTypeConfig[] = [
     {
       id: 'daily',
       name: t('navigation.daily'),
       shortName: t('analysisTypes.dailyShort'),
-      path: '/historical/daily',
       icon: Calendar,
       description: t('analysisTypes.dailyDescription'),
       color: 'blue'
@@ -46,7 +43,6 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       id: 'monthly',
       name: t('navigation.monthly'),
       shortName: t('analysisTypes.monthlyShort'),
-      path: '/historical/monthly',
       icon: Clock,
       description: t('analysisTypes.monthlyDescription'),
       color: 'green'
@@ -55,7 +51,6 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       id: 'quarterly',
       name: t('navigation.quarterly'),
       shortName: t('analysisTypes.quarterlyShort'),
-      path: '/historical/quarterly',
       icon: BarChart3,
       description: t('analysisTypes.quarterlyDescription'),
       color: 'orange'
@@ -64,7 +59,6 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       id: 'yearly',
       name: t('navigation.yearly'),
       shortName: t('analysisTypes.yearlyShort'),
-      path: '/historical/yearly',
       icon: LineChart,
       description: t('analysisTypes.yearlyDescription'),
       color: 'purple'
@@ -73,7 +67,6 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       id: 'custom',
       name: t('navigation.historical.custom'),
       shortName: t('analysisTypes.customShort'),
-      path: '/historical/custom',
       icon: Settings,
       description: t('analysisTypes.customDescription'),
       color: 'gray'
@@ -81,11 +74,11 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
   ];
 
   const handleSwitchAnalysis = (type: AnalysisType) => {
-    navigate(type.path);
+    setAnalysisType(type);
   };
 
   const getCurrentAnalysisType = () => {
-    return analysisTypes.find(type => location.pathname === type.path);
+    return analysisTypes.find(type => type.id === currentAnalysisType);
   };
 
   const currentType = getCurrentAnalysisType();
@@ -116,13 +109,13 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       <div className={`analysis-type-switcher-compact ${className}`}>
         <div className="flex items-center space-x-1">
           {analysisTypes.map((type) => {
-            const isActive = location.pathname === type.path;
+            const isActive = currentAnalysisType === type.id;
             const IconComponent = type.icon;
             
             return (
               <button
                 key={type.id}
-                onClick={() => handleSwitchAnalysis(type)}
+                onClick={() => handleSwitchAnalysis(type.id)}
                 className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-all duration-200 ${getColorClasses(type.color, isActive)}`}
                 title={type.description}
               >
@@ -151,13 +144,13 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
         
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           {analysisTypes.map((type) => {
-            const isActive = location.pathname === type.path;
+            const isActive = currentAnalysisType === type.id;
             const IconComponent = type.icon;
             
             return (
               <button
                 key={type.id}
-                onClick={() => handleSwitchAnalysis(type)}
+                onClick={() => handleSwitchAnalysis(type.id)}
                 className={`flex items-center space-x-2 p-3 rounded-lg border transition-all duration-200 text-left ${getColorClasses(type.color, isActive)}`}
                 title={type.description}
               >

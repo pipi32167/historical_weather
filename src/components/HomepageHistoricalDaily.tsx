@@ -19,6 +19,11 @@ import { zhCN } from 'date-fns/locale';
 import { getWeatherConditionKey } from '../utils/weatherUtils';
 import { Location } from '../types/weather';
 import { useTemperatureDisplay } from '../hooks/useTemperatureDisplay';
+import { useAnalysisStore } from '../store/analysisStore';
+import HistoricalMonthly from '../pages/HistoricalMonthly';
+import HistoricalQuarterly from '../pages/HistoricalQuarterly';
+import HistoricalYearly from '../pages/HistoricalYearly';
+import HistoricalCustom from '../pages/HistoricalCustom';
 
 interface DailyHistoricalData {
   year: number;
@@ -55,7 +60,8 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
 
   const { currentLocation, setCurrentLocation } = useLocationStore();
   const { formatTemp, displayTemp, formatChartTick, getUnitSymbol } = useTemperatureDisplay();
-  
+  const { currentAnalysisType } = useAnalysisStore();
+
   // 使用overrideLocation或currentLocation
   const activeLocation = overrideLocation || currentLocation;
   const {
@@ -454,7 +460,22 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
     return null;
   };
 
-  return (
+  // 渲染分析类型对应的组件
+  const renderAnalysisView = () => {
+    if (currentAnalysisType === 'monthly') {
+      return <HistoricalMonthly />;
+    } else if (currentAnalysisType === 'quarterly') {
+      return <HistoricalQuarterly />;
+    } else if (currentAnalysisType === 'yearly') {
+      return <HistoricalYearly />;
+    } else if (currentAnalysisType === 'custom') {
+      return <HistoricalCustom />;
+    }
+    // 默认显示daily分析
+    return renderDailyAnalysis();
+  };
+
+  const renderDailyAnalysis = () => (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
@@ -539,7 +560,7 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
         {/* 右侧：天气预报 - 首页默认显示今天 */}
         <div className="lg:col-span-2">
           {activeLocation ? (
-            <HourlyForecast 
+            <HourlyForecast
               latitude={activeLocation.latitude}
               longitude={activeLocation.longitude}
               className=""
@@ -680,11 +701,11 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
             compact={false}
             defaultCollapsed={true}
             onLocationChange={() => {
-            setIsUsingCurrentLocation(false);
-            setLocationInitialized(true);
-            // Data will be loaded automatically by the useEffect above
-          }}
-        />
+              setIsUsingCurrentLocation(false);
+              setLocationInitialized(true);
+              // Data will be loaded automatically by the useEffect above
+            }}
+          />
         </div>
       )}
 
@@ -854,6 +875,20 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
           </div>
         )}
       </div>
+    </div>
+  );
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* 分析类型切换器 - 只在没有覆盖位置时显示 */}
+      {/* {!overrideLocation && (
+        <div className="mb-6">
+          <AnalysisTypeSwitcher />
+        </div>
+      )} */}
+
+      {/* 渲染对应的分析视图 */}
+      {renderAnalysisView()}
     </div>
   );
 };
