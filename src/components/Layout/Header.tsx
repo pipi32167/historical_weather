@@ -31,20 +31,6 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
     navigate('/');
   };
 
-  const navigationItems = [
-    {
-      name: t('navigation.daily'),
-      path: '/historical/daily',
-      icon: BarChart3,
-      description: t('analysis.historical')
-    },
-    {
-      name: t('navigation.about', { defaultValue: '关于我们' }),
-      path: '/about',
-      icon: Calendar,
-      description: t('navigation.aboutDescription', { defaultValue: '了解平台功能和技术架构' })
-    }
-  ];
 
   return (
     <header className={clsx(
@@ -76,46 +62,54 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         >
 {t('navigation.home')}
         </button>
-        {navigationItems.map((item) => {
-          const IconComponent = item.icon;
-          const isActive = location.pathname === item.path;
-          
-          return (
-            <button
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              className={clsx(
-                'flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
-                isActive
-                  ? 'bg-primary-50 text-primary-600 dark:bg-primary-900 dark:text-primary-400'
-                  : 'text-secondary hover:bg-secondary hover:text-primary'
-              )}
-              title={item.description}
-            >
-              <IconComponent className="h-4 w-4" />
-              <span className="hidden xl:inline">{item.name}</span>
-            </button>
-          );
-        })}
+        {/* Daily Historical */}
+        <button
+          onClick={() => navigate('/historical/daily')}
+          className={clsx(
+            'flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
+            location.pathname === '/historical/daily'
+              ? 'bg-primary-50 text-primary-600 dark:bg-primary-900 dark:text-primary-400'
+              : 'text-secondary hover:bg-secondary hover:text-primary'
+          )}
+          title={t('analysis.historical')}
+        >
+          <BarChart3 className="h-4 w-4" />
+          <span className="hidden xl:inline">{t('navigation.daily')}</span>
+        </button>
         
         {/* Cities Dropdown */}
         <CityDropdown />
+        
+        {/* About Us */}
+        <button
+          onClick={() => navigate('/about')}
+          className={clsx(
+            'flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
+            location.pathname === '/about'
+              ? 'bg-primary-50 text-primary-600 dark:bg-primary-900 dark:text-primary-400'
+              : 'text-secondary hover:bg-secondary hover:text-primary'
+          )}
+          title={t('navigation.aboutDescription', { defaultValue: '了解平台功能和技术架构' })}
+        >
+          <Calendar className="h-4 w-4" />
+          <span className="hidden xl:inline">{t('navigation.about', { defaultValue: '关于我们' })}</span>
+        </button>
       </nav>
 
       {/* Mobile navigation */}
       <div className="lg:hidden flex items-center space-x-2">
-        <CityDropdown />
         <button
           onClick={() => navigate('/historical/daily')}
           className="p-2 rounded-lg text-secondary hover:bg-secondary transition-colors duration-200"
-          title="历史分析"
+          title={t('analysis.historical')}
         >
           <BarChart3 className="h-5 w-5" />
         </button>
+        <CityDropdown />
         <button
           onClick={() => navigate('/about')}
           className="p-2 rounded-lg text-secondary hover:bg-secondary transition-colors duration-200"
-          title="关于我们"
+          title={t('navigation.about', { defaultValue: '关于我们' })}
         >
           <Calendar className="h-5 w-5" />
         </button>

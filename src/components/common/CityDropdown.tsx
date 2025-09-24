@@ -29,12 +29,6 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
   // 大洲配置
   const continents = [
     {
-      key: 'china',
-      nameKey: 'location.continents.china',
-      icon: '🇨🇳',
-      cities: citiesByRegion.china
-    },
-    {
       key: 'asia',
       nameKey: 'location.continents.asia',
       icon: '🌏',

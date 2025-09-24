@@ -664,7 +664,6 @@ export const getFeaturedCities = (): Location[] => {
 // 按地区分组的城市列表
 export const getCitiesByRegion = () => {
   const regions = {
-    china: [] as Location[],
     asia: [] as Location[],
     europe: [] as Location[],
     americas: [] as Location[],
@@ -673,9 +672,7 @@ export const getCitiesByRegion = () => {
   };
 
   Object.values(cityMappings).forEach(city => {
-    if (city.country === 'China') {
-      regions.china.push(city);
-    } else if (['Japan', 'South Korea', 'India', 'Thailand', 'Indonesia', 'Philippines', 'Malaysia', 'UAE', 'Singapore', 'Hong Kong'].includes(city.country)) {
+    if (['China', 'Japan', 'South Korea', 'India', 'Thailand', 'Indonesia', 'Philippines', 'Malaysia', 'UAE', 'Singapore', 'Hong Kong'].includes(city.country)) {
       regions.asia.push(city);
     } else if (['United Kingdom', 'France', 'Germany', 'Italy', 'Spain', 'Netherlands', 'Austria', 'Switzerland', 'Sweden', 'Norway', 'Denmark', 'Finland', 'Russia', 'Czech Republic', 'Hungary', 'Poland', 'Turkey'].includes(city.country)) {
       regions.europe.push(city);
