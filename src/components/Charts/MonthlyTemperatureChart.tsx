@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { monthlyTemperatureService, MonthlyTemperatureStats, MonthlyTemperatureTrends } from '../../services/monthlyTemperatureService';
 import { Location } from '../../types/weather';
+import { getCityLocalizedName } from '../../data/cityMappings';
 import LoadingSpinner from '../LoadingSpinner';
 import ErrorMessage from '../ErrorMessage';
 import { format } from 'date-fns';
@@ -51,7 +52,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
       setError(null);
 
       console.log('加载月度趋势数据:', {
-        location: location.name,
+        location: getCityLocalizedName(location, t),
         month: selectedMonth,
         startYear,
         endYear
@@ -63,7 +64,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
         selectedMonth,
         startYear,
         endYear,
-        location.name,
+        getCityLocalizedName(location, t),
         location.timezone
       );
 
@@ -83,7 +84,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
       setError(null);
 
       console.log('加载年度温度概况数据:', {
-        location: location.name,
+        location: getCityLocalizedName(location, t),
         startYear,
         endYear
       });
@@ -93,7 +94,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
         location.longitude,
         startYear,
         endYear,
-        location.name,
+        getCityLocalizedName(location, t),
         location.timezone
       );
 
@@ -273,7 +274,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-primary">
-                📊 {location.name} {getMonthName(monthlyTrends.month)}温度趋势
+                📊 {getCityLocalizedName(location, t)} {getMonthName(monthlyTrends.month)}温度趋势
               </h3>
               <div className="text-xs text-secondary">
                 {startYear}-{endYear}年 ({monthlyTrends.years.length}年数据)
@@ -303,7 +304,7 @@ const MonthlyTemperatureChart: React.FC<MonthlyTemperatureChartProps> = ({
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-primary">
-                🌡️ {location.name} 年度温度概况
+                🌡️ {getCityLocalizedName(location, t)} 年度温度概况
               </h3>
               <div className="text-xs text-secondary">
                 基于{startYear}-{endYear}年数据

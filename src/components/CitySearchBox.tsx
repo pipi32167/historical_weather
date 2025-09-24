@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { openMeteoService, OpenMeteoLocation } from '../services/openMeteoWeather';
+import { getCityLocalizedName } from '../data/cityMappings';
+import { Location } from '../types/weather';
 
 interface CitySearchBoxProps {
   placeholder?: string;
@@ -8,9 +11,10 @@ interface CitySearchBoxProps {
 }
 
 const CitySearchBox: React.FC<CitySearchBoxProps> = ({
-  placeholder = "搜索任意城市...",
+  placeholder,
   className = ""
 }) => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<OpenMeteoLocation[]>([]);
@@ -57,7 +61,7 @@ const CitySearchBox: React.FC<CitySearchBoxProps> = ({
     try {
       const searchResults = await openMeteoService.geocodeCity(
         searchQuery,
-        'zh', // 优先中文
+        i18n.language.startsWith('zh') ? 'zh' : 'en', // 根据当前语言设置
         8 // 最多8个结果
       );
 
@@ -66,11 +70,11 @@ const CitySearchBox: React.FC<CitySearchBoxProps> = ({
       setSelectedIndex(-1);
 
       if (searchResults.length === 0) {
-        setError('未找到匹配的城市，请尝试其他关键词');
+        setError(t('location.noResults'));
       }
     } catch (error) {
       console.error('搜索城市失败:', error);
-      setError('搜索失败，请检查网络连接后重试');
+      setError(t('location.searchError'));
       setResults([]);
       setShowResults(false);
     } finally {
@@ -143,11 +147,27 @@ const CitySearchBox: React.FC<CitySearchBoxProps> = ({
   }, []);
 
   // 格式化城市显示名称
-  const formatCityDisplay = (location: OpenMeteoLocation) => {
+  const formatCityDisplay = (location: OpenMeteoLocation | Location) => {
     const parts = [];
-    if (location.name) parts.push(location.name);
-    if (location.admin1 && location.admin1 !== location.name) parts.push(location.admin1);
-    if (location.country) parts.push(location.country);
+    
+    // 如果是Location类型（来自cityMappings），使用本地化名称
+    if ('timezone' in location) {
+      parts.push(getCityLocalizedName(location as Location, t));
+    } else {
+      // 如果是OpenMeteoLocation类型，使用原名称
+      const openMeteoLocation = location as OpenMeteoLocation;
+      if (openMeteoLocation.name) parts.push(openMeteoLocation.name);
+      
+      if (openMeteoLocation.admin1 && openMeteoLocation.admin1 !== openMeteoLocation.name) {
+        parts.push(openMeteoLocation.admin1);
+      }
+      if (openMeteoLocation.country) parts.push(openMeteoLocation.country);
+      return parts.join(', ');
+    }
+    
+    // 如果是Location类型，还需要添加country信息
+    const locationWithCountry = location as Location;
+    if (locationWithCountry.country) parts.push(locationWithCountry.country);
     return parts.join(', ');
   };
 
@@ -164,9 +184,9 @@ const CitySearchBox: React.FC<CitySearchBoxProps> = ({
           onFocus={() => {
             if (results.length > 0) setShowResults(true);
           }}
-          placeholder={placeholder}
+          placeholder={placeholder || t('common.searchCity')}
           className="w-full px-4 py-3 pl-12 pr-16 border border-custom rounded-lg bg-primary text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-          aria-label="搜索城市"
+          aria-label={t('location.searchCity')}
           aria-expanded={showResults}
           aria-haspopup="listbox"
           aria-activedescendant={selectedIndex >= 0 ? `city-option-${selectedIndex}` : undefined}
@@ -194,7 +214,7 @@ const CitySearchBox: React.FC<CitySearchBoxProps> = ({
               searchInputRef.current?.focus();
             }}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary hover:text-primary p-1"
-            aria-label="清空搜索"
+            aria-label={t('common.clearSearch')}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -209,7 +229,7 @@ const CitySearchBox: React.FC<CitySearchBoxProps> = ({
           ref={resultsRef}
           className="absolute top-full left-0 right-0 mt-2 bg-primary border border-custom rounded-lg shadow-lg z-50 max-h-96 overflow-auto"
           role="listbox"
-          aria-label="搜索结果"
+          aria-label={t('common.searchResults')}
         >
           {error && (
             <div className="p-3 text-red-600 text-sm bg-red-50 dark:bg-red-900/20 border-b border-custom">
@@ -243,7 +263,7 @@ const CitySearchBox: React.FC<CitySearchBoxProps> = ({
 
           {results.length > 0 && (
             <div className="p-2 text-xs text-secondary bg-secondary border-t border-custom">
-              💡 使用方向键导航，回车键选择，ESC键关闭
+              💡 {t('location.keyboardNavHint')}
             </div>
           )}
         </div>

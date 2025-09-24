@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocationStore } from '../../store/locationStore';
+import { getCityLocalizedName } from '../../data/cityMappings';
 import { MapPin, Star, Heart, ChevronDown, ChevronUp, Search, X, Loader2 } from 'lucide-react';
 import { Location } from '../../types/weather';
 import { geocodingService } from '../../services/geocodingService';
@@ -185,7 +186,7 @@ export const QuickLocationSelector: React.FC<QuickLocationSelectorProps> = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-medium text-sm">{location.displayName || location.name}</span>
+              <span className="font-medium text-sm">{location.displayName || getCityLocalizedName(location, t)}</span>
               {showFavorites && (
                 <div
                   onClick={(e) => handleToggleFavorite(location, e)}

@@ -10,6 +10,7 @@ import {
 import { useAppStore } from '../../store/appStore';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import Logo from '../common/Logo';
+import CityDropdown from '../common/CityDropdown';
 import clsx from 'clsx';
 
 interface HeaderProps {
@@ -96,10 +97,14 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
             </button>
           );
         })}
+        
+        {/* Cities Dropdown */}
+        <CityDropdown />
       </nav>
 
       {/* Mobile navigation */}
       <div className="lg:hidden flex items-center space-x-2">
+        <CityDropdown />
         <button
           onClick={() => navigate('/historical/daily')}
           className="p-2 rounded-lg text-secondary hover:bg-secondary transition-colors duration-200"

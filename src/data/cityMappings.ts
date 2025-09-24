@@ -690,3 +690,13 @@ export const getCitiesByRegion = () => {
 
   return regions;
 };
+
+// 获取城市的本地化名称
+export const getCityLocalizedName = (city: Location, t: (key: string) => string): string => {
+  // 尝试获取翻译后的城市名称，如果没有翻译则返回原名称
+  const translationKey = `cities.${city.id}`;
+  const translatedName = t(translationKey);
+  
+  // 如果翻译键不存在，t函数会返回原键名，此时返回原名称
+  return translatedName === translationKey ? city.name : translatedName;
+};
