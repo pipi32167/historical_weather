@@ -7,8 +7,6 @@ import HistoricalTemperatureChart from '../components/Charts/HistoricalTemperatu
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 
-import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
-import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
 import { YearRangeSelector } from '../components/common/YearRangeSelector';
 import { useYearRangeStore } from '../store/yearRangeStore';
 import { useLocationStore } from '../store/locationStore';
@@ -366,13 +364,15 @@ const HistoricalQuarterly: React.FC = () => {
       )}
 
       {/* 3. 控制面板 */}
-      {/* Analysis Type Switcher */}
-      <AnalysisTypeSwitcher />
-
-      {/* Location Selector */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <QuickLocationSelector compact={false} onLocationChange={loadQuarterlyData} />
-      </div>
+      {/* 当前位置显示 */}
+      {currentLocation && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800 mb-6">
+          <p className="text-sm text-blue-800 dark:text-blue-300 flex items-center gap-2">
+            <MapPin className="w-4 h-4" />
+            {t('location.currentLocation')}: <span className="font-medium">{currentLocation.name}</span>
+          </p>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">

@@ -5,8 +5,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { openMeteoService } from '../services/openMeteoWeather';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
-import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
-import { AnalysisTypeSwitcher } from '../components/common/AnalysisTypeSwitcher';
 import { useLocationStore } from '../store/locationStore';
 import { useHistoricalPageTitle } from '../hooks/usePageTitle';
 // 移除不需要的date-fns imports
@@ -146,19 +144,15 @@ const HistoricalCustom: React.FC = () => {
 
       {/* 控制面板 */}
       <div className="mb-8 space-y-6">
-        {/* 位置选择 */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-primary-600" />
-            {t('location.selectLocation')}
-          </h2>
-          <QuickLocationSelector />
-          {currentLocation && (
-            <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-              {t('location.currentLocation')}: {currentLocation.name}
+        {/* 当前位置显示 */}
+        {currentLocation && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-blue-800 dark:text-blue-300 flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              {t('location.currentLocation')}: <span className="font-medium">{currentLocation.name}</span>
             </p>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* 日期输入 */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
@@ -251,9 +245,6 @@ const HistoricalCustom: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* 分析类型切换 */}
-        <AnalysisTypeSwitcher />
       </div>
 
       {/* 加载状态 */}
