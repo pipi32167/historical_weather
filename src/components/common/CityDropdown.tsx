@@ -20,7 +20,7 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
   const [searchResults, setSearchResults] = useState<OpenMeteoLocation[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [activeTab, setActiveTab] = useState<'continents' | 'search'>('continents');
-  
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -103,9 +103,10 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
   // 处理城市选择
   const handleCitySelect = (city: Location | OpenMeteoLocation) => {
     let location: Location;
-    
-    if ('timezone' in city) {
-      // cityMappings中的Location (有timezone字段)
+
+    // 检查是否是cityMappings中的城市（有id字段且在预定义城市列表中）
+    if ('id' in city && typeof city.id === 'string' && !city.id.startsWith('search-')) {
+      // cityMappings中的Location
       location = city as Location;
       // 直接跳转到城市页面
       navigate(`/city/${location.id}`);
@@ -120,12 +121,12 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
         country: openMeteoCity.country || 'Unknown',
         timezone: 'auto'
       };
-      
+
       // 对于搜索结果，先设置到store然后跳转首页
       setCurrentLocation(location);
       navigate('/');
     }
-    
+
     setIsOpen(false);
     setSearchQuery('');
     setSearchResults([]);
@@ -151,7 +152,7 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleKeyDown);
     }
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
@@ -184,11 +185,10 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
                   setSearchQuery('');
                   setSearchResults([]);
                 }}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors duration-200 ${
-                  activeTab === 'continents'
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'continents'
                     ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50 dark:bg-primary-900/20'
                     : 'text-secondary hover:text-primary hover:bg-secondary'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-center space-x-2">
                   <Globe className="h-4 w-4" />
@@ -200,11 +200,10 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
                   setActiveTab('search');
                   setTimeout(() => searchInputRef.current?.focus(), 100);
                 }}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors duration-200 ${
-                  activeTab === 'search'
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'search'
                     ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50 dark:bg-primary-900/20'
                     : 'text-secondary hover:text-primary hover:bg-secondary'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-center space-x-2">
                   <Search className="h-4 w-4" />
