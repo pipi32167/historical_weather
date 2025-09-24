@@ -664,7 +664,6 @@ export const getFeaturedCities = (): Location[] => {
 // 按地区分组的城市列表
 export const getCitiesByRegion = () => {
   const regions = {
-    china: [] as Location[],
     asia: [] as Location[],
     europe: [] as Location[],
     americas: [] as Location[],
@@ -673,9 +672,7 @@ export const getCitiesByRegion = () => {
   };
 
   Object.values(cityMappings).forEach(city => {
-    if (city.country === 'China') {
-      regions.china.push(city);
-    } else if (['Japan', 'South Korea', 'India', 'Thailand', 'Indonesia', 'Philippines', 'Malaysia', 'UAE', 'Singapore', 'Hong Kong'].includes(city.country)) {
+    if (['China', 'Japan', 'South Korea', 'India', 'Thailand', 'Indonesia', 'Philippines', 'Malaysia', 'UAE', 'Singapore', 'Hong Kong'].includes(city.country)) {
       regions.asia.push(city);
     } else if (['United Kingdom', 'France', 'Germany', 'Italy', 'Spain', 'Netherlands', 'Austria', 'Switzerland', 'Sweden', 'Norway', 'Denmark', 'Finland', 'Russia', 'Czech Republic', 'Hungary', 'Poland', 'Turkey'].includes(city.country)) {
       regions.europe.push(city);
@@ -689,4 +686,14 @@ export const getCitiesByRegion = () => {
   });
 
   return regions;
+};
+
+// 获取城市的本地化名称
+export const getCityLocalizedName = (city: Location, t: (key: string) => string): string => {
+  // 尝试获取翻译后的城市名称，如果没有翻译则返回原名称
+  const translationKey = `cities.${city.id}`;
+  const translatedName = t(translationKey);
+  
+  // 如果翻译键不存在，t函数会返回原键名，此时返回原名称
+  return translatedName === translationKey ? city.name : translatedName;
 };

@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Location } from '../../types/weather';
 import { useWeatherData } from '../../hooks/useWeatherData';
+import { getCityLocalizedName } from '../../data/cityMappings';
 
 interface LocationSelectorProps {
   currentLocation: Location;
@@ -15,6 +17,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
   disabled = false,
   className = ''
 }) => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Location[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -141,7 +144,7 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({
                   <span className="text-sm">🏙️</span>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-primary group-hover:text-primary-600">
-                      {location.name}
+                      {getCityLocalizedName(location, t)}
                     </div>
                     <div className="text-xs text-secondary truncate">
                       {location.country} {location.admin1 ? `• ${location.admin1}` : ''}
