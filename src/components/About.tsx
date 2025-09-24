@@ -149,6 +149,13 @@ const About: React.FC = () => {
         <div className="grid md:grid-cols-3 gap-6">
           <a
             href={`mailto:${t('about.contact.email')}`}
+            onClick={(e) => {
+              // Prevent any interference from analytics or browser extensions
+              e.preventDefault();
+              e.stopPropagation();
+              const emailUrl = `mailto:${t('about.contact.email')}`;
+              window.open(emailUrl, '_self');
+            }}
             className="flex flex-col items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
           >
             <Mail className="w-8 h-8 text-blue-600 dark:text-blue-400 mb-2" />

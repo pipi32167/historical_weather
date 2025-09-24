@@ -165,7 +165,15 @@ const NotFound: React.FC = () => {
 
       {/* 底部提示 */}
       <div className="mt-8 text-center text-sm text-secondary">
-        <p>{t('notFound.contactError')} <a href="mailto:contact@historical-temperature.com" className="text-primary-600 hover:underline">contact@historical-temperature.com</a></p>
+        <p>{t('notFound.contactError')} <a 
+          href="mailto:contact@historical-temperature.com" 
+          className="text-primary-600 hover:underline"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.open('mailto:contact@historical-temperature.com', '_self');
+          }}
+        >contact@historical-temperature.com</a></p>
       </div>
     </div>
   );
