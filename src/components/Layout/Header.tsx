@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { 
   Sun, 
   Moon,
-  Calendar,
-  BarChart3
+  Calendar
 } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import LanguageSwitcher from '../common/LanguageSwitcher';
@@ -62,20 +61,6 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         >
 {t('navigation.home')}
         </button>
-        {/* Daily Historical */}
-        <button
-          onClick={() => navigate('/historical/daily')}
-          className={clsx(
-            'flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
-            location.pathname === '/historical/daily'
-              ? 'bg-primary-50 text-primary-600 dark:bg-primary-900 dark:text-primary-400'
-              : 'text-secondary hover:bg-secondary hover:text-primary'
-          )}
-          title={t('analysis.historical')}
-        >
-          <BarChart3 className="h-4 w-4" />
-          <span className="hidden xl:inline">{t('navigation.daily')}</span>
-        </button>
         
         {/* Cities Dropdown */}
         <CityDropdown />
@@ -98,13 +83,6 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
 
       {/* Mobile navigation */}
       <div className="lg:hidden flex items-center space-x-2">
-        <button
-          onClick={() => navigate('/historical/daily')}
-          className="p-2 rounded-lg text-secondary hover:bg-secondary transition-colors duration-200"
-          title={t('analysis.historical')}
-        >
-          <BarChart3 className="h-5 w-5" />
-        </button>
         <CityDropdown />
         <button
           onClick={() => navigate('/about')}

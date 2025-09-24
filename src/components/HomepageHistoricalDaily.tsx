@@ -17,6 +17,7 @@ import { useHomePageTitle } from '../hooks/usePageTitle';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { getWeatherConditionKey } from '../utils/weatherUtils';
+import { Location } from '../types/weather';
 
 interface DailyHistoricalData {
   year: number;
@@ -29,7 +30,11 @@ interface DailyHistoricalData {
   weatherCode: number;
 }
 
-const HomepageHistoricalDaily: React.FC = () => {
+interface HomepageHistoricalDailyProps {
+  overrideLocation?: Location;
+}
+
+const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overrideLocation }) => {
   const { t, i18n } = useTranslation();
 
   // 设置页面标题
@@ -48,6 +53,9 @@ const HomepageHistoricalDaily: React.FC = () => {
   const [maxRetryReached, setMaxRetryReached] = useState(false);
 
   const { currentLocation, setCurrentLocation } = useLocationStore();
+  
+  // 使用overrideLocation或currentLocation
+  const activeLocation = overrideLocation || currentLocation;
   const {
     latitude,
     longitude,
@@ -194,7 +202,7 @@ const HomepageHistoricalDaily: React.FC = () => {
   }, [latitude, longitude, geoError, locationInitialized, reverseGeocode, setCurrentLocation, t, currentLocation, geoLoading]);
 
   const loadDailyHistoricalData = useCallback(async (isRetry: boolean = false) => {
-    if (!currentLocation || !locationInitialized) {
+    if (!activeLocation || (!locationInitialized && !overrideLocation)) {
       console.log('⚠️ 位置未初始化，跳过API调用');
       return;
     }
@@ -214,7 +222,7 @@ const HomepageHistoricalDaily: React.FC = () => {
 
     try {
       const currentRetry = isRetry ? retryCount : 0;
-      console.log(`📊 获取历史同期数据 (尝试 ${currentRetry + 1}/4):`, { date: selectedDate, location: currentLocation });
+      console.log(`📊 获取历史同期数据 (尝试 ${currentRetry + 1}/4):`, { date: selectedDate, location: activeLocation });
 
       const currentDate = new Date();
       const targetMonth = selectedDate.getMonth() + 1;
@@ -227,7 +235,7 @@ const HomepageHistoricalDaily: React.FC = () => {
       // 1. 获取统一的历史数据（从startYear-01-01到昨天）
       console.log(`📅 获取历史数据范围: ${startYear}-01-01 到昨天`);
       const historicalData = await unifiedHistoricalService.getUnifiedHistoricalData(
-        currentLocation,
+        activeLocation,
         startYear
       );
 
@@ -247,7 +255,7 @@ const HomepageHistoricalDaily: React.FC = () => {
       if (isToday) {
         console.log('📡 获取今日预报数据...');
 
-        const todayForecast = await unifiedHistoricalService.getTodayForecast(currentLocation);
+        const todayForecast = await unifiedHistoricalService.getTodayForecast(activeLocation);
 
         if (todayForecast?.daily?.time?.length > 0) {
           const todayData = todayForecast.daily;
@@ -323,7 +331,7 @@ const HomepageHistoricalDaily: React.FC = () => {
     setMaxRetryReached(false);
 
     // Only load data after location is initialized
-    if (locationInitialized && currentLocation) {
+    if ((locationInitialized && activeLocation) || (overrideLocation && activeLocation)) {
       console.log('🚀 位置已初始化，开始加载历史气温数据');
       loadDailyHistoricalData();
     } else {
@@ -496,10 +504,10 @@ const HomepageHistoricalDaily: React.FC = () => {
                 <MapPin className="h-6 w-6 text-primary-600" />
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {currentLocation?.name || t('location.notSelected')}
+                    {activeLocation?.name || t('location.notSelected')}
                   </h2>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {currentLocation ? (
+                    {activeLocation ? (
                       <>
                         {formatDate(selectedDate)}{t('analysis.historicalSamePeriod')}
                         {isUsingCurrentLocation && (
@@ -528,10 +536,10 @@ const HomepageHistoricalDaily: React.FC = () => {
 
         {/* 右侧：天气预报 - 首页默认显示今天 */}
         <div className="lg:col-span-2">
-          {currentLocation ? (
+          {activeLocation ? (
             <HourlyForecast 
-              latitude={currentLocation.latitude}
-              longitude={currentLocation.longitude}
+              latitude={activeLocation.latitude}
+              longitude={activeLocation.longitude}
               className=""
             />
           ) : (
@@ -663,18 +671,20 @@ const HomepageHistoricalDaily: React.FC = () => {
       {/* Analysis Type Switcher */}
       <AnalysisTypeSwitcher />
 
-      {/* Location Selector */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <QuickLocationSelector
-          compact={false}
-          defaultCollapsed={true}
-          onLocationChange={() => {
+      {/* Location Selector - 仅在首页显示 */}
+      {!overrideLocation && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+          <QuickLocationSelector
+            compact={false}
+            defaultCollapsed={true}
+            onLocationChange={() => {
             setIsUsingCurrentLocation(false);
             setLocationInitialized(true);
             // Data will be loaded automatically by the useEffect above
           }}
         />
-      </div>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">

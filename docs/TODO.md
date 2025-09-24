@@ -19,6 +19,8 @@
     - [ ] 询问某个循环事件的历史日期，展示这些日期的天气
     - [ ] 使用提示词的方式
 - 杂事
+  - [ ] 增强错误处理
+    - [ ] 当 Open Meoto API 返回429错误时，等待1分钟后再继续请求，避免连续报错，同时在页面上展示 API 接口请求繁忙，显示 Loading 状态。
   - [X] 注册客服邮件 Cloudflare Email Routing
   - [ ] 添加 Google Ads
   - [ ] Buy Me a Coffee

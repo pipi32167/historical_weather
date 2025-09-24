@@ -5,11 +5,7 @@ import MainLayout from './components/Layout/MainLayout';
 import HomepageHistoricalDaily from './components/HomepageHistoricalDaily';
 import About from './components/About';
 import NotFound from './components/NotFound';
-import HistoricalDaily from './pages/HistoricalDaily';
-import HistoricalMonthly from './pages/HistoricalMonthly';
-import HistoricalQuarterly from './pages/HistoricalQuarterly';
-import HistoricalYearly from './pages/HistoricalYearly';
-import HistoricalCustom from './pages/HistoricalCustom';
+import CityPage from './pages/CityPage';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App(): React.ReactElement {
@@ -25,12 +21,8 @@ function App(): React.ReactElement {
             {/* 首页 - 带自动定位的历史气温数据 */}
             <Route path="/" element={<HomepageHistoricalDaily />} />
 
-            {/* 历史同期数据页面 */}
-            <Route path="/historical/daily" element={<HistoricalDaily />} />
-            <Route path="/historical/monthly" element={<HistoricalMonthly />} />
-            <Route path="/historical/quarterly" element={<HistoricalQuarterly />} />
-            <Route path="/historical/yearly" element={<HistoricalYearly />} />
-            <Route path="/historical/custom" element={<HistoricalCustom />} />
+            {/* 城市页面 - 显示特定城市的历史气温数据 */}
+            <Route path="/city/:city" element={<CityPage />} />
 
             {/* 关于我们页面 */}
             <Route path="/about" element={<About />} />

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Globe, Search, MapPin, ChevronDown } from 'lucide-react';
 import { getCitiesByRegion, getCityLocalizedName } from '../../data/cityMappings';
@@ -12,6 +13,7 @@ interface CityDropdownProps {
 
 const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const { setCurrentLocation } = useLocationStore();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -105,6 +107,8 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
     if ('timezone' in city) {
       // cityMappings中的Location (有timezone字段)
       location = city as Location;
+      // 直接跳转到城市页面
+      navigate(`/city/${location.id}`);
     } else {
       // 搜索结果中的OpenMeteoLocation
       const openMeteoCity = city as OpenMeteoLocation;
@@ -116,9 +120,12 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
         country: openMeteoCity.country || 'Unknown',
         timezone: 'auto'
       };
+      
+      // 对于搜索结果，先设置到store然后跳转首页
+      setCurrentLocation(location);
+      navigate('/');
     }
     
-    setCurrentLocation(location);
     setIsOpen(false);
     setSearchQuery('');
     setSearchResults([]);
