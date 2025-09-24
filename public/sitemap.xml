@@ -5,45 +5,45 @@
 
   <!-- Homepage -->
   <url>
-    <loc>https://historicalweather.org/</loc>
-    <lastmod>2024-12-01T00:00:00+00:00</lastmod>
+    <loc>https://historicaltemperature.org/</loc>
+    <lastmod>2025-09-24T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
   <!-- Historical Data Pages -->
   <url>
-    <loc>https://historicalweather.org/historical/daily</loc>
-    <lastmod>2024-12-01T00:00:00+00:00</lastmod>
+    <loc>https://historicaltemperature.org/historical/daily</loc>
+    <lastmod>2025-09-24T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://historicalweather.org/historical/monthly</loc>
-    <lastmod>2024-12-01T00:00:00+00:00</lastmod>
+    <loc>https://historicaltemperature.org/historical/monthly</loc>
+    <lastmod>2025-09-24T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://historicalweather.org/historical/quarterly</loc>
-    <lastmod>2024-12-01T00:00:00+00:00</lastmod>
+    <loc>https://historicaltemperature.org/historical/quarterly</loc>
+    <lastmod>2025-09-24T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://historicalweather.org/historical/yearly</loc>
-    <lastmod>2024-12-01T00:00:00+00:00</lastmod>
+    <loc>https://historicaltemperature.org/historical/yearly</loc>
+    <lastmod>2025-09-24T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <!-- About Page -->
   <url>
-    <loc>https://historicalweather.org/about</loc>
-    <lastmod>2024-12-01T00:00:00+00:00</lastmod>
+    <loc>https://historicaltemperature.org/about</loc>
+    <lastmod>2025-09-24T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
