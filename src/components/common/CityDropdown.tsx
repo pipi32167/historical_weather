@@ -126,9 +126,9 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
     setCurrentLocation(selectedLocation);
 
     // 根据当前路由决定是否跳转
-    // 如果在首页，且选择的是预定义城市，则跳转到城市页面
+    // 如果在首页或城市页面，且选择的是预定义城市，则跳转到城市页面
     // 如果已经在分析页面，只更新位置，不跳转
-    if (location.pathname === '/' && 'id' in city && typeof city.id === 'string' && !city.id.startsWith('search-')) {
+    if ((location.pathname === '/' || location.pathname.startsWith('/city/')) && 'id' in city && typeof city.id === 'string' && !city.id.startsWith('search-')) {
       navigate(`/city/${selectedLocation.id}`);
     }
     // 其他情况（在分析页面或搜索结果）：保持当前页面，数据会自动更新
