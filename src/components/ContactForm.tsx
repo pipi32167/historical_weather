@@ -26,10 +26,10 @@ interface FormspreeError {
   message: string;
 }
 
-const ContactForm: React.FC<ContactFormProps> = ({ 
-  className = '', 
+const ContactForm: React.FC<ContactFormProps> = ({
+  className = '',
   onClose,
-  compact = false 
+  compact = false
 }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<ContactFormData>({
@@ -74,7 +74,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
   // 处理表单提交
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -85,7 +85,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
 
     try {
       // 使用Formspree服务发送邮件
-      const response = await fetch('https://formspree.io/f/mjkakwbn', {
+      const response = await fetch('https://formspree.io/f/xovkvdql', {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -105,7 +105,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
       if (response.ok) {
         console.log('Contact form submitted successfully via Formspree');
         setSubmitStatus('success');
-        
+
         // 重置表单
         setFormData({
           name: '',
@@ -113,7 +113,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
           subject: '',
           message: ''
         });
-        
+
         // 3秒后自动关闭或重置状态
         setTimeout(() => {
           if (onClose) {
@@ -126,11 +126,11 @@ const ContactForm: React.FC<ContactFormProps> = ({
         // 处理Formspree错误响应
         const errorData = await response.json().catch(() => null);
         console.error('Formspree error:', errorData);
-        
+
         if (errorData && errorData.errors) {
           // 处理Formspree字段验证错误
           const newErrors: Partial<ContactFormData> = {};
-          
+
           errorData.errors.forEach((error: FormspreeError) => {
             switch (error.field) {
               case 'email':
@@ -143,13 +143,13 @@ const ContactForm: React.FC<ContactFormProps> = ({
                 console.warn('Unhandled Formspree field error:', error);
             }
           });
-          
+
           if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
           }
         }
-        
+
         // 设置通用错误消息
         if (response.status >= 500) {
           setErrorMessage(t('contact.error.server'));
@@ -158,13 +158,13 @@ const ContactForm: React.FC<ContactFormProps> = ({
         } else {
           setErrorMessage(t('contact.error.message'));
         }
-        
+
         setSubmitStatus('error');
       }
-      
+
     } catch (error) {
       console.error('Contact form submission error:', error);
-      
+
       // 检查是否是网络错误
       if (error instanceof TypeError && error.message.includes('fetch')) {
         console.error('Network error when submitting form');
@@ -172,7 +172,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
       } else {
         setErrorMessage(t('contact.error.message'));
       }
-      
+
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
@@ -186,7 +186,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
       ...prev,
       [field]: e.target.value
     }));
-    
+
     // 清除该字段的错误和全局错误消息
     if (errors[field]) {
       setErrors(prev => ({
@@ -194,7 +194,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
         [field]: undefined
       }));
     }
-    
+
     // 清除全局错误消息
     if (submitStatus === 'error') {
       setSubmitStatus('idle');
@@ -245,7 +245,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
           </p>
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         {/* 姓名字段 */}
         <div>
@@ -258,9 +258,8 @@ const ContactForm: React.FC<ContactFormProps> = ({
             id="name"
             value={formData.name}
             onChange={handleInputChange('name')}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white ${
-              errors.name ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
-            }`}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white ${errors.name ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
+              }`}
             placeholder={t('contact.form.namePlaceholder')}
           />
           {errors.name && (
@@ -279,9 +278,8 @@ const ContactForm: React.FC<ContactFormProps> = ({
             id="email"
             value={formData.email}
             onChange={handleInputChange('email')}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white ${
-              errors.email ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
-            }`}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white ${errors.email ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
+              }`}
             placeholder={t('contact.form.emailPlaceholder')}
           />
           {errors.email && (
@@ -300,9 +298,8 @@ const ContactForm: React.FC<ContactFormProps> = ({
             id="subject"
             value={formData.subject}
             onChange={handleInputChange('subject')}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white ${
-              errors.subject ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
-            }`}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white ${errors.subject ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
+              }`}
             placeholder={t('contact.form.subjectPlaceholder')}
           />
           {errors.subject && (
@@ -321,9 +318,8 @@ const ContactForm: React.FC<ContactFormProps> = ({
             rows={compact ? 3 : 5}
             value={formData.message}
             onChange={handleInputChange('message')}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white resize-vertical ${
-              errors.message ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
-            }`}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white resize-vertical ${errors.message ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
+              }`}
             placeholder={t('contact.form.messagePlaceholder')}
           />
           {errors.message && (
@@ -354,9 +350,8 @@ const ContactForm: React.FC<ContactFormProps> = ({
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`flex items-center space-x-2 px-6 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-300 disabled:cursor-not-allowed text-white rounded-md transition-colors ${
-              isSubmitting ? 'opacity-75' : ''
-            }`}
+            className={`flex items-center space-x-2 px-6 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-300 disabled:cursor-not-allowed text-white rounded-md transition-colors ${isSubmitting ? 'opacity-75' : ''
+              }`}
           >
             <Send className={`w-4 h-4 ${isSubmitting ? 'animate-pulse' : ''}`} />
             <span>
