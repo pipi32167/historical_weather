@@ -621,7 +621,8 @@
       "characters": "characters",
       "required": "Required fields",
       "send": "Send Message",
-      "sending": "Sending..."
+      "sending": "Sending...",
+      "close": "Close"
     },
     "errors": {
       "nameRequired": "Please enter your name",
@@ -636,7 +637,10 @@
       "message": "Thank you for your feedback, we'll get back to you soon."
     },
     "error": {
-      "message": "Failed to send message. Please try again later or contact us directly via email."
+      "message": "Failed to send message. Please try again later or contact us directly via email.",
+      "network": "Network connection error. Please check your internet connection.",
+      "server": "Server error. Please try again later.",
+      "rateLimit": "Too many requests. Please try again later."
     }
   }
 }

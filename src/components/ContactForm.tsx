@@ -20,6 +20,12 @@ interface ContactFormProps {
   compact?: boolean;
 }
 
+interface FormspreeError {
+  field: string;
+  code: string;
+  message: string;
+}
+
 const ContactForm: React.FC<ContactFormProps> = ({ 
   className = '', 
   onClose,
@@ -35,6 +41,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
   const [errors, setErrors] = useState<Partial<ContactFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   // 表单验证
   const validateForm = (): boolean => {
@@ -74,40 +81,98 @@ const ContactForm: React.FC<ContactFormProps> = ({
 
     setIsSubmitting(true);
     setSubmitStatus('idle');
+    setErrorMessage('');
 
     try {
-      // 模拟表单提交 - 在实际应用中，这里会发送到后端API或第三方服务
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // 这里可以集成各种表单服务：
-      // 1. Formspree: https://formspree.io/
-      // 2. Netlify Forms: https://www.netlify.com/products/forms/
-      // 3. EmailJS: https://www.emailjs.com/
-      // 4. 自己的后端API
-      
-      console.log('Contact form submitted:', formData);
-      
-      setSubmitStatus('success');
-      
-      // 重置表单
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
+      // 使用Formspree服务发送邮件
+      const response = await fetch('https://formspree.io/f/mjkakwbn', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          // 添加额外的元数据
+          _replyto: formData.email,
+          _subject: `历史气温平台联系 - ${formData.subject}`,
+        })
       });
-      
-      // 3秒后自动关闭或重置状态
-      setTimeout(() => {
-        if (onClose) {
-          onClose();
-        } else {
-          setSubmitStatus('idle');
+
+      if (response.ok) {
+        console.log('Contact form submitted successfully via Formspree');
+        setSubmitStatus('success');
+        
+        // 重置表单
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: ''
+        });
+        
+        // 3秒后自动关闭或重置状态
+        setTimeout(() => {
+          if (onClose) {
+            onClose();
+          } else {
+            setSubmitStatus('idle');
+          }
+        }, 3000);
+      } else {
+        // 处理Formspree错误响应
+        const errorData = await response.json().catch(() => null);
+        console.error('Formspree error:', errorData);
+        
+        if (errorData && errorData.errors) {
+          // 处理Formspree字段验证错误
+          const newErrors: Partial<ContactFormData> = {};
+          
+          errorData.errors.forEach((error: FormspreeError) => {
+            switch (error.field) {
+              case 'email':
+                newErrors.email = t('contact.errors.emailInvalid');
+                break;
+              case '_replyto':
+                newErrors.email = t('contact.errors.emailInvalid');
+                break;
+              default:
+                console.warn('Unhandled Formspree field error:', error);
+            }
+          });
+          
+          if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+          }
         }
-      }, 3000);
+        
+        // 设置通用错误消息
+        if (response.status >= 500) {
+          setErrorMessage(t('contact.error.server'));
+        } else if (response.status === 429) {
+          setErrorMessage(t('contact.error.rateLimit'));
+        } else {
+          setErrorMessage(t('contact.error.message'));
+        }
+        
+        setSubmitStatus('error');
+      }
       
     } catch (error) {
-      console.error('Contact form error:', error);
+      console.error('Contact form submission error:', error);
+      
+      // 检查是否是网络错误
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('Network error when submitting form');
+        setErrorMessage(t('contact.error.network'));
+      } else {
+        setErrorMessage(t('contact.error.message'));
+      }
+      
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
@@ -122,12 +187,18 @@ const ContactForm: React.FC<ContactFormProps> = ({
       [field]: e.target.value
     }));
     
-    // 清除该字段的错误
+    // 清除该字段的错误和全局错误消息
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
         [field]: undefined
       }));
+    }
+    
+    // 清除全局错误消息
+    if (submitStatus === 'error') {
+      setSubmitStatus('idle');
+      setErrorMessage('');
     }
   };
 
@@ -135,16 +206,25 @@ const ContactForm: React.FC<ContactFormProps> = ({
   if (submitStatus === 'success') {
     return (
       <div className={`bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 ${className}`}>
-        <div className="flex items-center space-x-3">
-          <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400 flex-shrink-0" />
-          <div>
-            <h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
-              {t('contact.success.title')}
-            </h3>
-            <p className="text-sm text-green-700 dark:text-green-300">
-              {t('contact.success.message')}
-            </p>
-          </div>
+        <div className="text-center">
+          <CheckCircle className="w-16 h-16 text-green-600 dark:text-green-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-green-800 dark:text-green-200 mb-2">
+            {t('contact.success.title')}
+          </h3>
+          <p className="text-sm text-green-700 dark:text-green-300 mb-4">
+            {t('contact.success.message')}
+          </p>
+          <p className="text-xs text-green-600 dark:text-green-400">
+            📧 Powered by Formspree
+          </p>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition-colors"
+            >
+              {t('contact.form.close')}
+            </button>
+          )}
         </div>
       </div>
     );
@@ -260,7 +340,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
             <div className="flex items-center space-x-2">
               <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
               <p className="text-sm text-red-700 dark:text-red-300">
-                {t('contact.error.message')}
+                {errorMessage || t('contact.error.message')}
               </p>
             </div>
           </div>
