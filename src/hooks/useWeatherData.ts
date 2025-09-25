@@ -3,6 +3,7 @@ import { WeatherDataPoint, Location } from '../types/weather';
 import { weatherService } from '../services/weatherService';
 import { weatherAggregateService } from '../services/weatherAggregateService';
 import { generateSameDateHistoricalData } from '../utils/historicalDataGenerator';
+import { useTranslation } from 'react-i18next';
 
 interface UseWeatherDataOptions {
   useRealData?: boolean;
@@ -15,6 +16,8 @@ interface UseWeatherDataResult {
   data: WeatherDataPoint[];
   loading: boolean;
   error: string | null;
+  isRateLimited: boolean;
+  rateLimitMessage: string | null;
   refetch: () => void;
   searchLocations: (query: string) => Promise<Location[]>;
 }
@@ -25,9 +28,12 @@ export const useWeatherData = ({
   targetDate = new Date(),
   years = 20
 }: UseWeatherDataOptions): UseWeatherDataResult => {
+  const { t } = useTranslation();
   const [data, setData] = useState<WeatherDataPoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isRateLimited, setIsRateLimited] = useState(false);
+  const [rateLimitMessage, setRateLimitMessage] = useState<string | null>(null);
   
   // 使用 ref 来避免组件重新创建对象导致的无限循环
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -93,6 +99,8 @@ export const useWeatherData = ({
     
     setLoading(true);
     setError(null);
+    setIsRateLimited(false);
+    setRateLimitMessage(null);
 
     try {
       let weatherData: WeatherDataPoint[] = [];
@@ -189,16 +197,33 @@ export const useWeatherData = ({
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather data';
       console.error('Error fetching weather data:', err);
       
+      // 检查是否是429错误（rate limit）
+      if (err instanceof Error && (err as any).isRateLimit) {
+        setIsRateLimited(true);
+        const retryAfter = (err as any).retryAfter || 60000;
+        const seconds = Math.floor(retryAfter / 1000);
+        setRateLimitMessage(t('errors.rateLimitRetry', { 
+          seconds, 
+          current: retryCountRef.current + 1, 
+          max: maxRetries 
+        }));
+      }
+      
       // 实现重试逻辑，但有最大重试次数限制
       if (useRealData && retryCountRef.current < maxRetries) {
         retryCountRef.current += 1;
         console.warn(`Retrying request (${retryCountRef.current}/${maxRetries})...`);
         
+        // 对于429错误，等待更长时间
+        const delay = err instanceof Error && (err as any).isRateLimit 
+          ? (err as any).retryAfter || 60000
+          : retryDelay * retryCountRef.current;
+        
         setTimeout(() => {
           if (!abortControllerRef.current?.signal.aborted) {
             fetchData(true); // 标记为重试
           }
-        }, retryDelay * retryCountRef.current); // 指数退避
+        }, delay);
         
         return;
       }
@@ -249,6 +274,8 @@ export const useWeatherData = ({
     data,
     loading,
     error,
+    isRateLimited,
+    rateLimitMessage,
     refetch,
     searchLocations,
   };

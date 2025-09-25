@@ -114,8 +114,16 @@ export class WeatherService {
       }
     }
 
+    return this.fetchWithRetry(url, cacheKey, signal, skipCache);
+  }
+
+  private async fetchWithRetry<T>(url: string, cacheKey: string, signal?: AbortSignal, skipCache: boolean = false, retryCount: number = 0): Promise<T> {
+    const maxRetries = 3;
+    const retryDelays = [1000, 2000, 4000]; // 1s, 2s, 4s
+    const rateLimitDelay = 60000; // 1 minute for 429 errors
+    
     try {
-      console.log('Fetching URL:', url);
+      console.log('Fetching URL:', url, retryCount > 0 ? `(retry ${retryCount}/${maxRetries})` : '');
       const response = await fetch(url, {
         signal,
         headers: {
@@ -128,10 +136,14 @@ export class WeatherService {
       
       if (!response.ok) {
         // 区分不同类型的HTTP错误
-        if (response.status >= 500) {
+        if (response.status === 429) {
+          // 429 Rate Limit - 特殊处理，等待1分钟后重试
+          const error = new Error(`Rate limit exceeded: ${response.status}`);
+          (error as any).isRateLimit = true;
+          (error as any).retryAfter = rateLimitDelay;
+          throw error;
+        } else if (response.status >= 500) {
           throw new Error(`Server error: ${response.status} - ${response.statusText}`);
-        } else if (response.status === 429) {
-          throw new Error(`Rate limit exceeded: ${response.status}`);
         } else if (response.status >= 400) {
           throw new Error(`Client error: ${response.status} - ${response.statusText}`);
         }
@@ -156,6 +168,61 @@ export class WeatherService {
         throw error;
       }
       
+      // 处理429错误的特殊重试逻辑
+      if (error instanceof Error && (error as any).isRateLimit && retryCount < maxRetries) {
+        console.warn(`Rate limit hit, waiting ${rateLimitDelay / 1000} seconds before retry ${retryCount + 1}/${maxRetries}`);
+        
+        // 检查signal是否已经被abort
+        if (signal?.aborted) {
+          throw new Error('Request aborted during rate limit wait');
+        }
+        
+        // 等待1分钟后重试
+        await new Promise((resolve, reject) => {
+          const timeoutId = setTimeout(resolve, rateLimitDelay);
+          
+          // 如果请求被取消，清理定时器并抛出错误
+          if (signal) {
+            const abortHandler = () => {
+              clearTimeout(timeoutId);
+              reject(new Error('Request aborted during rate limit wait'));
+            };
+            signal.addEventListener('abort', abortHandler, { once: true });
+          }
+        });
+        
+        // 递归重试
+        return this.fetchWithRetry(url, cacheKey, signal, skipCache, retryCount + 1);
+      }
+      
+      // 处理其他类型错误的重试逻辑
+      if (retryCount < maxRetries && !(error instanceof Error && (error as any).isRateLimit)) {
+        const delay = retryDelays[retryCount] || retryDelays[retryDelays.length - 1];
+        console.warn(`Request failed, retrying in ${delay}ms (${retryCount + 1}/${maxRetries}):`, error);
+        
+        // 检查signal是否已经被abort
+        if (signal?.aborted) {
+          throw error;
+        }
+        
+        // 等待后重试
+        await new Promise((resolve, reject) => {
+          const timeoutId = setTimeout(resolve, delay);
+          
+          // 如果请求被取消，清理定时器并抛出错误
+          if (signal) {
+            const abortHandler = () => {
+              clearTimeout(timeoutId);
+              reject(error);
+            };
+            signal.addEventListener('abort', abortHandler, { once: true });
+          }
+        });
+        
+        // 递归重试
+        return this.fetchWithRetry(url, cacheKey, signal, skipCache, retryCount + 1);
+      }
+      
       // 增强网络错误处理
       if (error instanceof TypeError && error.message.includes('fetch')) {
         const networkError = new Error(`Network error: Unable to connect to ${url}. Please check your internet connection.`);
@@ -163,7 +230,7 @@ export class WeatherService {
         throw networkError;
       }
       
-      console.error(`Failed to fetch weather data from ${url}:`, error);
+      console.error(`Failed to fetch weather data from ${url} after ${retryCount + 1} attempts:`, error);
       throw error;
     }
   }

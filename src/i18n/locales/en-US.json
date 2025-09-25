@@ -290,7 +290,10 @@
     "maxRetryMessage": "Failed to retrieve historical data, maximum retry limit reached. Please check your network connection or try again later.",
     "manualRetry": "Manual Retry",
     "loadingFailed": "Loading Failed",
-    "retryLoading": "Retry Loading"
+    "retryLoading": "Retry Loading",
+    "rateLimitExceeded": "API rate limit exceeded",
+    "rateLimitWaiting": "Service is busy, waiting {{seconds}} seconds before retry...",
+    "rateLimitRetry": "Rate limit exceeded, waiting {{seconds}} seconds before automatic retry ({{current}}/{{max}})"
   },
   "language": {
     "switch": "Language Switch",
