@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { 
-  Sun, 
+import {
+  Sun,
   Moon,
   Calendar,
   Map
@@ -42,7 +42,7 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
     )}>
       {/* Left section - Logo */}
       <div className="flex items-center">
-        <Logo 
+        <Logo
           size="md"
           showText={true}
           theme="auto"
@@ -64,15 +64,15 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         >
           {t('navigation.home')}
         </button>
-        
+
         {/* Cities Dropdown */}
         <CityDropdown />
-        
+
         {/* Analysis Type Dropdown */}
         <AnalysisTypeDropdown />
-        
+
         {/* Map */}
-        <button
+        {/* <button
           onClick={() => navigate('/map')}
           className={clsx(
             'flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
@@ -85,7 +85,7 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
           <Map className="h-4 w-4" />
           <span className="hidden xl:inline">{t('navigation.map', { defaultValue: '地图' })}</span>
         </button>
-        
+         */}
         {/* About Us */}
         <button
           onClick={() => navigate('/about')}
@@ -112,10 +112,10 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
           <span className="text-xs font-medium">{t('navigation.home')}</span>
         </button>
         <CityDropdown />
-        
+
         {/* Mobile Analysis Type Dropdown */}
         <AnalysisTypeDropdown />
-        
+
         <button
           onClick={() => navigate('/map')}
           className="p-2 rounded-lg text-primary hover:bg-secondary transition-colors duration-200"
@@ -123,7 +123,7 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         >
           <Map className="h-5 w-5" />
         </button>
-        
+
         <button
           onClick={() => navigate('/about')}
           className="p-2 rounded-lg text-primary hover:bg-secondary transition-colors duration-200"
