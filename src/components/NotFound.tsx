@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useNotFoundPageTitle } from '../hooks/usePageTitle';
+import ContactModal from './ContactModal';
 import { 
   Home, 
   MapPin, 
@@ -13,6 +14,7 @@ const NotFound: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   
   // 设置页面标题
   useNotFoundPageTitle();
@@ -165,16 +167,17 @@ const NotFound: React.FC = () => {
 
       {/* 底部提示 */}
       <div className="mt-8 text-center text-sm text-secondary">
-        <p>{t('notFound.contactError')} <a 
-          href="mailto:contact@historical-temperature.com" 
-          className="text-primary-600 hover:underline"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.open('mailto:contact@historical-temperature.com', '_self');
-          }}
-        >contact@historical-temperature.com</a></p>
+        <p>{t('notFound.contactError')} <button 
+          onClick={() => setIsContactModalOpen(true)}
+          className="text-primary-600 hover:underline focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
+        >{t('about.contact.emailLabel')}</button></p>
       </div>
+
+      {/* 联系表单模态框 */}
+      <ContactModal 
+        isOpen={isContactModalOpen} 
+        onClose={() => setIsContactModalOpen(false)} 
+      />
     </div>
   );
 };

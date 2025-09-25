@@ -605,5 +605,38 @@
       },
       "learnMore": "了解更多关于城市热岛效应的信息"
     }
+  },
+  "contact": {
+    "form": {
+      "title": "联系我们",
+      "description": "有任何问题或建议？请填写下面的表单，我们会尽快回复您。",
+      "name": "姓名",
+      "namePlaceholder": "请输入您的姓名",
+      "email": "邮箱地址",
+      "emailPlaceholder": "请输入您的邮箱地址",
+      "subject": "主题",
+      "subjectPlaceholder": "请简要描述您的问题或建议",
+      "message": "详细信息",
+      "messagePlaceholder": "请详细描述您的问题、建议或反馈...",
+      "characters": "个字符",
+      "required": "必填字段",
+      "send": "发送消息",
+      "sending": "发送中..."
+    },
+    "errors": {
+      "nameRequired": "请输入您的姓名",
+      "emailRequired": "请输入邮箱地址",
+      "emailInvalid": "请输入有效的邮箱地址",
+      "subjectRequired": "请输入主题",
+      "messageRequired": "请输入详细信息",
+      "messageMinLength": "消息至少需要10个字符"
+    },
+    "success": {
+      "title": "消息发送成功！",
+      "message": "感谢您的反馈，我们会尽快回复您。"
+    },
+    "error": {
+      "message": "发送失败，请稍后重试或直接发送邮件联系我们。"
+    }
   }
 }

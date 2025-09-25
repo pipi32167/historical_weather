@@ -605,5 +605,38 @@
       },
       "learnMore": "Learn more about the urban heat island effect"
     }
+  },
+  "contact": {
+    "form": {
+      "title": "Contact Us",
+      "description": "Have any questions or suggestions? Please fill out the form below and we'll get back to you soon.",
+      "name": "Name",
+      "namePlaceholder": "Please enter your name",
+      "email": "Email Address",
+      "emailPlaceholder": "Please enter your email address",
+      "subject": "Subject",
+      "subjectPlaceholder": "Please briefly describe your question or suggestion",
+      "message": "Message",
+      "messagePlaceholder": "Please provide detailed information about your question, suggestion, or feedback...",
+      "characters": "characters",
+      "required": "Required fields",
+      "send": "Send Message",
+      "sending": "Sending..."
+    },
+    "errors": {
+      "nameRequired": "Please enter your name",
+      "emailRequired": "Please enter email address",
+      "emailInvalid": "Please enter a valid email address",
+      "subjectRequired": "Please enter subject",
+      "messageRequired": "Please enter message",
+      "messageMinLength": "Message must be at least 10 characters"
+    },
+    "success": {
+      "title": "Message sent successfully!",
+      "message": "Thank you for your feedback, we'll get back to you soon."
+    },
+    "error": {
+      "message": "Failed to send message. Please try again later or contact us directly via email."
+    }
   }
 }

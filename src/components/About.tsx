@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAboutPageTitle } from '../hooks/usePageTitle';
 import { useStructuredData } from './StructuredData';
+import ContactModal from './ContactModal';
 import { 
   Github,
   Mail,
@@ -14,6 +15,7 @@ import {
 
 const About: React.FC = () => {
   const { t } = useTranslation();
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   
   // 设置页面标题
   useAboutPageTitle();
@@ -147,21 +149,14 @@ const About: React.FC = () => {
         </p>
         
         <div className="grid md:grid-cols-3 gap-6">
-          <a
-            href={`mailto:${t('about.contact.email')}`}
-            onClick={(e) => {
-              // Prevent any interference from analytics or browser extensions
-              e.preventDefault();
-              e.stopPropagation();
-              const emailUrl = `mailto:${t('about.contact.email')}`;
-              window.open(emailUrl, '_self');
-            }}
+          <button
+            onClick={() => setIsContactModalOpen(true)}
             className="flex flex-col items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
           >
             <Mail className="w-8 h-8 text-blue-600 dark:text-blue-400 mb-2" />
             <span className="text-sm font-medium text-gray-900 dark:text-white">Email</span>
             <span className="text-xs text-gray-600 dark:text-gray-400">{t('about.contact.emailLabel')}</span>
-          </a>
+          </button>
 
           <a
             href={t('about.contact.githubUrl')}
@@ -200,6 +195,12 @@ const About: React.FC = () => {
           <span>{t('about.thanks.community')}</span>
         </div>
       </div>
+
+      {/* 联系表单模态框 */}
+      <ContactModal 
+        isOpen={isContactModalOpen} 
+        onClose={() => setIsContactModalOpen(false)} 
+      />
     </div>
   );
 };
