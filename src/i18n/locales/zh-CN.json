@@ -16,6 +16,7 @@
       "quarterly": "季度气温统计分析 | {{location}}",
       "yearly": "年度气温变化分析 | {{location}}",
       "custom": "自定义日期气温分析 | {{location}}",
+      "map": "互动地图天气查询 | 历史气温数据平台",
       "about": "关于我们 | 历史气温数据平台",
       "notFound": "页面未找到 | 历史气温数据平台",
       "suffix": " - 历史气温数据查询平台"
@@ -28,6 +29,8 @@
     "quarterly": "季度分析",
     "yearly": "年度分析",
     "cities": "城市列表",
+    "map": "地图",
+    "mapDescription": "互动地图天气查询",
     "about": "关于我们",
     "aboutDescription": "了解平台功能和技术架构",
     "historical": {
@@ -642,5 +645,24 @@
       "server": "服务器错误，请稍后重试。",
       "rateLimit": "请求过于频繁，请稍后再试。"
     }
+  },
+  "map": {
+    "selectLocationTitle": "在地图上选择一个位置",
+    "selectLocationDescription": "点击地图上的任意位置来查看该地点的历史天气数据",
+    "confirmLocation": "确认位置",
+    "locationName": "位置名称",
+    "coordinates": "坐标",
+    "loadingLocation": "正在获取位置信息...",
+    "confirmDescription": "确认使用此位置查看历史天气数据？",
+    "unknownLocation": "未知位置",
+    "locationError": "获取位置信息失败",
+    "analysisDate": "分析日期",
+    "weatherDataError": "无法获取该位置的天气数据",
+    "historicalDescription": "{{date}} 的历史天气数据",
+    "noWeatherData": "该位置暂无历史天气数据"
+  },
+  "common": {
+    "cancel": "取消",
+    "confirm": "确认"
   }
 }

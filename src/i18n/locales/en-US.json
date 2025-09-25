@@ -16,6 +16,7 @@
       "quarterly": "Quarterly Temperature Statistics | {{location}}",
       "yearly": "Annual Temperature Change Analysis | {{location}}",
       "custom": "Custom Date Temperature Analysis | {{location}}",
+      "map": "Interactive Weather Map | Historical Temperature Data Platform",
       "about": "About Us | Historical Temperature Data Platform",
       "notFound": "Page Not Found | Historical Temperature Data Platform",
       "suffix": " - Historical Temperature Data Platform"
@@ -28,6 +29,8 @@
     "quarterly": "Quarterly Analysis",
     "yearly": "Yearly Analysis",
     "cities": "Cities",
+    "map": "Map",
+    "mapDescription": "Interactive weather map",
     "about": "About Us",
     "aboutDescription": "Learn about platform features and technical architecture",
     "historical": {
@@ -642,5 +645,24 @@
       "server": "Server error. Please try again later.",
       "rateLimit": "Too many requests. Please try again later."
     }
+  },
+  "map": {
+    "selectLocationTitle": "Select a Location on the Map",
+    "selectLocationDescription": "Click anywhere on the map to view historical weather data for that location",
+    "confirmLocation": "Confirm Location",
+    "locationName": "Location Name",
+    "coordinates": "Coordinates",
+    "loadingLocation": "Loading location information...",
+    "confirmDescription": "Confirm using this location to view historical weather data?",
+    "unknownLocation": "Unknown Location",
+    "locationError": "Failed to get location information",
+    "analysisDate": "Analysis Date",
+    "weatherDataError": "Unable to get weather data for this location",
+    "historicalDescription": "Historical weather data for {{date}}",
+    "noWeatherData": "No historical weather data available for this location"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   }
 }

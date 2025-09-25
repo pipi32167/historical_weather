@@ -75,6 +75,13 @@ export const useHistoricalPageTitle = (
 };
 
 /**
+ * 快捷方法：设置地图页面标题
+ */
+export const useMapPageTitle = () => {
+  usePageTitle({ titleKey: 'map' });
+};
+
+/**
  * 快捷方法：设置关于页面标题
  */
 export const useAboutPageTitle = () => {

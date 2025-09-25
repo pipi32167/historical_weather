@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { 
   Sun, 
   Moon,
-  Calendar
+  Calendar,
+  Map
 } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import LanguageSwitcher from '../common/LanguageSwitcher';
@@ -70,6 +71,21 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         {/* Analysis Type Dropdown */}
         <AnalysisTypeDropdown />
         
+        {/* Map */}
+        <button
+          onClick={() => navigate('/map')}
+          className={clsx(
+            'flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
+            location.pathname === '/map'
+              ? 'bg-primary-50 text-primary-600 dark:bg-primary-900 dark:text-primary-400'
+              : 'text-primary hover:bg-secondary hover:text-primary'
+          )}
+          title={t('navigation.mapDescription', { defaultValue: '互动地图天气查询' })}
+        >
+          <Map className="h-4 w-4" />
+          <span className="hidden xl:inline">{t('navigation.map', { defaultValue: '地图' })}</span>
+        </button>
+        
         {/* About Us */}
         <button
           onClick={() => navigate('/about')}
@@ -99,6 +115,14 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         
         {/* Mobile Analysis Type Dropdown */}
         <AnalysisTypeDropdown />
+        
+        <button
+          onClick={() => navigate('/map')}
+          className="p-2 rounded-lg text-primary hover:bg-secondary transition-colors duration-200"
+          title={t('navigation.map', { defaultValue: '地图' })}
+        >
+          <Map className="h-5 w-5" />
+        </button>
         
         <button
           onClick={() => navigate('/about')}
