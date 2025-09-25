@@ -96,10 +96,9 @@ const HistoricalCustom: React.FC = () => {
     }
   };
 
-  // 当位置变化时重新加载数据（仅当有有效日期时）
+  // 只在位置变化时重新加载数据，并且有有效日期输入时
   useEffect(() => {
-    if (currentLocation && dateInput.trim() && parseDateInput(dateInput).length > 0) {
-      console.log('🔄 位置变化，重新加载自定义日期数据:', currentLocation.name);
+    if (dateInput.trim() && parseDateInput(dateInput).length > 0) {
       loadCustomDateData();
     }
   }, [currentLocation]); // eslint-disable-line react-hooks/exhaustive-deps

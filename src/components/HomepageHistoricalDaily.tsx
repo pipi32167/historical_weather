@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, MapPin, Flame } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -201,13 +201,13 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
       setLocationLoading(false);
       setIsUsingCurrentLocation(false);
       setSkipGeolocation(true);
-      // Initialize with default location if available
+      // 如果有默认位置，使用它
       if (currentLocation) {
         console.log('🏠 回退使用默认位置:', currentLocation.name);
-        setLocationInitialized(true);
       }
+      setLocationInitialized(true);
     }
-  }, [latitude, longitude, geoError, locationInitialized, reverseGeocode, setCurrentLocation, t, currentLocation, geoLoading]);
+  }, [latitude, longitude, geoError, locationInitialized, reverseGeocode, setCurrentLocation, t, geoLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadDailyHistoricalData = useCallback(async (isRetry: boolean = false) => {
     if (!activeLocation || (!locationInitialized && !overrideLocation)) {
@@ -230,7 +230,11 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
 
     try {
       const currentRetry = isRetry ? retryCount : 0;
-      console.log(`📊 获取历史同期数据 (尝试 ${currentRetry + 1}/4):`, { date: selectedDate, location: activeLocation });
+      console.log(`📊 获取历史同期数据 (尝试 ${currentRetry + 1}/4):`, { 
+        date: selectedDate.toISOString().split('T')[0], 
+        location: activeLocation.name,
+        coords: `${activeLocation.latitude.toFixed(2)},${activeLocation.longitude.toFixed(2)}`
+      });
 
       const currentDate = new Date();
       const targetMonth = selectedDate.getMonth() + 1;
@@ -331,21 +335,142 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
         setLoading(false);
       }
     }
-  }, [currentLocation, locationInitialized, selectedDate, yearRange, maxRetryReached, retryCount, t]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  useEffect(() => {
-    // Reset retry state when location or date changes
+  // 使用 ref 来存储最新的 activeLocation，避免闭包陷阱
+  const activeLocationRef = useRef(activeLocation);
+  activeLocationRef.current = activeLocation;
+
+  // 使用 ref 存储其他需要的值
+  const selectedDateRef = useRef(selectedDate);
+  selectedDateRef.current = selectedDate;
+  
+  const yearRangeRef = useRef(yearRange);
+  yearRangeRef.current = yearRange;
+
+  // 实际的数据加载函数
+  const doLoadData = useCallback(async () => {
+    const location = activeLocationRef.current;
+    const date = selectedDateRef.current;
+    const range = yearRangeRef.current;
+    
+    if (!location || (!locationInitialized && !overrideLocation)) {
+      console.log('⚠️ 位置未初始化，跳过API调用');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
     setRetryCount(0);
     setMaxRetryReached(false);
 
+    try {
+      console.log(`📊 获取历史同期数据:`, { 
+        date: date.toISOString().split('T')[0], 
+        location: location.name,
+        coords: `${location.latitude.toFixed(2)},${location.longitude.toFixed(2)}`
+      });
+
+      const currentDate = new Date();
+      const targetMonth = date.getMonth() + 1;
+      const targetDay = date.getDate();
+      const isToday = date.toDateString() === currentDate.toDateString();
+
+      // 数据获取范围：使用用户选择的年份范围
+      const startYear = range.start;
+
+      // 1. 获取统一的历史数据（从startYear-01-01到昨天）
+      console.log(`📅 获取历史数据范围: ${startYear}-01-01 到昨天`);
+      const historicalData = await unifiedHistoricalService.getUnifiedHistoricalData(
+        location,
+        startYear
+      );
+
+      // 2. 过滤出目标日期的历史数据
+      const historicalResults = unifiedHistoricalService.filterByDate(
+        historicalData,
+        targetMonth,
+        targetDay
+      );
+
+      console.log(`📈 找到 ${historicalResults.length} 年的历史数据:`,
+        historicalResults.map(r => r.year).sort());
+
+      let processedData: DailyHistoricalData[] = [...historicalResults];
+
+      // 3. 如果查看的是今天，添加今日预报数据
+      if (isToday) {
+        console.log('📡 获取今日预报数据...');
+
+        const todayForecast = await unifiedHistoricalService.getTodayForecast(location);
+
+        if (todayForecast?.daily?.time?.length > 0) {
+          const todayData = todayForecast.daily;
+          const maxTemp = todayData.temperature_2m_max?.[0];
+          const minTemp = todayData.temperature_2m_min?.[0];
+
+          if (maxTemp != null && minTemp != null && !isNaN(maxTemp) && !isNaN(minTemp)) {
+            const currentYear = new Date().getFullYear();
+            const windSpeed = todayData.windspeed_10m_max?.[0] || 0;
+            const weatherCode = todayData.weather_code?.[0] || 0;
+
+            processedData.unshift({
+              year: currentYear,
+              date: todayData.time[0],
+              maxTemp: Math.round(maxTemp * 10) / 10,
+              minTemp: Math.round(minTemp * 10) / 10,
+              avgTemp: Math.round((maxTemp + minTemp) / 2 * 10) / 10,
+              precipitation: Math.round((todayData.precipitation_sum?.[0] || 0) * 10) / 10,
+              windSpeed: Math.round(windSpeed * 10) / 10,
+              weatherCode: weatherCode
+            });
+
+            console.log(`✅ 添加今日预报数据: ${currentYear}年`, {
+              maxTemp, minTemp, avgTemp: (maxTemp + minTemp) / 2
+            });
+          }
+        } else {
+          console.warn('⚠️ 今日预报数据不可用');
+        }
+      }
+
+      // 4. 按年份排序并设置数据
+      processedData.sort((a, b) => b.year - a.year);
+      setData(processedData);
+
+      console.log(`🎯 最终显示 ${processedData.length} 年的数据`);
+
+    } catch (error) {
+      console.error(`❌ 获取历史同期数据失败:`, error);
+      setError(t('errors.dataLoadError'));
+    } finally {
+      setLoading(false);
+    }
+  }, [locationInitialized, overrideLocation, t]);
+
+  useEffect(() => {
     // Only load data after location is initialized
     if ((locationInitialized && activeLocation) || (overrideLocation && activeLocation)) {
-      console.log('🚀 位置已初始化，开始加载历史气温数据');
-      loadDailyHistoricalData();
+      console.log('🚀 位置已初始化，开始加载历史气温数据', {
+        locationName: activeLocation?.name,
+        locationInitialized,
+        isOverride: !!overrideLocation
+      });
+      doLoadData();
     } else {
-      console.log('⏳ 等待位置初始化...', { locationInitialized, hasLocation: !!currentLocation });
+      console.log('⏳ 等待位置初始化...', { locationInitialized, hasLocation: !!activeLocation });
     }
-  }, [selectedDate, yearRange, currentLocation, locationInitialized, loadDailyHistoricalData]);
+  }, [
+    // 使用稳定的依赖项
+    selectedDate.toISOString().split('T')[0], // 只使用日期部分
+    yearRange.start,
+    activeLocation?.latitude,
+    activeLocation?.longitude,
+    locationInitialized,
+    !!overrideLocation,
+    doLoadData
+  ]);
 
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = new Date(event.target.value);
@@ -787,7 +912,7 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
                     setRetryCount(0);
                     setMaxRetryReached(false);
                     setError(null);
-                    loadDailyHistoricalData();
+                    doLoadData();
                   }}
                   className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 
                            focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 

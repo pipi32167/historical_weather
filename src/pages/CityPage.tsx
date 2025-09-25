@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getCityByName, getCityLocalizedName } from '../data/cityMappings';
 import { Location } from '../types/weather';
-import HomepageHistoricalDaily from '../components/HomepageHistoricalDaily';
+import CityHistoricalDaily from '../components/CityHistoricalDaily';
 import NotFound from '../components/NotFound';
 
 const CityPage: React.FC = () => {
@@ -199,7 +199,7 @@ const CityPage: React.FC = () => {
         </div>
 
         {/* 历史数据组件 */}
-        <HomepageHistoricalDaily overrideLocation={currentCity} />
+        <CityHistoricalDaily location={currentCity} />
 
         {/* SEO内容区域 - 包含目标关键词 */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-custom">
