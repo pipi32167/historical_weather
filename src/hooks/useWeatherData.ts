@@ -69,6 +69,20 @@ export const useWeatherData = ({
     }
   }, [useRealData]);
 
+  // 使用 useMemo 稳定化 selectedLocations 引用
+  const stableSelectedLocations = useMemo(() => {
+    return selectedLocations.map(loc => ({ 
+      id: loc.id, 
+      name: loc.name, 
+      latitude: loc.latitude, 
+      longitude: loc.longitude,
+      country: loc.country,
+      timezone: loc.timezone,
+      admin1: loc.admin1,
+      admin2: loc.admin2
+    }));
+  }, [selectedLocations]);
+
   const fetchData = useCallback(async (isRetry = false) => {
     // 防止过于频繁的请求
     const now = Date.now();
@@ -97,7 +111,7 @@ export const useWeatherData = ({
     try {
       let weatherData: WeatherDataPoint[] = [];
 
-      if (selectedLocations.length === 0) {
+      if (stableSelectedLocations.length === 0) {
         // No locations selected - show historical same-date data for Shanghai
         if (useRealData) {
           console.log('useWeatherData: 使用聚合API获取默认位置数据', {
@@ -110,9 +124,9 @@ export const useWeatherData = ({
         } else {
           weatherData = generateSameDateHistoricalData(defaultLocation, targetDate, years);
         }
-      } else if (selectedLocations.length === 1) {
+      } else if (stableSelectedLocations.length === 1) {
         // Single location - show historical data for that location
-        const location = selectedLocations[0];
+        const location = stableSelectedLocations[0];
         if (useRealData) {
           console.log('useWeatherData: 使用聚合API获取单个位置数据', {
             location: location.name,
@@ -127,7 +141,7 @@ export const useWeatherData = ({
       } else {
         // Multiple locations - show current/recent data for comparison
         if (useRealData) {
-          const promises = selectedLocations.map(async (location) => {
+          const promises = stableSelectedLocations.map(async (location) => {
             try {
               // For multi-location comparison, get recent data (last 30 days)
               const endDate = new Date();
@@ -150,7 +164,7 @@ export const useWeatherData = ({
           // Merge data by date for comparison
           const mergedData: Record<string, any> = {};
           results.forEach((locationData, locationIndex) => {
-            const location = selectedLocations[locationIndex];
+            const location = stableSelectedLocations[locationIndex];
             locationData.forEach(point => {
               const dateKey = point.date;
               if (!mergedData[dateKey]) {
@@ -174,7 +188,7 @@ export const useWeatherData = ({
           weatherData = Object.values(mergedData) as WeatherDataPoint[];
         } else {
           // Use mock data for multi-location comparison
-          weatherData = generateSameDateHistoricalData(selectedLocations[0], targetDate, 30);
+          weatherData = generateSameDateHistoricalData(stableSelectedLocations[0], targetDate, 30);
         }
       }
 
@@ -209,14 +223,14 @@ export const useWeatherData = ({
       // Fallback to mock data on final error
       if (useRealData) {
         console.warn('Falling back to mock data after retries failed');
-        const fallbackLocation = selectedLocations.length > 0 ? selectedLocations[0] : defaultLocation;
+        const fallbackLocation = stableSelectedLocations.length > 0 ? stableSelectedLocations[0] : defaultLocation;
         const fallbackData = generateSameDateHistoricalData(fallbackLocation, targetDate, years);
         setData(fallbackData);
       }
     } finally {
       setLoading(false);
     }
-  }, [useRealData, selectedLocations, targetDate, years, defaultLocation]);
+  }, [useRealData, stableSelectedLocations, targetDate, years, defaultLocation]);
   
   // 清理函数，组件卸载时取消请求
   useEffect(() => {
@@ -230,15 +244,15 @@ export const useWeatherData = ({
   // 使用稳定的依赖数组避免无限循环
   const stableDeps = useMemo(() => ({
     useRealData,
-    selectedLocations: JSON.stringify(selectedLocations.map(loc => ({ id: loc.id, name: loc.name }))),
+    selectedLocationsHash: JSON.stringify(stableSelectedLocations.map(loc => ({ id: loc.id, name: loc.name }))),
     targetDate: targetDate.toISOString().split('T')[0], // 只取日期部分
     years
-  }), [useRealData, selectedLocations, targetDate, years]);
+  }), [useRealData, stableSelectedLocations, targetDate, years]);
   
   useEffect(() => {
     fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stableDeps.useRealData, stableDeps.selectedLocations, stableDeps.targetDate, stableDeps.years]);
+  }, [stableDeps.useRealData, stableDeps.selectedLocationsHash, stableDeps.targetDate, stableDeps.years]);
 
   const refetch = useCallback(() => {
     retryCountRef.current = 0; // 重置重试计数
