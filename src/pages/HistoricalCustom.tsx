@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { openMeteoService } from '../services/openMeteoWeather';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import HeatIslandWarning from '../components/common/HeatIslandWarning';
 import { useLocationStore } from '../store/locationStore';
 import { useHistoricalPageTitle } from '../hooks/usePageTitle';
 // 移除不需要的date-fns imports
@@ -420,6 +421,9 @@ const HistoricalCustom: React.FC = () => {
           </p>
         </div>
       )}
+
+      {/* 城市热岛效应说明 */}
+      {currentLocation && <HeatIslandWarning />}
     </div>
   );
 };

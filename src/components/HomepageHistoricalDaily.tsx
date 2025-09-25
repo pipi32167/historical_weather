@@ -7,6 +7,7 @@ import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
 import { QuickLocationSelector } from './common/QuickLocationSelector';
 import { YearRangeSelector } from './common/YearRangeSelector';
+import HeatIslandWarning from './common/HeatIslandWarning';
 import HourlyForecast from './HourlyForecast';
 import { useYearRangeStore } from '../store/yearRangeStore';
 import { useLocationStore } from '../store/locationStore';
@@ -871,6 +872,9 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
             </p>
           </div>
         )}
+
+        {/* 城市热岛效应说明 */}
+        {activeLocation && <HeatIslandWarning />}
       </div>
     </div>
   );

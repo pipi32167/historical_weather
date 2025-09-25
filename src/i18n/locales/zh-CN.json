@@ -583,6 +583,24 @@
       "supportAnyLocationQuery": "支持任意地点查询",
       "professionalDataVisualization": "专业数据可视化",
       "openMeteoAuthoritativeDataSource": "Open-Meteo权威数据源"
+    },
+    "heatIslandWarning": {
+      "title": "城市热岛效应说明",
+      "description": "城市热岛效应可能导致城市地区温度比周围农村地区高2-5°C，这会影响温度数据的解读。",
+      "factors": "影响因素",
+      "factorsList": {
+        "buildings": "建筑密度和混凝土表面",
+        "traffic": "交通和工业活动产生的热量",
+        "vegetation": "绿地覆盖率较低",
+        "population": "人口密度和能源消耗"
+      },
+      "implications": "数据解读建议",
+      "implicationsList": {
+        "comparison": "比较不同城市数据时需考虑城市规模差异",
+        "trend": "关注长期趋势变化而非绝对温度值",
+        "location": "市中心和郊区温度可能存在显著差异"
+      },
+      "learnMore": "了解更多关于城市热岛效应的信息"
     }
   }
 }

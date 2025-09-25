@@ -7,6 +7,7 @@ import MonthlyTemperatureChart from '../components/Charts/MonthlyTemperatureChar
 import HistoricalTemperatureChart from '../components/Charts/HistoricalTemperatureChart';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import HeatIslandWarning from '../components/common/HeatIslandWarning';
 import { YearRangeSelector } from '../components/common/YearRangeSelector';
 import { useYearRangeStore } from '../store/yearRangeStore';
 import { useLocationStore } from '../store/locationStore';
@@ -571,6 +572,9 @@ const HistoricalYearly: React.FC = () => {
           </p>
         </div>
       )}
+
+      {/* 城市热岛效应说明 */}
+      {currentLocation && <HeatIslandWarning />}
     </div>
   );
 };
