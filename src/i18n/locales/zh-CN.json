@@ -48,6 +48,7 @@
     "permission": "需要位置权限",
     "search": "搜索城市",
     "recent": "最近使用",
+    "back": "返回",
     "favorites": "收藏夹",
     "addToFavorites": "添加到收藏",
     "removeFromFavorites": "从收藏中移除",
@@ -419,7 +420,11 @@
     "monthlyDescription": "分析指定月份在多年中的温度变化趋势",
     "quarterlyDescription": "了解季节性气候特征和长期变化规律",
     "yearlyDescription": "分析多年的年度温度变化趋势",
-    "customDescription": "输入多个自定义日期，分析这些日期的天气数据"
+    "customDescription": "输入多个自定义日期，分析这些日期的天气数据",
+    "selectForCity": "为{{city}}选择分析类型",
+    "default": "默认",
+    "confirm": "确认并查看",
+    "change": "切换分析类型"
   },
   "charts": {
     "yearlyRecordHigh": "年最高温",

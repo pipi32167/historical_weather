@@ -68,14 +68,20 @@ const HistoricalCustom: React.FC = () => {
             'auto'
           );
 
-          if (response && response.daily && response.daily.time.length > 0) {
+          if (response?.daily?.time?.length > 0 && 
+              response.daily.temperature_2m_max && response.daily.temperature_2m_min &&
+              response.daily.temperature_2m_max[0] != null && response.daily.temperature_2m_min[0] != null) {
+            const maxTemp = response.daily.temperature_2m_max[0];
+            const minTemp = response.daily.temperature_2m_min[0];
+            const precipitation = response.daily.precipitation_sum?.[0];
+            
             const dayData = {
               date: dateStr,
               formattedDate: dateStr, // 直接使用YYYY-MM-DD格式
-              maxTemp: Math.round(response.daily.temperature_2m_max[0] * 10) / 10,
-              minTemp: Math.round(response.daily.temperature_2m_min[0] * 10) / 10,
-              avgTemp: Math.round(((response.daily.temperature_2m_max[0] + response.daily.temperature_2m_min[0]) / 2) * 10) / 10,
-              precipitation: response.daily.precipitation_sum ? Math.round(response.daily.precipitation_sum[0] * 10) / 10 : 0
+              maxTemp: Math.round(maxTemp * 10) / 10,
+              minTemp: Math.round(minTemp * 10) / 10,
+              avgTemp: Math.round(((maxTemp + minTemp) / 2) * 10) / 10,
+              precipitation: precipitation ? Math.round(precipitation * 10) / 10 : 0
             };
             results.push(dayData);
           }

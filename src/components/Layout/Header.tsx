@@ -11,8 +11,7 @@ import { useAppStore } from '../../store/appStore';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 import TemperatureUnitSwitcher from '../common/TemperatureUnitSwitcher';
 import Logo from '../common/Logo';
-import CityDropdown from '../common/CityDropdown';
-import AnalysisTypeDropdown from '../common/AnalysisTypeDropdown';
+import CityDropdownWithAnalysis from '../common/CityDropdownWithAnalysis';
 import clsx from 'clsx';
 
 interface HeaderProps {
@@ -65,11 +64,9 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
           {t('navigation.home')}
         </button>
 
-        {/* Cities Dropdown */}
-        <CityDropdown />
+        {/* Cities and Analysis Dropdown */}
+        <CityDropdownWithAnalysis />
 
-        {/* Analysis Type Dropdown */}
-        <AnalysisTypeDropdown />
 
         {/* Map */}
         {/* <button
@@ -111,10 +108,8 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         >
           <span className="text-xs font-medium">{t('navigation.home')}</span>
         </button>
-        <CityDropdown />
+        <CityDropdownWithAnalysis />
 
-        {/* Mobile Analysis Type Dropdown */}
-        <AnalysisTypeDropdown />
 
         <button
           onClick={() => navigate('/map')}

@@ -173,10 +173,19 @@ export class WeatherAggregateService {
           }
           
           dataByYear[year].time.push(time);
-          dataByYear[year].temperature_2m_max.push(rangeData.daily.temperature_2m_max[index]);
-          dataByYear[year].temperature_2m_min.push(rangeData.daily.temperature_2m_min[index]);
+          const maxTemp = rangeData.daily.temperature_2m_max[index];
+          const minTemp = rangeData.daily.temperature_2m_min[index];
+          if (maxTemp != null) {
+            dataByYear[year].temperature_2m_max.push(maxTemp);
+          }
+          if (minTemp != null) {
+            dataByYear[year].temperature_2m_min.push(minTemp);
+          }
           if (rangeData.daily.precipitation_sum) {
-            dataByYear[year].precipitation_sum!.push(rangeData.daily.precipitation_sum[index]);
+            const precip = rangeData.daily.precipitation_sum[index];
+            if (precip != null) {
+              dataByYear[year].precipitation_sum!.push(precip);
+            }
           }
         }
       });
@@ -388,22 +397,27 @@ export class WeatherAggregateService {
       ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum']
     );
 
-    return historicalData.daily.time.map((time, index) => ({
-      timestamp: new Date(time).toISOString(),
-      date: time,
-      temperature: (historicalData.daily.temperature_2m_max[index] + historicalData.daily.temperature_2m_min[index]) / 2,
-      temperatureMax: historicalData.daily.temperature_2m_max[index],
-      temperatureMin: historicalData.daily.temperature_2m_min[index],
-      humidity: 50,
-      pressure: 1013.25,
-      windSpeed: 0,
-      windDirection: 0,
-      precipitation: historicalData.daily.precipitation_sum?.[index] || 0,
-      weatherCondition: '历史数据',
-      location: location.name,
-      latitude: location.latitude,
-      longitude: location.longitude,
-    }));
+    return historicalData.daily.time.map((time, index) => {
+      const maxTemp = historicalData.daily.temperature_2m_max[index];
+      const minTemp = historicalData.daily.temperature_2m_min[index];
+      
+      return {
+        timestamp: new Date(time).toISOString(),
+        date: time,
+        temperature: maxTemp != null && minTemp != null ? (maxTemp + minTemp) / 2 : 0,
+        temperatureMax: maxTemp ?? 0,
+        temperatureMin: minTemp ?? 0,
+        humidity: 50,
+        pressure: 1013.25,
+        windSpeed: 0,
+        windDirection: 0,
+        precipitation: historicalData.daily.precipitation_sum?.[index] || 0,
+        weatherCondition: '历史数据',
+        location: location.name,
+        latitude: location.latitude,
+        longitude: location.longitude,
+      };
+    });
   }
 
   /**

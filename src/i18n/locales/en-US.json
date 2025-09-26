@@ -48,6 +48,7 @@
     "permission": "Location permission required",
     "search": "Search cities",
     "recent": "Recent",
+    "back": "Back",
     "favorites": "Favorites",
     "addToFavorites": "Add to favorites",
     "removeFromFavorites": "Remove from favorites",
@@ -419,7 +420,11 @@
     "monthlyDescription": "Analyze temperature trends of specific months across multiple years",
     "quarterlyDescription": "Understand seasonal climate characteristics and long-term changes",
     "yearlyDescription": "Analyze annual temperature trends across multiple years",
-    "customDescription": "Input multiple custom dates to analyze weather data for those specific dates"
+    "customDescription": "Input multiple custom dates to analyze weather data for those specific dates",
+    "selectForCity": "Select analysis type for {{city}}",
+    "default": "Default",
+    "confirm": "Confirm & View",
+    "change": "Change Analysis Type"
   },
   "charts": {
     "yearlyRecordHigh": "Annual Record High",
