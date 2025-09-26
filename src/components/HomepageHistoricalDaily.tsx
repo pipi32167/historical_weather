@@ -5,7 +5,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { unifiedHistoricalService } from '../services/unifiedHistoricalService';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
-import { QuickLocationSelector } from './common/QuickLocationSelector';
 import { YearRangeSelector } from './common/YearRangeSelector';
 import HeatIslandWarning from './common/HeatIslandWarning';
 import HourlyForecast from './HourlyForecast';
@@ -819,21 +818,6 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
       )}
 
       {/* 3. 控制面板 */}
-
-      {/* Location Selector - 仅在首页显示 */}
-      {!overrideLocation && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-          <QuickLocationSelector
-            compact={false}
-            defaultCollapsed={true}
-            onLocationChange={() => {
-              setIsUsingCurrentLocation(false);
-              setLocationInitialized(true);
-              // Data will be loaded automatically by the useEffect above
-            }}
-          />
-        </div>
-      )}
 
       {/* Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">

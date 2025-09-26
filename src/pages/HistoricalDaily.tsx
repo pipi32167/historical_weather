@@ -5,7 +5,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { unifiedHistoricalService } from '../services/unifiedHistoricalService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
-import { QuickLocationSelector } from '../components/common/QuickLocationSelector';
 import { YearRangeSelector } from '../components/common/YearRangeSelector';
 import HourlyForecast from '../components/HourlyForecast';
 import { useYearRangeStore } from '../store/yearRangeStore';
@@ -429,11 +428,6 @@ const HistoricalDaily: React.FC = () => {
       )}
 
       {/* 3. 控制面板 */}
-
-      {/* Location Selector */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        <QuickLocationSelector compact={false} onLocationChange={loadDailyHistoricalData} />
-      </div>
 
       {/* Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
