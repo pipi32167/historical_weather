@@ -6,7 +6,8 @@ import {
   Clock, 
   BarChart3, 
   LineChart,
-  Settings
+  Settings,
+  CalendarDays
 } from 'lucide-react';
 
 interface AnalysisTypeSwitcherProps {
@@ -38,6 +39,14 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       icon: Calendar,
       description: t('analysisTypes.dailyDescription'),
       color: 'blue'
+    },
+    {
+      id: 'weekly',
+      name: t('navigation.historical.weekly'),
+      shortName: t('analysisTypes.weeklyShort'),
+      icon: CalendarDays,
+      description: t('analysisTypes.weeklyDescription'),
+      color: 'teal'
     },
     {
       id: 'monthly',
@@ -91,6 +100,9 @@ export const AnalysisTypeSwitcher: React.FC<AnalysisTypeSwitcherProps> = ({
       green: isActive
         ? 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/20 dark:text-green-400 dark:border-green-700'
         : 'text-green-600 hover:bg-green-50 border-green-200 dark:text-green-400 dark:hover:bg-green-900/10 dark:border-green-800',
+      teal: isActive
+        ? 'bg-teal-100 text-teal-700 border-teal-300 dark:bg-teal-900/20 dark:text-teal-400 dark:border-teal-700'
+        : 'text-teal-600 hover:bg-teal-50 border-teal-200 dark:text-teal-400 dark:hover:bg-teal-900/10 dark:border-teal-800',
       orange: isActive
         ? 'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-700'
         : 'text-orange-600 hover:bg-orange-50 border-orange-200 dark:text-orange-400 dark:hover:bg-orange-900/10 dark:border-orange-800',

@@ -6,7 +6,8 @@ import {
   BarChart3, 
   LineChart,
   Settings,
-  ChevronDown
+  ChevronDown,
+  CalendarDays
 } from 'lucide-react';
 import { useAnalysisStore, AnalysisType } from '../../store/analysisStore';
 import clsx from 'clsx';
@@ -36,6 +37,13 @@ const AnalysisTypeDropdown: React.FC<AnalysisTypeDropdownProps> = ({ className =
       icon: Calendar,
       description: t('analysisTypes.dailyDescription'),
       color: 'blue'
+    },
+    {
+      id: 'weekly',
+      name: t('navigation.historical.weekly'),
+      icon: CalendarDays,
+      description: t('analysisTypes.weeklyDescription'),
+      color: 'teal'
     },
     {
       id: 'monthly',

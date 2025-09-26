@@ -20,6 +20,7 @@ import { getWeatherConditionKey } from '../utils/weatherUtils';
 import { Location } from '../types/weather';
 import { useTemperatureDisplay } from '../hooks/useTemperatureDisplay';
 import { useAnalysisStore } from '../store/analysisStore';
+import HistoricalWeekly from '../pages/HistoricalWeekly';
 import HistoricalMonthly from '../pages/HistoricalMonthly';
 import HistoricalQuarterly from '../pages/HistoricalQuarterly';
 import HistoricalYearly from '../pages/HistoricalYearly';
@@ -587,7 +588,9 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
 
   // 渲染分析类型对应的组件
   const renderAnalysisView = () => {
-    if (currentAnalysisType === 'monthly') {
+    if (currentAnalysisType === 'weekly') {
+      return <HistoricalWeekly />;
+    } else if (currentAnalysisType === 'monthly') {
       return <HistoricalMonthly />;
     } else if (currentAnalysisType === 'quarterly') {
       return <HistoricalQuarterly />;

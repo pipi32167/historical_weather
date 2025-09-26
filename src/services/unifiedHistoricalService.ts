@@ -191,6 +191,63 @@ class UnifiedHistoricalService {
   }
 
   /**
+   * 过滤指定周的历史数据
+   * @param historicalData 完整的历史数据
+   * @param weekStart 周开始日期
+   * @param weekEnd 周结束日期
+   */
+  filterByWeek(historicalData: any, weekStart: Date, weekEnd: Date) {
+    if (!historicalData?.daily?.time) {
+      return [];
+    }
+
+    const results: Array<{
+      date: string;
+      maxTemp: number;
+      minTemp: number;
+      avgTemp: number;
+      precipitation: number;
+      windSpeed: number;
+      weatherCode: number;
+    }> = [];
+
+    const startTime = weekStart.getTime();
+    const endTime = weekEnd.getTime();
+
+    historicalData.daily.time.forEach((time: string, index: number) => {
+      const date = new Date(time);
+      const dateTime = date.getTime();
+
+      if (dateTime >= startTime && dateTime <= endTime) {
+        const maxTemp = historicalData.daily.temperature_2m_max[index];
+        const minTemp = historicalData.daily.temperature_2m_min[index];
+
+        // 验证数据有效性
+        if (maxTemp != null && minTemp != null &&
+          !isNaN(maxTemp) && !isNaN(minTemp) &&
+          maxTemp >= -60 && maxTemp <= 60 &&
+          minTemp >= -60 && minTemp <= 60) {
+
+          const windSpeed = historicalData.daily.windspeed_10m_max?.[index] || 0;
+          const weatherCode = historicalData.daily.weather_code?.[index] || 0;
+
+          results.push({
+            date: time,
+            maxTemp: Math.round(maxTemp * 10) / 10,
+            minTemp: Math.round(minTemp * 10) / 10,
+            avgTemp: Math.round((maxTemp + minTemp) / 2 * 10) / 10,
+            precipitation: Math.round((historicalData.daily.precipitation_sum?.[index] || 0) * 10) / 10,
+            windSpeed: Math.round(windSpeed * 10) / 10,
+            weatherCode: weatherCode
+          });
+        }
+      }
+    });
+
+    return results;
+  }
+
+  /**
    * 过滤指定月份的历史数据
    * @param historicalData 完整的历史数据
    * @param targetMonth 目标月份 (1-12)

@@ -12,6 +12,7 @@
     "title": {
       "home": "历史气温数据查询 | 专业气温分析平台",
       "daily": "历史同期气温分析 | {{location}}",
+      "weekly": "周同期气温分析 | {{location}}",
       "monthly": "月度气温趋势分析 | {{location}}",
       "quarterly": "季度气温统计分析 | {{location}}",
       "yearly": "年度气温变化分析 | {{location}}",
@@ -34,6 +35,7 @@
     "about": "关于我们",
     "aboutDescription": "了解平台功能和技术架构",
     "historical": {
+      "weekly": "周数据",
       "custom": "自定义日期"
     }
   },
@@ -171,6 +173,8 @@
     "dateRangeDescription": "{{startDate}} 至 {{endDate}}",
     "customDateList": "自定义日期列表",
     "addDate": "添加日期",
+    "weekRange": "周范围",
+    "thisYear": "今年",
     "selectedDates": "已选择日期",
     "dateInputFormat": "格式",
     "validDates": "有效日期",
@@ -266,6 +270,16 @@
     "statisticsSummary": "统计概览",
     "avgMaxTemp": "平均最高温",
     "avgMinTemp": "平均最低温",
+    "recordHigh": "历史最高",
+    "recordLow": "历史最低",
+    "avgPrecipitation": "平均降水",
+    "weekRange": "周范围",
+    "weeklyDescription": "查看过去多年同一周的天气数据",
+    "weeklyStatsSummary": "历史同期周数据统计",
+    "weeklyTemperatureTrend": "历史同期周温度趋势",
+    "weeklyHistoricalData": "历史同期周数据记录",
+    "noWeeklyDataForPeriod": "该时间段暂无周数据",
+    "dataPoints": "数据点",
     "detailedData": "详细数据"
   },
   "homepage": {
@@ -395,11 +409,13 @@
     "title": "分析类型",
     "current": "当前",
     "dailyShort": "日",
+    "weeklyShort": "周",
     "monthlyShort": "月",
     "quarterlyShort": "季",
     "yearlyShort": "年",
     "customShort": "自定义",
     "dailyDescription": "查看指定日期在历史年份中的天气表现",
+    "weeklyDescription": "分析指定周在历史年份中的天气数据",
     "monthlyDescription": "分析指定月份在多年中的温度变化趋势",
     "quarterlyDescription": "了解季节性气候特征和长期变化规律",
     "yearlyDescription": "分析多年的年度温度变化趋势",

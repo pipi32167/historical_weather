@@ -12,6 +12,7 @@
     "title": {
       "home": "Historical Temperature Data Query | Professional Weather Analysis Platform",
       "daily": "Daily Historical Temperature Analysis | {{location}}",
+      "weekly": "Weekly Historical Temperature Analysis | {{location}}",
       "monthly": "Monthly Temperature Trend Analysis | {{location}}",
       "quarterly": "Quarterly Temperature Statistics | {{location}}",
       "yearly": "Annual Temperature Change Analysis | {{location}}",
@@ -34,6 +35,7 @@
     "about": "About Us",
     "aboutDescription": "Learn about platform features and technical architecture",
     "historical": {
+      "weekly": "Weekly",
       "custom": "Custom Dates"
     }
   },
@@ -171,6 +173,8 @@
     "dateRangeDescription": "{{startDate}} to {{endDate}}",
     "customDateList": "Custom Date List",
     "addDate": "Add Date",
+    "weekRange": "Week Range",
+    "thisYear": "This Year",
     "selectedDates": "Selected Dates",
     "dateInputFormat": "Format",
     "validDates": "Valid Dates",
@@ -266,6 +270,16 @@
     "statisticsSummary": "Statistics Summary",
     "avgMaxTemp": "Average Max Temp",
     "avgMinTemp": "Average Min Temp",
+    "recordHigh": "Record High",
+    "recordLow": "Record Low",
+    "avgPrecipitation": "Avg Precipitation",
+    "weekRange": "Week Range",
+    "weeklyDescription": "View weather data for the same week across multiple years",
+    "weeklyStatsSummary": "Historical Weekly Statistics",
+    "weeklyTemperatureTrend": "Weekly Temperature Trend",
+    "weeklyHistoricalData": "Historical Weekly Data",
+    "noWeeklyDataForPeriod": "No weekly data available for this period",
+    "dataPoints": "Data Points",
     "detailedData": "Detailed Data"
   },
   "homepage": {
@@ -395,11 +409,13 @@
     "title": "Analysis Type",
     "current": "Current",
     "dailyShort": "Daily",
+    "weeklyShort": "Weekly",
     "monthlyShort": "Monthly",
     "quarterlyShort": "Quarterly",
     "yearlyShort": "Yearly",
     "customShort": "Custom",
     "dailyDescription": "View weather performance for a specific date across historical years",
+    "weeklyDescription": "Analyze weather data for a specific week across historical years",
     "monthlyDescription": "Analyze temperature trends of specific months across multiple years",
     "quarterlyDescription": "Understand seasonal climate characteristics and long-term changes",
     "yearlyDescription": "Analyze annual temperature trends across multiple years",
