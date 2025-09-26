@@ -42,6 +42,7 @@
   "location": {
     "title": "位置选择",
     "current": "当前位置",
+    "currentLocation": "当前位置",
     "detecting": "正在获取位置...",
     "failed": "位置获取失败",
     "timeout": "位置获取超时，使用默认位置",
@@ -69,7 +70,7 @@
     "continents": {
       "title": "按地区",
       "asia": "亚洲",
-      "europe": "欧洲", 
+      "europe": "欧洲",
       "americas": "美洲",
       "africa": "非洲",
       "oceania": "大洋洲"
@@ -508,6 +509,7 @@
     "unknown": "未知",
     "unknownLocation": "未知位置",
     "userLocation": "用户位置",
+    "currentLocation": "当前位置",
     "searchLocation": "搜索位置",
     "detecting": "定位中...",
     "gettingLocation": "正在获取您的位置...",
@@ -541,7 +543,9 @@
     "networkError": "网络连接已断开",
     "networkSlow": "网络连接较慢",
     "cacheNotice": "应用将使用缓存数据，连接恢复后自动更新",
-    "slowLoadingNotice": "数据加载可能需要更长时间"
+    "slowLoadingNotice": "数据加载可能需要更长时间",
+    "cancel": "取消",
+    "confirm": "确认"
   },
   "notFound": {
     "title": "页面未找到",
@@ -681,9 +685,5 @@
     "weatherDataError": "无法获取该位置的天气数据",
     "historicalDescription": "{{date}} 的历史天气数据",
     "noWeatherData": "该位置暂无历史天气数据"
-  },
-  "common": {
-    "cancel": "取消",
-    "confirm": "确认"
   }
 }

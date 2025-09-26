@@ -42,6 +42,7 @@
   "location": {
     "title": "Location Selection",
     "current": "Current Location",
+    "currentLocation": "Current Location",
     "detecting": "Detecting location...",
     "failed": "Location detection failed",
     "timeout": "Location detection timeout, using default location",
@@ -70,7 +71,7 @@
       "title": "By Region",
       "asia": "Asia",
       "europe": "Europe",
-      "americas": "Americas", 
+      "americas": "Americas",
       "africa": "Africa",
       "oceania": "Oceania"
     },
@@ -508,6 +509,7 @@
     "unknown": "Unknown",
     "unknownLocation": "Unknown Location",
     "userLocation": "User Location",
+    "currentLocation": "Current Location",
     "searchLocation": "Search Location",
     "detecting": "Locating...",
     "gettingLocation": "Getting your location...",
@@ -541,7 +543,9 @@
     "networkError": "Network connection lost",
     "networkSlow": "Network connection is slow",
     "cacheNotice": "App will use cached data, will update automatically when connection is restored",
-    "slowLoadingNotice": "Data loading may take longer"
+    "slowLoadingNotice": "Data loading may take longer",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "notFound": {
     "title": "Page Not Found",
@@ -681,9 +685,5 @@
     "weatherDataError": "Unable to get weather data for this location",
     "historicalDescription": "Historical weather data for {{date}}",
     "noWeatherData": "No historical weather data available for this location"
-  },
-  "common": {
-    "cancel": "Cancel",
-    "confirm": "Confirm"
   }
 }
