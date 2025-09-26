@@ -13,7 +13,12 @@ const LanguageSwitcher: React.FC = () => {
   const currentLanguage = i18n.language;
 
   const changeLanguage = (langCode: string) => {
+    // Change language and automatically save to localStorage
+    // This preference will persist across page refreshes
     i18n.changeLanguage(langCode);
+    
+    // Explicitly save to localStorage for extra reliability
+    localStorage.setItem('i18nextLng', langCode);
   };
 
   // Get display name for current language
