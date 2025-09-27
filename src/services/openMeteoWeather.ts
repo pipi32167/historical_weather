@@ -5,6 +5,7 @@
  */
 
 import { cache, CACHE_TTL, cacheKeys } from '../utils/cache';
+import { isMockModeEnabled, loadMockData } from '../mock/config';
 
 export interface OpenMeteoLocation {
   id: number;
@@ -48,12 +49,12 @@ export interface OpenMeteoHistoricalData {
   };
   daily: {
     time: string[];
-    temperature_2m_max: number[];
-    temperature_2m_min: number[];
-    temperature_2m_mean?: number[];
-    precipitation_sum?: number[];
-    windspeed_10m_max?: number[];
-    weather_code?: number[];
+    temperature_2m_max: (number | null)[];
+    temperature_2m_min: (number | null)[];
+    temperature_2m_mean?: (number | null)[];
+    precipitation_sum?: (number | null)[];
+    windspeed_10m_max?: (number | null)[];
+    weather_code?: (number | null)[];
   };
 }
 
@@ -87,6 +88,7 @@ const OPEN_METEO_CONFIG = {
   timeout: 10000, // 10秒超时
   retries: 3,
 } as const;
+
 
 /**
  * 网络请求工具函数
@@ -332,7 +334,7 @@ export class OpenMeteoWeatherService {
 
     try {
       const result = await fetchWithRetry<OpenMeteoForecastData>(url);
-      
+
       // 处理逐小时数据
       const hourlyData: HourlyWeatherData[] = [];
       if (result.hourly && result.hourly.time) {
@@ -378,6 +380,20 @@ export class OpenMeteoWeatherService {
     dailyParams: string[] = ['temperature_2m_max', 'temperature_2m_min', 'precipitation_sum', 'windspeed_10m_max', 'weather_code']
   ): Promise<OpenMeteoHistoricalData> {
     console.log('请求历史气温数据:', { latitude, longitude, startDate, endDate, timezone, dailyParams });
+
+    // 检查是否启用mock模式
+    if (isMockModeEnabled()) {
+      console.log('🎭 Mock模式已启用，使用本地mock数据');
+      try {
+        const mockData = await loadMockData();
+        console.log('✅ 成功加载mock数据:', mockData);
+        return mockData;
+      } catch (error) {
+        console.error('❌ Mock数据加载失败，回退到API调用:', error);
+        // 如果mock数据加载失败，继续使用API
+      }
+    }
+
     // 检查缓存
     const cacheKey = cacheKeys.historicalWeather(latitude, longitude, startDate, endDate, dailyParams);
     console.log('生成的缓存键:', cacheKey);

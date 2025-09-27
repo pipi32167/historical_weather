@@ -26,8 +26,8 @@ i18n
   .use(initReactI18next) // Pass the i18n instance to react-i18next
   .init({
     resources,
-    fallbackLng: 'en-US', // Default language
-    lng: 'en-US', // Force initial language
+    fallbackLng: 'zh-CN', // Default language when detection fails
+    // Remove lng to let LanguageDetector work properly
     debug: process.env.NODE_ENV === 'development',
     
     interpolation: {
@@ -35,7 +35,7 @@ i18n
     },
     
     detection: {
-      order: ['localStorage', 'navigator'],
+      order: ['localStorage', 'navigator', 'htmlTag'],
       lookupLocalStorage: 'i18nextLng',
       caches: ['localStorage']
     },

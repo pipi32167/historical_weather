@@ -5,6 +5,13 @@ import { getCityByName, getCityLocalizedName } from '../data/cityMappings';
 import { Location } from '../types/weather';
 import CityHistoricalDaily from '../components/CityHistoricalDaily';
 import NotFound from '../components/NotFound';
+import { useAnalysisStore } from '../store/analysisStore';
+import { useLocationStore } from '../store/locationStore';
+import HistoricalWeekly from './HistoricalWeekly';
+import HistoricalMonthly from './HistoricalMonthly';
+import HistoricalQuarterly from './HistoricalQuarterly';
+import HistoricalYearly from './HistoricalYearly';
+import HistoricalCustom from './HistoricalCustom';
 
 const CityPage: React.FC = () => {
   const { city } = useParams<{ city: string }>();
@@ -12,6 +19,8 @@ const CityPage: React.FC = () => {
   const [currentCity, setCurrentCity] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { currentAnalysisType } = useAnalysisStore();
+  const { setCurrentLocation } = useLocationStore();
 
   useEffect(() => {
     if (!city) {
@@ -25,13 +34,14 @@ const CityPage: React.FC = () => {
     
     if (foundCity) {
       setCurrentCity(foundCity);
+      setCurrentLocation(foundCity); // Update global location store
       setError(null);
     } else {
       setError(`City "${city}" not found`);
     }
     
     setLoading(false);
-  }, [city]);
+  }, [city, setCurrentLocation]);
 
   // 生成城市相关的SEO信息
   const getCitySEOData = (cityData: Location) => {
@@ -198,8 +208,20 @@ const CityPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 历史数据组件 */}
-        <CityHistoricalDaily location={currentCity} />
+        {/* 历史数据组件 - 根据分析类型渲染不同组件 */}
+        {currentAnalysisType === 'weekly' ? (
+          <HistoricalWeekly />
+        ) : currentAnalysisType === 'monthly' ? (
+          <HistoricalMonthly />
+        ) : currentAnalysisType === 'quarterly' ? (
+          <HistoricalQuarterly />
+        ) : currentAnalysisType === 'yearly' ? (
+          <HistoricalYearly />
+        ) : currentAnalysisType === 'custom' ? (
+          <HistoricalCustom />
+        ) : (
+          <CityHistoricalDaily location={currentCity} />
+        )}
 
         {/* SEO内容区域 - 包含目标关键词 */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-custom">

@@ -30,7 +30,7 @@
     "zustand": "^5.0.8"
   },
   "scripts": {
-    "start": "PORT=24587 react-scripts start",
+    "start": "PORT=24587 REACT_APP_USE_MOCK=true NODE_ENV=development react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

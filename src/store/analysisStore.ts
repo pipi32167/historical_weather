@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
-export type AnalysisType = 'daily' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
+export type AnalysisType = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
 
 interface AnalysisState {
   currentAnalysisType: AnalysisType;

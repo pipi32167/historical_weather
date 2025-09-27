@@ -12,6 +12,7 @@
     "title": {
       "home": "Historical Temperature Data Query | Professional Weather Analysis Platform",
       "daily": "Daily Historical Temperature Analysis | {{location}}",
+      "weekly": "Weekly Historical Temperature Analysis | {{location}}",
       "monthly": "Monthly Temperature Trend Analysis | {{location}}",
       "quarterly": "Quarterly Temperature Statistics | {{location}}",
       "yearly": "Annual Temperature Change Analysis | {{location}}",
@@ -34,18 +35,21 @@
     "about": "About Us",
     "aboutDescription": "Learn about platform features and technical architecture",
     "historical": {
+      "weekly": "Weekly",
       "custom": "Custom Dates"
     }
   },
   "location": {
     "title": "Location Selection",
     "current": "Current Location",
+    "currentLocation": "Current Location",
     "detecting": "Detecting location...",
     "failed": "Location detection failed",
     "timeout": "Location detection timeout, using default location",
     "permission": "Location permission required",
     "search": "Search cities",
     "recent": "Recent",
+    "back": "Back",
     "favorites": "Favorites",
     "addToFavorites": "Add to favorites",
     "removeFromFavorites": "Remove from favorites",
@@ -67,7 +71,7 @@
       "title": "By Region",
       "asia": "Asia",
       "europe": "Europe",
-      "americas": "Americas", 
+      "americas": "Americas",
       "africa": "Africa",
       "oceania": "Oceania"
     },
@@ -171,6 +175,8 @@
     "dateRangeDescription": "{{startDate}} to {{endDate}}",
     "customDateList": "Custom Date List",
     "addDate": "Add Date",
+    "weekRange": "Week Range",
+    "thisYear": "This Year",
     "selectedDates": "Selected Dates",
     "dateInputFormat": "Format",
     "validDates": "Valid Dates",
@@ -266,6 +272,16 @@
     "statisticsSummary": "Statistics Summary",
     "avgMaxTemp": "Average Max Temp",
     "avgMinTemp": "Average Min Temp",
+    "recordHigh": "Record High",
+    "recordLow": "Record Low",
+    "avgPrecipitation": "Avg Precipitation",
+    "weekRange": "Week Range",
+    "weeklyDescription": "View weather data for the same week across multiple years",
+    "weeklyStatsSummary": "Historical Weekly Statistics",
+    "weeklyTemperatureTrend": "Weekly Temperature Trend",
+    "weeklyHistoricalData": "Historical Weekly Data",
+    "noWeeklyDataForPeriod": "No weekly data available for this period",
+    "dataPoints": "Data Points",
     "detailedData": "Detailed Data"
   },
   "homepage": {
@@ -395,15 +411,21 @@
     "title": "Analysis Type",
     "current": "Current",
     "dailyShort": "Daily",
+    "weeklyShort": "Weekly",
     "monthlyShort": "Monthly",
     "quarterlyShort": "Quarterly",
     "yearlyShort": "Yearly",
     "customShort": "Custom",
     "dailyDescription": "View weather performance for a specific date across historical years",
+    "weeklyDescription": "Analyze weather data for a specific week across historical years",
     "monthlyDescription": "Analyze temperature trends of specific months across multiple years",
     "quarterlyDescription": "Understand seasonal climate characteristics and long-term changes",
     "yearlyDescription": "Analyze annual temperature trends across multiple years",
-    "customDescription": "Input multiple custom dates to analyze weather data for those specific dates"
+    "customDescription": "Input multiple custom dates to analyze weather data for those specific dates",
+    "selectForCity": "Select analysis type for {{city}}",
+    "default": "Default",
+    "confirm": "Confirm & View",
+    "change": "Change Analysis Type"
   },
   "charts": {
     "yearlyRecordHigh": "Annual Record High",
@@ -487,6 +509,7 @@
     "unknown": "Unknown",
     "unknownLocation": "Unknown Location",
     "userLocation": "User Location",
+    "currentLocation": "Current Location",
     "searchLocation": "Search Location",
     "detecting": "Locating...",
     "gettingLocation": "Getting your location...",
@@ -520,7 +543,9 @@
     "networkError": "Network connection lost",
     "networkSlow": "Network connection is slow",
     "cacheNotice": "App will use cached data, will update automatically when connection is restored",
-    "slowLoadingNotice": "Data loading may take longer"
+    "slowLoadingNotice": "Data loading may take longer",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "notFound": {
     "title": "Page Not Found",
@@ -660,9 +685,5 @@
     "weatherDataError": "Unable to get weather data for this location",
     "historicalDescription": "Historical weather data for {{date}}",
     "noWeatherData": "No historical weather data available for this location"
-  },
-  "common": {
-    "cancel": "Cancel",
-    "confirm": "Confirm"
   }
 }

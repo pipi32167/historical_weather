@@ -65,7 +65,7 @@ export const useHomePageTitle = () => {
  * 快捷方法：设置历史数据页面标题
  */
 export const useHistoricalPageTitle = (
-  type: 'daily' | 'monthly' | 'quarterly' | 'yearly' | 'custom',
+  type: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom',
   location?: string
 ) => {
   usePageTitle({ 
