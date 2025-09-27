@@ -15,7 +15,7 @@ interface YearRangeState {
 const getDefaultYearRange = (): YearRange => {
   const currentYear = new Date().getFullYear();
   return {
-    start: currentYear - 50,
+    start: currentYear - 20,
     end: currentYear
   };
 };
