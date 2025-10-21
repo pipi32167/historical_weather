@@ -1,7 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Globe, Search, MapPin, ChevronDown } from 'lucide-react';
+import {
+  Globe,
+  Search,
+  MapPin,
+  ChevronDown
+} from 'lucide-react';
 import { getCitiesByRegion, getCityLocalizedName } from '../../data/cityMappings';
 import { openMeteoService, OpenMeteoLocation } from '../../services/openMeteoWeather';
 import { useLocationStore } from '../../store/locationStore';
@@ -14,8 +19,8 @@ interface CityDropdownProps {
 const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { setCurrentLocation } = useLocationStore();
+  const { currentLocation, setCurrentLocation } = useLocationStore();
+
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<OpenMeteoLocation[]>([]);
@@ -26,10 +31,9 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 按大洲分类的城市数据
+  // Cities by region
   const citiesByRegion = getCitiesByRegion();
-
-  // 大洲配置
+  
   const continents = [
     {
       key: 'asia',
@@ -63,7 +67,7 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
     }
   ].filter(continent => continent.cities.length > 0);
 
-  // 防抖搜索
+  // Debounce search
   useEffect(() => {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
@@ -85,11 +89,10 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
     };
   }, [searchQuery, activeTab]);
 
-  // 搜索城市
+  // Search cities
   const searchCities = async (query: string) => {
     setIsSearching(true);
     try {
-      // 根据当前语言设置搜索语言参数
       const language = i18n.language.startsWith('zh') ? 'zh' : 'en';
       const results = await openMeteoService.geocodeCity(query, language, 10);
       setSearchResults(results);
@@ -101,18 +104,16 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
     }
   };
 
-  // 处理城市选择
+  // Handle city selection - directly navigate to city
   const handleCitySelect = (city: Location | OpenMeteoLocation) => {
-    let selectedLocation: Location;
+    let finalLocation: Location;
 
-    // 检查是否是cityMappings中的城市（有id字段且在预定义城市列表中）
+    // Convert to Location if needed
     if ('id' in city && typeof city.id === 'string' && !city.id.startsWith('search-')) {
-      // cityMappings中的Location
-      selectedLocation = city as Location;
+      finalLocation = city as Location;
     } else {
-      // 搜索结果中的OpenMeteoLocation
       const openMeteoCity = city as OpenMeteoLocation;
-      selectedLocation = {
+      finalLocation = {
         id: `search-${openMeteoCity.latitude}-${openMeteoCity.longitude}`,
         name: openMeteoCity.name,
         latitude: openMeteoCity.latitude,
@@ -122,23 +123,35 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
       };
     }
 
-    // 更新当前位置到store（所有页面都需要）
-    setCurrentLocation(selectedLocation);
+    // Update location store
+    setCurrentLocation(finalLocation);
 
-    // 根据当前路由决定是否跳转
-    // 如果在首页或城市页面，且选择的是预定义城市，则跳转到城市页面
-    // 如果已经在分析页面，只更新位置，不跳转
-    if ((location.pathname === '/' || location.pathname.startsWith('/city/')) && 'id' in city && typeof city.id === 'string' && !city.id.startsWith('search-')) {
-      navigate(`/city/${selectedLocation.id}`);
+    // Navigate based on selected city
+    if ('id' in city && typeof city.id === 'string' && !city.id.startsWith('search-') && city.id !== 'current-location') {
+      // Using a predefined city ID (but not current-location)
+      navigate(`/city/${finalLocation.id}`);
+    } else {
+      // Using current location or search result - go to home page
+      navigate('/');
     }
-    // 其他情况（在分析页面或搜索结果）：保持当前页面，数据会自动更新
 
+    // Reset state
     setIsOpen(false);
     setSearchQuery('');
     setSearchResults([]);
   };
 
-  // 点击外部关闭和键盘处理
+  // Get city display name
+  const getCityDisplayName = (city: Location | OpenMeteoLocation) => {
+    if ('id' in city && typeof city.id === 'string' && !city.id.startsWith('search-')) {
+      return getCityLocalizedName(city as Location, t);
+    } else {
+      const openMeteoCity = city as OpenMeteoLocation;
+      return openMeteoCity.name;
+    }
+  };
+
+  // Click outside handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -167,7 +180,7 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
-      {/* 触发按钮 */}
+      {/* Trigger button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-primary hover:bg-secondary hover:text-primary transition-colors duration-200"
@@ -175,136 +188,151 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
         aria-haspopup="true"
       >
         <Globe className="h-4 w-4" />
-        <span className="hidden lg:inline">{t('navigation.cities')}</span>
+        <span className="hidden lg:inline">
+          {currentLocation ? getCityDisplayName(currentLocation) : t('navigation.cities')}
+        </span>
         <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* 下拉菜单 */}
+      {/* Dropdown menu */}
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-primary border border-custom rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
-          {/* 标签页头部 */}
-          <div className="border-b border-custom">
-            <div className="flex">
-              <button
-                onClick={() => {
-                  setActiveTab('continents');
-                  setSearchQuery('');
-                  setSearchResults([]);
-                }}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'continents'
-                    ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50 dark:bg-primary-900/20'
-                    : 'text-secondary hover:text-primary hover:bg-secondary'
-                  }`}
-              >
-                <div className="flex items-center justify-center space-x-2">
-                  <Globe className="h-4 w-4" />
-                  <span>{t('location.continents.title')}</span>
-                </div>
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('search');
-                  setTimeout(() => searchInputRef.current?.focus(), 100);
-                }}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors duration-200 ${activeTab === 'search'
-                    ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50 dark:bg-primary-900/20'
-                    : 'text-secondary hover:text-primary hover:bg-secondary'
-                  }`}
-              >
-                <div className="flex items-center justify-center space-x-2">
-                  <Search className="h-4 w-4" />
-                  <span>{t('location.search')}</span>
-                </div>
-              </button>
+        <div className="absolute top-full right-0 mt-2 w-80 sm:w-96 bg-primary border border-custom rounded-lg shadow-lg z-50 max-h-[36rem] overflow-visible">
+          {/* Current location indicator */}
+          {currentLocation && (
+            <div className="p-3 border-b border-custom bg-primary-50 dark:bg-primary-900/20">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                <span className="text-sm font-medium text-primary">
+                  {getCityDisplayName(currentLocation)}
+                </span>
+              </div>
             </div>
-          </div>
-
-          {/* 内容区域 */}
-          <div className="max-h-80 overflow-y-auto">
-            {activeTab === 'continents' && (
-              <div className="p-2">
-                {continents.map((continent) => (
-                  <div key={continent.key} className="mb-4 last:mb-0">
-                    <div className="flex items-center space-x-2 px-3 py-2 text-sm font-semibold text-primary bg-secondary rounded-lg mb-2">
-                      <span className="text-lg">{continent.icon}</span>
-                      <span>{t(continent.nameKey)}</span>
-                      <span className="text-xs text-secondary ml-auto">
-                        ({continent.cities.length})
-                      </span>
+          )}
+              {/* Tabs header */}
+              <div className="border-b border-custom">
+                <div className="flex">
+                  <button
+                    onClick={() => {
+                      setActiveTab('continents');
+                      setSearchQuery('');
+                      setSearchResults([]);
+                    }}
+                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors duration-200 ${
+                      activeTab === 'continents'
+                        ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50 dark:bg-primary-900/20'
+                        : 'text-secondary hover:text-primary hover:bg-secondary'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center space-x-2">
+                      <Globe className="h-4 w-4" />
+                      <span>{t('location.continents.title')}</span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                      {continent.cities.map((city) => (
-                        <button
-                          key={city.id}
-                          onClick={() => handleCitySelect(city)}
-                          className="flex items-center space-x-2 px-3 py-2 text-sm text-primary hover:bg-secondary rounded-lg transition-colors duration-150 text-left"
-                        >
-                          <MapPin className="h-3 w-3 text-secondary flex-shrink-0" />
-                          <span className="truncate">{getCityLocalizedName(city, t)}</span>
-                        </button>
-                      ))}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab('search');
+                      setTimeout(() => searchInputRef.current?.focus(), 100);
+                    }}
+                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors duration-200 ${
+                      activeTab === 'search'
+                        ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50 dark:bg-primary-900/20'
+                        : 'text-secondary hover:text-primary hover:bg-secondary'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center space-x-2">
+                      <Search className="h-4 w-4" />
+                      <span>{t('location.search')}</span>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'search' && (
-              <div className="p-4">
-                {/* 搜索输入框 */}
-                <div className="relative mb-4">
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={t('location.searchPlaceholder')}
-                    className="w-full px-4 py-2 pl-10 border border-custom rounded-lg bg-primary text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary" />
-                  {isSearching && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-500 border-t-transparent"></div>
-                    </div>
-                  )}
+                  </button>
                 </div>
+              </div>
 
-                {/* 搜索结果 */}
-                {searchQuery.length >= 2 && (
-                  <div>
-                    {searchResults.length > 0 ? (
-                      <div className="space-y-1">
-                        {searchResults.map((city, index) => (
-                          <button
-                            key={`${city.latitude}-${city.longitude}-${index}`}
-                            onClick={() => handleCitySelect(city)}
-                            className="w-full text-left px-3 py-2 rounded-lg hover:bg-secondary transition-colors duration-150"
-                          >
-                            <div className="font-medium text-primary text-sm">
-                              {city.name}
-                            </div>
-                            <div className="text-xs text-secondary">
-                              {[city.admin1, city.country].filter(Boolean).join(', ')}
-                            </div>
-                          </button>
-                        ))}
+              {/* Content area */}
+              <div className="max-h-80 overflow-y-auto">
+                {activeTab === 'continents' && (
+                  <div className="p-2">
+                    {continents.map((continent) => (
+                      <div key={continent.key} className="mb-4 last:mb-0">
+                        <div className="flex items-center space-x-2 px-3 py-2 text-sm font-semibold text-primary bg-secondary rounded-lg mb-2">
+                          <span className="text-lg">{continent.icon}</span>
+                          <span>{t(continent.nameKey)}</span>
+                          <span className="text-xs text-secondary ml-auto">
+                            ({continent.cities.length})
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                          {continent.cities.map((city) => (
+                            <button
+                              key={city.id}
+                              onClick={() => handleCitySelect(city)}
+                              className="flex items-center space-x-2 px-3 py-2 text-sm text-primary hover:bg-secondary rounded-lg transition-colors duration-150 text-left"
+                            >
+                              <MapPin className="h-3 w-3 text-secondary flex-shrink-0" />
+                              <span className="truncate">{getCityLocalizedName(city, t)}</span>
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    ) : !isSearching ? (
-                      <div className="text-center py-4 text-sm text-secondary">
-                        {t('location.noResults')}
-                      </div>
-                    ) : null}
+                    ))}
                   </div>
                 )}
 
-                {searchQuery.length < 2 && (
-                  <div className="text-center py-4 text-sm text-secondary">
-                    {t('location.searchHint')}
+                {activeTab === 'search' && (
+                  <div className="p-4">
+                    {/* Search input */}
+                    <div className="relative mb-4">
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={t('location.searchPlaceholder')}
+                        className="w-full px-4 py-2 pl-10 border border-custom rounded-lg bg-primary text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondary" />
+                      {isSearching && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-500 border-t-transparent"></div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Search results */}
+                    {searchQuery.length >= 2 && (
+                      <div>
+                        {searchResults.length > 0 ? (
+                          <div className="space-y-1">
+                            {searchResults.map((city, index) => (
+                              <button
+                                key={`${city.latitude}-${city.longitude}-${index}`}
+                                onClick={() => handleCitySelect(city)}
+                                className="w-full text-left px-3 py-2 rounded-lg hover:bg-secondary transition-colors duration-150"
+                              >
+                                <div className="font-medium text-primary text-sm">
+                                  {city.name}
+                                </div>
+                                <div className="text-xs text-secondary">
+                                  {[city.admin1, city.country].filter(Boolean).join(', ')}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        ) : !isSearching ? (
+                          <div className="text-center py-4 text-sm text-secondary">
+                            {t('location.noResults')}
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+
+                    {searchQuery.length < 2 && (
+                      <div className="text-center py-4 text-sm text-secondary">
+                        {t('location.searchHint')}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
         </div>
       )}
     </div>
