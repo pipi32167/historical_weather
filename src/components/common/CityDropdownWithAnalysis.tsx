@@ -214,8 +214,8 @@ const CityDropdownWithAnalysis: React.FC<CityDropdownWithAnalysisProps> = ({ cla
 
     // Navigate based on selected city
     // The analysis type is handled by the global store and components will render accordingly
-    if ('id' in selectedCity && typeof selectedCity.id === 'string' && !selectedCity.id.startsWith('search-')) {
-      // Using a predefined city ID
+    if ('id' in selectedCity && typeof selectedCity.id === 'string' && !selectedCity.id.startsWith('search-') && selectedCity.id !== 'current-location') {
+      // Using a predefined city ID (but not current-location)
       navigate(`/city/${finalLocation.id}`);
     } else {
       // Using current location or search result - go to home page
