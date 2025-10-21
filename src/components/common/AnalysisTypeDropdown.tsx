@@ -1,15 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { 
-  Calendar, 
-  Clock, 
-  BarChart3, 
+import {
+  Calendar,
+  Clock,
+  BarChart3,
   LineChart,
   Settings,
   ChevronDown,
   CalendarDays
 } from 'lucide-react';
 import { useAnalysisStore, AnalysisType } from '../../store/analysisStore';
+import { useLocationStore } from '../../store/locationStore';
 import clsx from 'clsx';
 
 interface AnalysisTypeDropdownProps {
@@ -26,7 +28,10 @@ interface AnalysisTypeConfig {
 
 const AnalysisTypeDropdown: React.FC<AnalysisTypeDropdownProps> = ({ className = '' }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const routerLocation = useRouterLocation();
   const { currentAnalysisType, setAnalysisType } = useAnalysisStore();
+  const { currentLocation } = useLocationStore();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -81,6 +86,22 @@ const AnalysisTypeDropdown: React.FC<AnalysisTypeDropdownProps> = ({ className =
   const handleAnalysisTypeChange = (type: AnalysisType) => {
     setAnalysisType(type);
     setIsOpen(false);
+
+    // Navigate to appropriate route based on current location
+    if (currentLocation) {
+      // Check if we're on a city page or homepage
+      if (currentLocation.id === 'current-location' || currentLocation.id.startsWith('search-')) {
+        // For current location or search results, stay on homepage
+        if (routerLocation.pathname !== '/') {
+          navigate('/');
+        }
+      } else {
+        // For predefined cities, navigate to city page
+        if (!routerLocation.pathname.startsWith('/city/')) {
+          navigate(`/city/${currentLocation.id}`);
+        }
+      }
+    }
   };
 
   // Click outside to close
