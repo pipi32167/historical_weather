@@ -68,9 +68,10 @@ export const useHistoricalPageTitle = (
   type: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom',
   location?: string
 ) => {
-  usePageTitle({ 
-    titleKey: type, 
-    variables: { location: location || '全球' }
+  const { t } = useTranslation();
+  usePageTitle({
+    titleKey: type,
+    variables: { location: location || t('location.global') }
   });
 };
 

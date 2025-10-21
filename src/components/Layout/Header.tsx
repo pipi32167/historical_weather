@@ -5,7 +5,7 @@ import {
   Sun,
   Moon,
   Calendar,
-  Map
+  // Map
 } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import LanguageSwitcher from '../common/LanguageSwitcher';

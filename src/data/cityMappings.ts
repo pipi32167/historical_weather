@@ -2,10 +2,10 @@ import { Location } from '../types/weather';
 
 // 城市名称到位置信息的映射
 export const cityMappings: Record<string, Location> = {
-  // 中国主要城市
+  // 中国主要城市 (Names will be localized via getCityLocalizedName)
   'shanghai': {
     id: 'shanghai',
-    name: '上海',
+    name: 'Shanghai',
     latitude: 31.2304,
     longitude: 121.4737,
     country: 'China',
@@ -13,7 +13,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'beijing': {
     id: 'beijing',
-    name: '北京',
+    name: 'Beijing',
     latitude: 39.9042,
     longitude: 116.4074,
     country: 'China',
@@ -21,7 +21,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'guangzhou': {
     id: 'guangzhou',
-    name: '广州',
+    name: 'Guangzhou',
     latitude: 23.1291,
     longitude: 113.2644,
     country: 'China',
@@ -29,7 +29,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'shenzhen': {
     id: 'shenzhen',
-    name: '深圳',
+    name: 'Shenzhen',
     latitude: 22.5431,
     longitude: 114.0579,
     country: 'China',
@@ -37,7 +37,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'hangzhou': {
     id: 'hangzhou',
-    name: '杭州',
+    name: 'Hangzhou',
     latitude: 30.2741,
     longitude: 120.1551,
     country: 'China',
@@ -45,7 +45,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'nanjing': {
     id: 'nanjing',
-    name: '南京',
+    name: 'Nanjing',
     latitude: 32.0603,
     longitude: 118.7969,
     country: 'China',
@@ -53,7 +53,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'chengdu': {
     id: 'chengdu',
-    name: '成都',
+    name: 'Chengdu',
     latitude: 30.5728,
     longitude: 104.0668,
     country: 'China',
@@ -61,7 +61,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'wuhan': {
     id: 'wuhan',
-    name: '武汉',
+    name: 'Wuhan',
     latitude: 30.5928,
     longitude: 114.3055,
     country: 'China',
@@ -69,7 +69,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'xian': {
     id: 'xian',
-    name: '西安',
+    name: "Xi'an",
     latitude: 34.3416,
     longitude: 108.9398,
     country: 'China',
@@ -77,7 +77,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'tianjin': {
     id: 'tianjin',
-    name: '天津',
+    name: 'Tianjin',
     latitude: 39.3434,
     longitude: 117.3616,
     country: 'China',
@@ -134,17 +134,17 @@ export const cityMappings: Record<string, Location> = {
   },
   'hongkong': {
     id: 'hongkong',
-    name: '香港',
+    name: 'Hong Kong',
     latitude: 22.3193,
     longitude: 114.1694,
     country: 'Hong Kong',
     timezone: 'Asia/Hong_Kong'
   },
-  
-  // 更多中国城市
+
+  // 更多中国城市 (Names will be localized via getCityLocalizedName)
   'qingdao': {
     id: 'qingdao',
-    name: '青岛',
+    name: 'Qingdao',
     latitude: 36.0671,
     longitude: 120.3826,
     country: 'China',
@@ -152,7 +152,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'dalian': {
     id: 'dalian',
-    name: '大连',
+    name: 'Dalian',
     latitude: 38.9140,
     longitude: 121.6147,
     country: 'China',
@@ -160,7 +160,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'xiamen': {
     id: 'xiamen',
-    name: '厦门',
+    name: 'Xiamen',
     latitude: 24.4798,
     longitude: 118.0894,
     country: 'China',
@@ -168,7 +168,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'kunming': {
     id: 'kunming',
-    name: '昆明',
+    name: 'Kunming',
     latitude: 25.0389,
     longitude: 102.7183,
     country: 'China',
@@ -176,7 +176,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'urumqi': {
     id: 'urumqi',
-    name: '乌鲁木齐',
+    name: 'Urumqi',
     latitude: 43.8256,
     longitude: 87.6168,
     country: 'China',
@@ -184,7 +184,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'lhasa': {
     id: 'lhasa',
-    name: '拉萨',
+    name: 'Lhasa',
     latitude: 29.6500,
     longitude: 91.1000,
     country: 'China',
@@ -192,7 +192,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'haikou': {
     id: 'haikou',
-    name: '海口',
+    name: 'Haikou',
     latitude: 20.0458,
     longitude: 110.3417,
     country: 'China',
@@ -200,7 +200,7 @@ export const cityMappings: Record<string, Location> = {
   },
   'sanya': {
     id: 'sanya',
-    name: '三亚',
+    name: 'Sanya',
     latitude: 18.2533,
     longitude: 109.5146,
     country: 'China',

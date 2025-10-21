@@ -15,10 +15,10 @@ interface LocationState {
 
 const defaultLocation: Location = {
   id: 'beijing',
-  name: '北京',
+  name: 'Beijing', // Will be localized via getCityLocalizedName
   latitude: 39.9042,
   longitude: 116.4074,
-  country: '中国',
+  country: 'China',
   timezone: 'Asia/Shanghai'
 };
 

@@ -43,6 +43,7 @@
     "title": "Location Selection",
     "current": "Current Location",
     "currentLocation": "Current Location",
+    "global": "Global",
     "detecting": "Detecting location...",
     "failed": "Location detection failed",
     "timeout": "Location detection timeout, using default location",
