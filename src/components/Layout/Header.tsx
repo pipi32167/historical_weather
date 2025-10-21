@@ -114,14 +114,14 @@ const Header: React.FC<HeaderProps> = ({ className }) => {
         <CityDropdown />
         <AnalysisTypeDropdown />
 
-
+        {/* 
         <button
           onClick={() => navigate('/map')}
           className="p-2 rounded-lg text-primary hover:bg-secondary transition-colors duration-200"
           title={t('navigation.map', { defaultValue: '地图' })}
         >
           <Map className="h-5 w-5" />
-        </button>
+        </button> */}
 
         <button
           onClick={() => navigate('/about')}
