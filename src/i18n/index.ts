@@ -26,7 +26,7 @@ i18n
   .use(initReactI18next) // Pass the i18n instance to react-i18next
   .init({
     resources,
-    fallbackLng: 'zh-CN', // Default language when detection fails
+    fallbackLng: 'en-US', // Default language when detection fails
     // Remove lng to let LanguageDetector work properly
     debug: process.env.NODE_ENV === 'development',
     
