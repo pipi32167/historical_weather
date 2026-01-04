@@ -52,12 +52,13 @@
   - [ ] reddit 
     - [X] r/climatechange 回帖
     - [X] 发帖 [if_you_dont_care_about_global_warming_then_you](https://www.reddit.com/r/climatechange/comments/1np3lb5/if_you_dont_care_about_global_warming_then_you/)
-  - [X] v2ex 
+  - [X] [v2ex](https://www.v2ex.com/t/1160455#reply14) 
+  - [X] [阮一峰的技术周刊](https://www.ruanyifeng.com/blog/2025/10/weekly-issue-368.html)
   - [ ] hacker news
   - [X] 阮一峰的技术周刊
-  - [ ] zhihu
   - [X] [即刻](https://web.okjike.com/u/44BABEF4-F7D6-456F-8BAD-CDB4C2B69EFC/post/68d7ae4b3ea7571a789f6b07)
     - 发到“产品安利社”圈子
+  - [X] [zhihu](https://www.zhihu.com/question/19657749/answer/1961758934789501939)
   - [ ] 思考有哪些定期举办的活动受天气影响较大？
     - 马拉松
     - 越野赛
