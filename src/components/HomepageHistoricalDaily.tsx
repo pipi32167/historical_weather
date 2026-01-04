@@ -751,7 +751,7 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
                   stroke="#ef4444"
                   strokeWidth={2}
                   dot={{ r: 4 }}
-                  name={t('weather.maxTemp')}
+                  name="maxTemp"
                 />
                 <Line
                   type="monotone"
@@ -759,7 +759,7 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
                   stroke="#10b981"
                   strokeWidth={2}
                   dot={{ r: 4 }}
-                  name={t('weather.avgTemp')}
+                  name="avgTemp"
                 />
                 <Line
                   type="monotone"
@@ -767,7 +767,7 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
                   stroke="#3b82f6"
                   strokeWidth={2}
                   dot={{ r: 4 }}
-                  name={t('weather.minTemp')}
+                  name="minTemp"
                 />
               </LineChart>
             </ResponsiveContainer>
