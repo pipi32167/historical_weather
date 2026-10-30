@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { openMeteoService, OpenMeteoLocation } from '../services/openMeteoWeather';
+import { buildPlaceLabel } from '../utils/geocodeSearch';
 import { getCityLocalizedName } from '../data/cityMappings';
 import { Location } from '../types/weather';
 
@@ -155,14 +156,14 @@ const CitySearchBox: React.FC<CitySearchBoxProps> = ({
       parts.push(getCityLocalizedName(location as Location, t));
     } else {
       // 如果是OpenMeteoLocation类型，使用原名称
+      // 带上 admin2（地级市），否则「南京, 云南, 中国」无法区分同名地点
       const openMeteoLocation = location as OpenMeteoLocation;
-      if (openMeteoLocation.name) parts.push(openMeteoLocation.name);
-      
-      if (openMeteoLocation.admin1 && openMeteoLocation.admin1 !== openMeteoLocation.name) {
-        parts.push(openMeteoLocation.admin1);
-      }
-      if (openMeteoLocation.country) parts.push(openMeteoLocation.country);
-      return parts.join(', ');
+      return buildPlaceLabel({
+        name: openMeteoLocation.name,
+        admin2: openMeteoLocation.admin2,
+        admin1: openMeteoLocation.admin1,
+        country: openMeteoLocation.country
+      });
     }
     
     // 如果是Location类型，还需要添加country信息

@@ -5,6 +5,7 @@
  */
 
 import { cache, CACHE_TTL, cacheKeys } from '../utils/cache';
+import { rankGeocodeResults, resolveGeocodeLanguage } from '../utils/geocodeSearch';
 import { isMockModeEnabled, loadMockData } from '../mock/config';
 
 export interface OpenMeteoLocation {
@@ -19,6 +20,8 @@ export interface OpenMeteoLocation {
   admin2?: string;
   timezone: string;
   population?: number;
+  /** GeoNames 要素码（PPLC/PPLA/PPL/MTS/ISL 等），用于结果相关性排序 */
+  feature_code?: string;
 }
 
 export interface OpenMeteoCurrentWeather {
@@ -158,19 +161,28 @@ export class OpenMeteoWeatherService {
     language: string = 'zh',
     count: number = 5
   ): Promise<OpenMeteoLocation[]> {
+    const query = cityName.trim();
+    if (!query) return [];
+
+    // 上游的 language 参数同时决定搜索索引：中文查询用 en 会返回 0 条，
+    // 所以搜索语言要跟随查询词语种，而不是界面语言。
+    const searchLanguage = resolveGeocodeLanguage(query, language);
+
     // 检查缓存
-    const cacheKey = cacheKeys.geocoding(cityName, language);
+    const cacheKey = cacheKeys.geocoding(query, searchLanguage, count);
     const cachedResult = cache.get<OpenMeteoLocation[]>(cacheKey);
 
     if (cachedResult) {
-      console.log('从缓存获取地理编码结果:', cityName);
+      console.log('从缓存获取地理编码结果:', query);
       return cachedResult;
     }
 
+    // 多取一些原始结果：过滤掉同名小地名之后还要凑够 count 条
+    const fetchCount = Math.min(Math.max(count * 3, 10), 100);
     const params = new URLSearchParams({
-      name: cityName,
-      count: count.toString(),
-      language,
+      name: query,
+      count: fetchCount.toString(),
+      language: searchLanguage,
       format: 'json'
     });
 
@@ -178,7 +190,10 @@ export class OpenMeteoWeatherService {
 
     try {
       const response = await fetchWithRetry<{ results?: OpenMeteoLocation[] }>(url);
-      const results = response.results || [];
+
+      // 上游按 GeoNames 原样返回、不做相关性排序，必须在这里清洗：
+      // 否则搜索「南京」会混进云南的两个同名 0 人口村庄。
+      const results = rankGeocodeResults(query, response.results || [], count);
 
       // 缓存结果（地理编码结果相对稳定，缓存时间较长）
       cache.set(cacheKey, results, CACHE_TTL.GEOCODING);

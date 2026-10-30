@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { getCitiesByRegion, getCityLocalizedName } from '../../data/cityMappings';
 import { openMeteoService, OpenMeteoLocation } from '../../services/openMeteoWeather';
+import { buildPlaceLabel } from '../../utils/geocodeSearch';
 import { useLocationStore } from '../../store/locationStore';
 import { Location } from '../../types/weather';
 
@@ -312,7 +313,11 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
                                   {city.name}
                                 </div>
                                 <div className="text-xs text-secondary">
-                                  {[city.admin1, city.country].filter(Boolean).join(', ')}
+                                  {buildPlaceLabel({
+                                    name: city.admin2,
+                                    admin1: city.admin1,
+                                    country: city.country
+                                  })}
                                 </div>
                               </button>
                             ))}

@@ -346,7 +346,9 @@ export const CACHE_TTL = {
  * 生成缓存键的辅助函数
  */
 export const cacheKeys = {
-  geocoding: (cityName: string, language: string) => `geocoding:${cityName}:${language}`,
+  // v2：地理编码结果增加了相关性过滤，键版本号变化可以让旧的错误缓存自然失效
+  geocoding: (cityName: string, language: string, count?: number) =>
+    `geocoding:v2:${cityName}:${language}${typeof count === 'number' ? `:${count}` : ''}`,
   historicalWeather: (lat: number, lon: number, startDate: string, endDate: string, params?: string[]) => 
     `historical:${lat.toFixed(4)},${lon.toFixed(4)}:${startDate}:${endDate}:${params?.sort().join(',') || 'default'}`,
   currentWeather: (lat: number, lon: number) => `current:${lat.toFixed(4)},${lon.toFixed(4)}`,
