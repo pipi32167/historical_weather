@@ -32,6 +32,11 @@ npm run build
 # 测试（CI 模式）
 npm test -- --watchAll=false
 
+# 重新生成国内行政区离线索引（src/data/chinaDistricts.json）
+#   数据源为阿里 DataV，会限流（403），被限时用 --from-raw 传已保存的原始行
+npm run data:china
+# npm run data:china -- --from-raw /path/to/rows.json
+
 # 用真实 API 调试：package.json 里内联的 REACT_APP_USE_MOCK=true 会覆盖 .env，必须绕过该脚本
 PORT=24587 REACT_APP_USE_MOCK=false npx react-scripts start
 ```
@@ -40,6 +45,7 @@ PORT=24587 REACT_APP_USE_MOCK=false npx react-scripts start
 
 - 仓库同时存在 `package-lock.json` 和 `yarn.lock`，但本机未安装 yarn；默认用 **npm**，不要随意重新生成 lockfile。
 - `react-scripts@5` 对 Node 版本敏感。若 build/test 报 webpack / OpenSSL / `ERR_OSSL_EVP_UNSUPPORTED`，切到 Node 18/20 LTS。
+- `src/utils/chinaPlaceIndex.test.ts` 里包含数据完整性断言（条目数、坐标范围、层级分布），改完数据记得跑。
 - `src/App.test.tsx` 是 CRA 模板遗留（断言 “learn react”），当前测试基建在导入阶段即失败，**不能作为回归依据**；TDD 要求与当前限制见 §6。
 - 没有独立的 lint / typecheck 脚本，CRA 在 build 时做类型检查；`CI=true npm run build` 会把 warning 当 error。
 
@@ -76,7 +82,13 @@ src/
 ├── store/                    # Zustand：location / analysisType / yearRange / app(主题、单位)
 ├── hooks/                    # useWeatherData(旧)、useGeolocation、useTemperatureDisplay、usePageTitle 等
 ├── utils/                    # cache、concurrency、统计、温度换算、天气代码映射、sitemap 生成脚本
+│                             # geocodeSearch（远程结果清洗）/ chinaPlaceIndex（国内行政区离线索引）/ coords（GCJ-02 ↔ WGS-84）
+│                             # citySlug（城市页 slug 解析）/ seo（canonical 生成）
+│                             # placeNamesEn（中文名 → 英文写法）/ placeDisplay（多语言展示）/ chinaNameUtils（简称工具）
 ├── data/cityMappings.ts      # 城市 slug → 坐标（sitemap / /city/:city 依赖）
+├── data/chinaDistricts.json  # 生成产物：3237 条省/市/区县 + WGS-84 坐标 + 拼音（npm run data:china）
+
+构建期专用 devDependency（不进产物）：`cn-divisions`（人工拼音）、`pinyin-pro`（拼音兜底）。
 ├── i18n/locales/{zh-CN,en-US}.json
 └── mock/                     # 1.5MB 历史数据快照，mock 模式固定返回这一份
 ```
@@ -119,17 +131,34 @@ src/
 ```
 CityDropdown（唯一挂载的搜索入口）/ CitySearchBox（当前未挂载）
   → openMeteoService.geocodeCity(query, uiLanguage, count)
-      · language 由 resolveGeocodeLanguage(query, uiLanguage) 决定：中文查询强制 zh
-      · 上游多取 3×count（至少 10 条），给过滤留冗余
-      · rankGeocodeResults 清洗：去重 → 剔除非居民地要素 → 剔除同名小地名 → 按人口排序
-      · localStorage 缓存 7 天，key = geocoding:v2:{query}:{lang}:{count}
+      ├─ 命中 src/utils/chinaPlaceIndex.ts（中文 / 全拼 / 首字母）→ 直接返回，不发任何请求
+      └─ 否则回退远程：
+          · language 由 resolveGeocodeLanguage(query, uiLanguage) 决定：中文查询强制 zh
+          · 上游多取 3×count（至少 10 条），给过滤留冗余
+          · rankGeocodeResults 清洗：去重 → 剔除非居民地要素 → 剔除同名小地名 → 按人口排序
+          · localStorage 缓存 7 天，key = geocoding:v2:{query}:{lang}:{count}
 ```
 
+**离线行政区索引（国内查询主路径）**：
+
+- `src/data/chinaDistricts.json`：34 省 + 363 地级 + 2840 区县 = 3237 条，171 KB / gzip 70 KB，坐标已转 **WGS-84**，每条带**简称拼音**。
+- 通过 `await import()` 懒加载（构建产物是独立 chunk，不进主包）。
+- 数据由 `npm run data:china` 重新生成（`scripts/build-china-districts.mjs`）：
+  - 名称 + 坐标：阿里 DataV 行政区划 GeoJSON。DataV 会限流（403），被限时可等服务恢复，或用 `--from-raw` 传已保存的原始行。
+  - 拼音：**cn-divisions（人工维护）为主，pinyin-pro 生成兜底**（两者都是 devDependency，只在构建期用）。实测以 geojson.cn 人工拼音为参照，cn-divisions 一致率 95%、pinyin-pro 86%（多音字易错：闵行/丰都）。脚本会按 adcode 对齐音节数量取简称拼音，对不齐的（约 7%）自动降级到 pinyin-pro。
+- 匹配顺序：中文全名精确 → 中文简称精确 → 中文前缀 → 中文包含 → **全拼精确（含自治州简称）→ 拼音首字母 → 全拼前缀**；同层级内省/地级市优先于区县，所以搜「朝阳」先给朝阳市再给朝阳区。
+- 拼音归一化：忽略大小写/空格/撇号，`ü` 统一存成 `v`（`lvliang` → 吕梁市）；自治州额外存一个民族后缀去掉后的简称拼音（`yanbian` → 延边朝鲜族自治州）。
+- 索引里**只有行政区**：街道/村/景区、国外城市、台湾下级区划都搜不到，必须靠远程兜底——改这块时保持这个分界。
+- 区划每年会调整，需要重新生成并重跑数据完整性测试（`src/utils/chinaPlaceIndex.test.ts`）。
+
+**远程兜底（GeoNames）**：
+
 - 上游 `geocoding-api.open-meteo.com` 直接透传 GeoNames，**不做相关性排序**：搜「南京」会带回云南两个同名 0 人口村庄（要素码 `PPL`）。清洗逻辑只能写在 `src/utils/geocodeSearch.ts`（纯函数 + 单测），不要在组件里临时 `filter`。
-- 过滤规则刻意保守：只有当结果里存在人口 ≥ 10 万或国家/省/地级行政中心的同名地点时，才剔除小地名；若全部是小地名（如上游对「昆山」只返回村庄）则原样保留，不能让搜索变空。
+- 过滤规则刻意保守：只有当结果里存在人口 ≥ 10 万或国家/省/地级行政中心的同名地点时，才剔除小地名；若全部是小地名则原样保留，不能让搜索变空。
 - 上游 `language` 参数**同时决定搜索索引**：`name=南京&language=en` 返回 0 条，所以不能直接用界面语言。
 - 展示文案统一走 `buildPlaceLabel`（补齐 `admin2`），否则「南京, 云南, 中国」无法区分同名地点。
 - 修改过滤/排序规则时同步 bump `cacheKeys.geocoding` 的版本号，否则用户 7 天内的旧缓存不会更新。
+- 坐标系：DataV / 高德 / 腾讯是 GCJ-02，Open-Meteo 要 WGS-84，跨源混用前必须过 `src/utils/coords.ts`（有单测）。
 
 ### 缓存约定（`src/utils/cache.ts`）
 
@@ -156,12 +185,36 @@ localStorage 上限 50MB，超限淘汰最旧项；不可用时自动降级为�
 - 深色模式通过 `<html class="dark">`，`appStore.setTheme` 负责切换。
 - 图表统一用 Recharts，先看 `components/Charts/` 现有封装再新建。
 
+### i18n / 地名多语言
+
+- 语言资源在 `src/i18n/locales/{zh-CN,en-US}.json`；`cities.*` 是手写城市的名称翻译（76 条）上，`countries.*` 是国家名。
+- **`<html lang>` 由 `src/i18n/index.ts` 的 `syncHtmlLang` 维护**（index.html 写死了 `lang="en"`，不处理则切语言后一直是 en）。
+- 离线行政区索引只有中文名，所以 `Location` / `OpenMeteoLocation` 同时携带 `nameEn` / `admin1En` / `admin2En`（由 `placeNamesEn.ts` 在索引构建时从拼音生成 + 特例表）。
+- 展示一律走 `src/utils/placeDisplay.ts`：
+  - `localizedPlaceName(place, t, language)` —— 手写城市优先 `cities.<id>` 翻译，否则按语言在 `name` / `nameEn` 间切换；`getCityLocalizedName` 已改为委托它，老调用点自动生效。
+  - `localizedPlaceLabel` / `localizedRegionLabel` —— 搜索结果文案（名称/地级市/省/国家，自动去重）。
+  - `localizedCountry` —— `China` ⇄ 中国（通过 `countries.*`）。
+- 英文名规则：默认音节连写首字母大写（`kun shan` → Kunshan）；`placeNamesEn.ts` 里的 `OVERRIDES` 存多音字/惯用译名（西安 Xi'an、陕西 Shaanxi、内蒙古 Inner Mongolia、乌鲁木齐 Urumqi、香港 Hong Kong…），加新特例往那里补。
+- 不要手写纯样式的中英双份文案；不要在组件里直接拼 `name + country`。
+
 ### SEO
 
 - `usePageTitle` / `useHomePageTitle` / `useHistoricalPageTitle` 设置 `document.title` 与 og/twitter meta。
 - `CityPage` 会动态改写 description/keywords/JSON-LD；改城市页时保持中英两套 SEO 文案。
 - `public/index.html` 是静态 meta 与 JSON-LD 的源头。
-- `public/sitemap.xml` 是提交到 GSC/Bing 的静态文件，由 `node src/utils/generateSitemap.js` 生成（未接入 npm scripts）；新增城市需同时更新 `cityMappings` 与该脚本的城市数组并重新生成。
+- **canonical / og:url 必须按路由更新**：`useCanonicalSeo()`（挂在 `MainLayout`）负责非城市路由，`CityPage` 负责 `/city/*`（它要异步解析 slug）。纯逻辑在 `src/utils/seo.ts`（`canonicalUrl` / `canonicalPathForLocation`），有单测。以前的坑：canonical 写死在 `index.html`，所有城市页都指向首页。
+- `public/sitemap.xml` 是提交到 GSC/Bing 的静态文件，由 `node src/utils/generateSitemap.js` 生成（未接入 npm scripts）；新增城市需同时更新 `cityMappings` 与该脚本的城市数组并重新生成。**目前 sitemap 还没覆盖行政区索引里的 3237 个页面**，是下一步可做的 SEO 增量。
+
+### 城市页 slug（`src/utils/citySlug.ts`）
+
+`/city/:city` 的解析优先级：
+
+1. `cityMappings` 手写城市（`nanjing` 等）——URL 不变，不破坏已有收录。
+2. 行政区索引：slug = 简称拼音（`/city/kunshan`、`/city/guangdong`）；同音冲突时 adcode 最小者占裸 slug，其余加 `-adcode`（`suzhou` → 苏州市，`suzhou-341300` → 宿州市）。
+3. 纯 6 位 adcode（`/city/320583`）也能访问，canonical 指向规范 slug。
+
+- 该模块会引入 170KB 行政区数据，**只能动态 `import()`**（CityPage、CityDropdown 都是这么做的），否则数据会进主包。
+- 城市搜索引擎命中的行政区结果（`source === 'china-districts'`）会直接跳对应落地页，不再回首页——这是 3237 个页面的内链入口。
 
 ## 6. TDD 原则
 

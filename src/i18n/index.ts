@@ -50,4 +50,22 @@ i18n
     nonExplicitSupportedLngs: true
   });
 
+/**
+ * 同步 <html lang>：index.html 写死了 lang="en"，切换语言后不会变化，
+ * 会让屏幕阅读器、浏览器翻译、搜索引擎一直按英文处理中文页面。
+ */
+const syncHtmlLang = (language?: string) => {
+  if (typeof document === 'undefined') return;
+  const current = language || i18n.language || 'zh-CN';
+  document.documentElement.lang = current.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en';
+};
+
+i18n.on('languageChanged', syncHtmlLang);
+
+if (i18n.isInitialized) {
+  syncHtmlLang();
+} else {
+  i18n.on('initialized', () => syncHtmlLang());
+}
+
 export default i18n;

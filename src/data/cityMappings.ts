@@ -1,4 +1,5 @@
 import { Location } from '../types/weather';
+import { localizedPlaceName } from '../utils/placeDisplay';
 
 // 城市名称到位置信息的映射
 export const cityMappings: Record<string, Location> = {
@@ -689,11 +690,6 @@ export const getCitiesByRegion = () => {
 };
 
 // 获取城市的本地化名称
-export const getCityLocalizedName = (city: Location, t: (key: string) => string): string => {
-  // 尝试获取翻译后的城市名称，如果没有翻译则返回原名称
-  const translationKey = `cities.${city.id}`;
-  const translatedName = t(translationKey);
-  
-  // 如果翻译键不存在，t函数会返回原键名，此时返回原名称
-  return translatedName === translationKey ? city.name : translatedName;
-};
+// 手写城市走 i18n 的 cities.<id> 翻译；离线行政区索引的城市按当前语言在中英名字段间切换。
+export const getCityLocalizedName = (city: Location, t: (key: string) => string): string =>
+  localizedPlaceName(city, t);

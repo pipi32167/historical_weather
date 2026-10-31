@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { getCitiesByRegion, getCityLocalizedName } from '../../data/cityMappings';
 import { openMeteoService, OpenMeteoLocation } from '../../services/openMeteoWeather';
-import { buildPlaceLabel } from '../../utils/geocodeSearch';
+import { localizedPlaceName, localizedRegionLabel } from '../../utils/placeDisplay';
 import { useLocationStore } from '../../store/locationStore';
 import { Location } from '../../types/weather';
 
@@ -108,12 +108,17 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
   // Handle city selection - directly navigate to city
   const handleCitySelect = (city: Location | OpenMeteoLocation) => {
     let finalLocation: Location;
+    const openMeteoCity = city as OpenMeteoLocation;
+    const isPredefinedCity =
+      'id' in city &&
+      typeof city.id === 'string' &&
+      !city.id.startsWith('search-') &&
+      city.id !== 'current-location';
 
     // Convert to Location if needed
-    if ('id' in city && typeof city.id === 'string' && !city.id.startsWith('search-')) {
+    if (isPredefinedCity) {
       finalLocation = city as Location;
     } else {
-      const openMeteoCity = city as OpenMeteoLocation;
       finalLocation = {
         id: `search-${openMeteoCity.latitude}-${openMeteoCity.longitude}`,
         name: openMeteoCity.name,
@@ -128,11 +133,19 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
     setCurrentLocation(finalLocation);
 
     // Navigate based on selected city
-    if ('id' in city && typeof city.id === 'string' && !city.id.startsWith('search-') && city.id !== 'current-location') {
+    if (isPredefinedCity) {
       // Using a predefined city ID (but not current-location)
       navigate(`/city/${finalLocation.id}`);
+    } else if (openMeteoCity.source === 'china-districts') {
+      // 离线行政区结果：跳到对应的 SEO 落地页（/city/kunshan），而不是回首页
+      void import('../../utils/citySlug')
+        .then(({ cityPathForAdcode }) => {
+          const path = cityPathForAdcode(Number(openMeteoCity.id));
+          navigate(path || '/');
+        })
+        .catch(() => navigate('/'));
     } else {
-      // Using current location or search result - go to home page
+      // Using current location or a non-indexed search result - go to home page
       navigate('/');
     }
 
@@ -143,14 +156,8 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
   };
 
   // Get city display name
-  const getCityDisplayName = (city: Location | OpenMeteoLocation) => {
-    if ('id' in city && typeof city.id === 'string' && !city.id.startsWith('search-')) {
-      return getCityLocalizedName(city as Location, t);
-    } else {
-      const openMeteoCity = city as OpenMeteoLocation;
-      return openMeteoCity.name;
-    }
-  };
+  const getCityDisplayName = (city: Location | OpenMeteoLocation) =>
+    localizedPlaceName(city as Location, t, i18n.language);
 
   // Click outside handler
   useEffect(() => {
@@ -310,14 +317,10 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
                                 className="w-full text-left px-3 py-2 rounded-lg hover:bg-secondary transition-colors duration-150"
                               >
                                 <div className="font-medium text-primary text-sm">
-                                  {city.name}
+                                  {getCityDisplayName(city)}
                                 </div>
                                 <div className="text-xs text-secondary">
-                                  {buildPlaceLabel({
-                                    name: city.admin2,
-                                    admin1: city.admin1,
-                                    country: city.country
-                                  })}
+                                  {localizedRegionLabel(city, t, i18n.language)}
                                 </div>
                               </button>
                             ))}

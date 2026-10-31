@@ -7,6 +7,8 @@ import CityHistoricalDaily from '../components/CityHistoricalDaily';
 import NotFound from '../components/NotFound';
 import { useAnalysisStore } from '../store/analysisStore';
 import { useLocationStore } from '../store/locationStore';
+import { applyCanonical } from '../utils/seo';
+import { localizedCountry } from '../utils/placeDisplay';
 import HistoricalWeekly from './HistoricalWeekly';
 import HistoricalMonthly from './HistoricalMonthly';
 import HistoricalQuarterly from './HistoricalQuarterly';
@@ -29,18 +31,48 @@ const CityPage: React.FC = () => {
       return;
     }
 
-    // 尝试从cityMappings中获取城市信息
-    const foundCity = getCityByName(city);
-    
-    if (foundCity) {
-      setCurrentCity(foundCity);
-      setCurrentLocation(foundCity); // Update global location store
+    let cancelled = false;
+
+    // 1. 手写城市（cityMappings）：同步命中，不加载行政区索引
+    const mappedCity = getCityByName(city);
+    if (mappedCity) {
+      setCurrentCity(mappedCity);
+      setCurrentLocation(mappedCity);
       setError(null);
-    } else {
-      setError(`City "${city}" not found`);
+      setLoading(false);
+      applyCanonical(`/city/${city.toLowerCase()}`);
+      return;
     }
-    
-    setLoading(false);
+
+    // 2. 行政区索引：3237 个行政区都能直达（/city/kunshan），索引按需加载
+    setLoading(true);
+    (async () => {
+      try {
+        const { resolveCitySlug } = await import('../utils/citySlug');
+        if (cancelled) return;
+
+        const resolved = resolveCitySlug(city);
+        if (resolved) {
+          setCurrentCity(resolved.location);
+          setCurrentLocation(resolved.location);
+          setError(null);
+          // 规范 slug：/city/320583 与 /city/suzhou-341300 都指向唯一的规范地址
+          applyCanonical(resolved.canonicalPath);
+        } else {
+          setError(`City "${city}" not found`);
+          applyCanonical(`/city/${city}`);
+        }
+      } catch (loadError) {
+        console.error('解析城市失败:', loadError);
+        if (!cancelled) setError(`City "${city}" not found`);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [city, setCurrentLocation]);
 
   // 生成城市相关的SEO信息
@@ -186,7 +218,7 @@ const CityPage: React.FC = () => {
                 📍 {getCityLocalizedName(currentCity, t)}
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-sm text-secondary">
-                <span>🌍 {currentCity.country}</span>
+                <span>🌍 {localizedCountry(currentCity.country, t, i18n.language)}</span>
                 <span>📍 {currentCity.latitude.toFixed(4)}°, {currentCity.longitude.toFixed(4)}°</span>
                 <span>🕒 {currentCity.timezone}</span>
               </div>

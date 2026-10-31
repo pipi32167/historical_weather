@@ -133,6 +133,11 @@ export function rankGeocodeResults<T extends GeocodeCandidate>(
 /** CJK（汉字/假名/谚文）字符 */
 const CJK_PATTERN = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/;
 
+/** 查询词是否包含中日韩字符 */
+export function containsCjk(text: string): boolean {
+  return CJK_PATTERN.test(text || '');
+}
+
 /**
  * 决定请求上游时使用的 language 参数。
  *
@@ -141,7 +146,7 @@ const CJK_PATTERN = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/;
  * 中文查询一律用 zh；拉丁字母查询沿用界面语言（中文界面用 zh 可获得本地化地名）。
  */
 export function resolveGeocodeLanguage(query: string, uiLanguage: string): string {
-  if (CJK_PATTERN.test(query)) return 'zh';
+  if (containsCjk(query)) return 'zh';
   return uiLanguage.toLowerCase().startsWith('zh') ? 'zh' : 'en';
 }
 
