@@ -103,6 +103,36 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
     });
   }, [i18n.language]);
 
+  /**
+   * 逆地理编码得到的地名与语言绑定（Nominatim 只返回一种语言的名称，并按照语言 + 坐标缓存）。
+   * 定位解析只跑一次，所以切换语言或带着旧语言名称刷新时，需要按照新语言重新取一次；
+   * 同语言 + 同坐标只会解析一次（缓存命中不会真的发请求）。
+   */
+  const resolvedLocationLabelRef = useRef('');
+
+  useEffect(() => {
+    const location = currentLocation;
+    if (!location || location.id !== 'current-location') return;
+    if (!Number.isFinite(location.latitude) || !Number.isFinite(location.longitude)) return;
+
+    const signature = `${location.latitude.toFixed(3)},${location.longitude.toFixed(3)}@${i18n.language}`;
+    if (resolvedLocationLabelRef.current === signature) return;
+    resolvedLocationLabelRef.current = signature;
+
+    let cancelled = false;
+
+    (async () => {
+      const localizedName = await reverseGeocode(location.latitude, location.longitude);
+      if (cancelled || !localizedName || !localizedName.trim()) return;
+      if (localizedName === location.name) return;
+      setCurrentLocation({ ...location, name: localizedName });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentLocation, i18n.language, reverseGeocode, setCurrentLocation]);
+
   // Initialize location on component mount
   useEffect(() => {
     console.log('🔧 Location initialization effect triggered:', {
