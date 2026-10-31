@@ -22,7 +22,15 @@ const MOCK_SOURCE = String.raw`
   window.__E2E_MOCK__ = true;
 
   var calls = [];
-  window.__e2e = { calls: calls, unknown: [] };
+  window.__e2e = { calls: calls, unknown: [], errors: [] };
+
+  window.addEventListener('error', function (e) { window.__e2e.errors.push('error: ' + (e.message || '')); });
+  window.addEventListener('unhandledrejection', function (e) { window.__e2e.errors.push('rejection: ' + String(e.reason).slice(0, 160)); });
+  var nativeConsoleError = console.error.bind(console);
+  console.error = function () {
+    window.__e2e.errors.push('console.error: ' + Array.prototype.slice.call(arguments).map(String).join(' ').slice(0, 200));
+    nativeConsoleError.apply(null, arguments);
+  };
 
   function json(body, status) {
     return new Response(JSON.stringify(body), {
@@ -196,7 +204,13 @@ const MOCK_SOURCE = String.raw`
     coords: { latitude: 31.2304, longitude: 121.4737, accuracy: 30, altitude: null, altitudeAccuracy: null, heading: null, speed: null },
     timestamp: Date.now()
   };
-  navigator.geolocation.getCurrentPosition = function (success) { setTimeout(function () { success(fixedPosition); }, 30); };
+  try { window.__e2e.geoFail = localStorage.getItem('__e2e_geo_fail') === '1'; } catch (e) { window.__e2e.geoFail = false; }
+  navigator.geolocation.getCurrentPosition = function (success, error) {
+    setTimeout(function () {
+      if (window.__e2e.geoFail) { if (error) error({ code: 1, message: 'denied' }); }
+      else success(fixedPosition);
+    }, 30);
+  };
   navigator.geolocation.watchPosition = function (success) { setTimeout(function () { success(fixedPosition); }, 30); return 1; };
   navigator.geolocation.clearWatch = function () {};
 })();
@@ -462,6 +476,159 @@ const externalResources = await page.evaluate(() => performance.getEntriesByType
   .map(e => e.name)
   .filter(name => !name.startsWith(location.origin)));
 check('浏览器未真实访问任何外部域名（零配额消耗）', externalResources.length === 0, externalResources.slice(0, 3).join(' ; '));
+
+
+// 13. 其余路由：/about、/map、未知路径
+await goto('/about');
+await page.waitForTimeout(1200);
+const aboutState = { h1: await h1(), canonical: await canonical() };
+check('/about 渲染且 canonical=/about',
+  aboutState.h1.length > 0 && aboutState.canonical.endsWith('/about'),
+  `h1=${aboutState.h1.slice(0, 20)} canonical=${aboutState.canonical.replace('https://historicalweather.org', '')}`);
+
+await goto('/map');
+await page.waitForTimeout(2500);
+const mapText = await text();
+check('/map 渲染（不崩、无 ErrorBoundary）',
+  mapText.length > 40 && !/出错了|Something went wrong|ErrorBoundary/.test(mapText),
+  mapText.slice(0, 60));
+
+await goto('/no-such-page');
+await page.waitForTimeout(1200);
+check('未知路径 → 404 页', /404|Not Found/i.test(await text()), (await h1()).slice(0, 20));
+
+// 14. 六个分析维度在「城市页」上逐个切换
+const ANALYSIS_TYPES = [
+  ['daily', '查看指定日期在历史年份中的天气表现'],
+  ['weekly', '分析指定周在历史年份中的天气数据'],
+  ['monthly', '分析指定月份在多年中的温度变化趋势'],
+  ['quarterly', '了解季节性气候特征和长期变化规律'],
+  ['yearly', '分析多年的年度温度变化趋势'],
+  ['custom', '输入多个自定义日期，分析这些日期的天气数据']
+];
+
+const setAnalysisType = async description => {
+  await page.evaluate(() => {
+    // 触发器文本就是当前维度名（历史同期/周数据/月度分析/…），不能用「排除法」，
+    // 否则会先命中城市下拉（它也有 aria-haspopup）
+    const triggerNames = /^(历史同期|周数据|月度分析|季度分析|年度分析|自定义日期|Daily Historical|Weekly|Monthly|Quarterly|Yearly|Custom Dates?)$/;
+    const trigger = Array.from(document.querySelectorAll('header button'))
+      .find(b => triggerNames.test((b.textContent || '').trim()) && b.getBoundingClientRect().width > 0);
+    if (trigger) trigger.click();
+  });
+  await page.waitForTimeout(500);
+  const clicked = await page.evaluate(desc => {
+    const option = Array.from(document.querySelectorAll('button'))
+      .find(b => (b.textContent || '').includes(desc) && b.getBoundingClientRect().width > 0);
+    if (option) { option.click(); return true; }
+    return false;
+  }, description);
+  await page.waitForTimeout(3000);
+  return clicked;
+};
+
+await goto('/city/kunshan');
+await page.waitForTimeout(4000);
+await page.evaluate(() => { window.__e2e.errors.length = 0; });
+
+for (const [type, description] of ANALYSIS_TYPES) {
+  const clicked = await setAnalysisType(description);
+  const state = await page.evaluate(() => ({
+    path: location.pathname,
+    h1: document.querySelector('h1')?.innerText.trim() || '',
+    charts: document.querySelectorAll('.recharts-wrapper').length,
+    tables: document.querySelectorAll('table').length,
+    rows: document.querySelectorAll('tbody tr').length,
+    textareas: document.querySelectorAll('textarea').length,
+    hasErrorBanner: /出错了|Something went wrong|加载失败|Failed to load/i.test(document.body.innerText),
+    errors: window.__e2e.errors.slice()
+  }));
+  // custom 维度是「输入日期」表单，不直接出图表，按输入框断言
+  const hasContent = type === 'custom'
+    ? state.textareas > 0
+    : state.charts > 0 || state.tables > 0 || state.rows > 0;
+  check(`城市页分析维度 ${type} 渲染正常`,
+    clicked && state.h1.includes('昆山市') && !state.hasErrorBanner && state.errors.length === 0 && hasContent,
+    `charts=${state.charts} tables=${state.tables} rows=${state.rows} textarea=${state.textareas} errors=${state.errors.slice(0, 2).join(' | ')}`);
+}
+
+
+// 15b. 六个分析维度在「首页」上也逐个切换
+await goto('/');
+await page.waitForTimeout(6000);
+await setAnalysisType(ANALYSIS_TYPES[0][1]);
+for (const [type, description] of ANALYSIS_TYPES) {
+  const clicked = await setAnalysisType(description);
+  const state = await page.evaluate(() => ({
+    path: location.pathname,
+    h1: document.querySelector('h1')?.innerText.trim() || '',
+    charts: document.querySelectorAll('.recharts-wrapper').length,
+    tables: document.querySelectorAll('table').length,
+    rows: document.querySelectorAll('tbody tr').length,
+    textareas: document.querySelectorAll('textarea').length,
+    body: document.body.innerText.slice(0, 160)
+  }));
+  const hasContent = type === 'custom' ? state.textareas > 0 : state.charts > 0 || state.tables > 0 || state.rows > 0;
+  check(`首页分析维度 ${type} 渲染正常`,
+    clicked && state.path === '/' && !/404|Not Found/i.test(state.body) && hasContent,
+    `path=${state.path} charts=${state.charts} tables=${state.tables} textarea=${state.textareas}`);
+}
+
+// 15. 首页切换分析维度（定位城市 id 为 current-location，不能跳到 404）
+await goto('/');
+await page.waitForTimeout(6000);
+await page.evaluate(() => { window.__e2e.errors.length = 0; });
+await setAnalysisType(ANALYSIS_TYPES[1][1]);
+const homeSwitch = await page.evaluate(() => ({
+  path: location.pathname,
+  h1: document.querySelector('h1')?.innerText.trim() || '',
+  body: document.body.innerText.slice(0, 200),
+  errors: window.__e2e.errors.slice()
+}));
+check('首页切换分析维度不跳到 404', !/404|Not Found/i.test(homeSwitch.body) && !homeSwitch.path.includes('current-location'),
+  `path=${homeSwitch.path} h1=${homeSwitch.h1.slice(0, 20)}`);
+
+
+// 17. 访问过城市页后回首页再切维度：locationStore 里的 id 必须能反解析回城市页
+await goto('/city/kunshan');
+await page.waitForTimeout(3000);
+await goto('/');
+await page.waitForTimeout(6000);
+await page.evaluate(() => { window.__e2e.errors.length = 0; });
+await setAnalysisType(ANALYSIS_TYPES[2][1]);
+const afterCityThenHome = await page.evaluate(() => ({
+  path: location.pathname,
+  body: document.body.innerText.slice(0, 200),
+  storedId: JSON.parse(localStorage.getItem('location-storage') || '{}')?.state?.currentLocation?.id || null
+}));
+check('访问城市页后回首页切换维度不跳到 404',
+  !/404|Not Found/i.test(afterCityThenHome.body) && !afterCityThenHome.path.includes('cn-'),
+  `path=${afterCityThenHome.path} storedId=${afterCityThenHome.storedId}`);
+
+
+// 18. 定位被拒绝时（locationStore 里残留刚访问过的城市）切维度仍能回到城市页
+await page.evaluate(() => localStorage.setItem('__e2e_geo_fail', '1'));
+await goto('/city/kunshan');
+await page.waitForTimeout(3000);
+await goto('/');
+await page.waitForTimeout(12000);
+const storedAfterDeny = await page.evaluate(() => JSON.parse(localStorage.getItem('location-storage') || '{}')?.state?.currentLocation?.id || null);
+await page.evaluate(() => { window.__e2e.errors.length = 0; });
+await setAnalysisType(ANALYSIS_TYPES[2][1]);
+const denyState = await page.evaluate(() => ({
+  path: location.pathname,
+  body: document.body.innerText.slice(0, 200),
+  h1: document.querySelector('h1')?.innerText.trim() || ''
+}));
+check('定位被拒 + 首页切维度：回到城市页而不是 404',
+  storedAfterDeny === 'kunshan' && denyState.path === '/city/kunshan' &&
+    /昆山市/.test(denyState.h1) && !/404|Not Found/i.test(denyState.body),
+  `storeId=${storedAfterDeny} path=${denyState.path} h1=${denyState.h1.slice(0, 16)}`);
+await page.evaluate(() => localStorage.removeItem('__e2e_geo_fail'));
+
+// 16. 全站运行时异常
+const runtimeErrors = await page.evaluate(() => window.__e2e.errors.slice());
+check('关键页面无运行时异常', runtimeErrors.length === 0, runtimeErrors.slice(0, 3).join(' | '));
 
 const passed = results.filter(r => r.ok).length;
 console.log(`\n===== 小计 ${passed}/${results.length} 通过 =====`);

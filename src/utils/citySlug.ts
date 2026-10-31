@@ -69,9 +69,11 @@ function buildIndexes(): void {
   });
 }
 
-function locationFromPlace(place: ChinaPlace): Location {
+function locationFromPlace(place: ChinaPlace, slug: string): Location {
   return {
-    id: `cn-${place.adcode}`,
+    // id 用规范 slug（kunshan / suzhou-341300），这样 locationStore 里的 id
+    // 永远能反解析回 /city/:slug，不会出现 /city/cn-320583 这种 404 地址
+    id: slug,
     name: place.name,
     nameEn: place.englishName,
     latitude: place.latitude,
@@ -102,7 +104,7 @@ export function resolveCitySlug(input: string): ResolvedCity | null {
   if (bySlug) {
     const slug = canonicalSlugByAdcode!.get(bySlug.adcode)!;
     return {
-      location: locationFromPlace(bySlug),
+      location: locationFromPlace(bySlug, slug),
       slug,
       canonicalPath: `/city/${slug}`,
       source: 'china-districts',
@@ -115,7 +117,7 @@ export function resolveCitySlug(input: string): ResolvedCity | null {
     if (byAdcode) {
       const slug = canonicalSlugByAdcode!.get(byAdcode.adcode)!;
       return {
-        location: locationFromPlace(byAdcode),
+        location: locationFromPlace(byAdcode, slug),
         slug,
         canonicalPath: `/city/${slug}`,
         source: 'china-districts',

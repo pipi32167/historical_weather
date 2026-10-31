@@ -36,6 +36,8 @@ describe('resolveCitySlug - 行政区索引', () => {
     expect(resolved).not.toBeNull();
     expect(resolved!.source).toBe('china-districts');
     expect(resolved!.location.name).toBe('昆山市');
+    // id 必须是规范 slug，否则 locationStore 里的 id 无法反解析回 /city/:slug
+    expect(resolved!.location.id).toBe('kunshan');
     expect(resolved!.location.country).toBe('China');
     expect(resolved!.location.admin1).toBe('江苏省');
     expect(resolved!.location.admin2).toBe('苏州市');
