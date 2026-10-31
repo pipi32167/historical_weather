@@ -203,7 +203,10 @@ localStorage 上限 50MB，超限淘汰最旧项；不可用时自动降级为�
 - `CityPage` 会动态改写 description/keywords/JSON-LD；改城市页时保持中英两套 SEO 文案。
 - `public/index.html` 是静态 meta 与 JSON-LD 的源头。
 - **canonical / og:url 必须按路由更新**：`useCanonicalSeo()`（挂在 `MainLayout`）负责非城市路由，`CityPage` 负责 `/city/*`（它要异步解析 slug）。纯逻辑在 `src/utils/seo.ts`（`canonicalUrl` / `canonicalPathForLocation`），有单测。以前的坑：canonical 写死在 `index.html`，所有城市页都指向首页。
-- `public/sitemap.xml` 是提交到 GSC/Bing 的静态文件，由 `node src/utils/generateSitemap.js` 生成（未接入 npm scripts）；新增城市需同时更新 `cityMappings` 与该脚本的城市数组并重新生成。**目前 sitemap 还没覆盖行政区索引里的 3237 个页面**，是下一步可做的 SEO 增量。
+- `public/sitemap.xml` 由 `npm run sitemap`（`scripts/build-sitemap.mjs`）生成，当前 **3299 个 URL**：首页 + /about + `cityMappings` 的 76 个手写城市（id 直接从 `cityMappings.ts` 正则解析，无需维护第二份清单）+ 行政区索引的 3237 个 slug。
+- sitemap 的 slug 规则与运行时 `citySlug.ts` 是两份实现（前者跑在 node，不能 import TS），由 `src/utils/sitemap.test.ts` 兜底：它会逐条 `resolveCitySlug` 校验，规则一漂移测试就红。
+- **主域名统一为 `https://historicalweather.org`**（与 index.html / canonical / 结构化数据一致）；sitemap 脚本支持 `SITE_ORIGIN=... npm run sitemap` 覆盖，`public/robots.txt` 里的 sitemap 地址需同步。旧的 `src/utils/generateSitemap.js` 已删除（它写死城市数组且用另一个域名）。
+- 新增/调整行政区数据后：`npm run data:china` → `npm run sitemap` → 跑 `sitemap.test.ts`。
 
 ### 城市页 slug（`src/utils/citySlug.ts`）
 
@@ -282,7 +285,7 @@ npm test -- --watchAll=false --coverage                   # 覆盖率
 ## 8. 已知陷阱 / 待清理项
 
 - **`CLAUDE.md` 有过时内容**：它仍称 `App.tsx` 是 CRA 默认模板、开发端口 3000、只用 npm。实际已是完整应用、端口 24587、默认 mock。
-- **域名不一致（待确认）**：`public/index.html`、`StructuredData`、`About`、`MapPage` 使用 `historicalweather.org`，而 `public/sitemap.xml`、`public/robots.txt`、`generateSitemap.js` 使用 `historicaltemperature.org`。改 SEO 前先与维护者确认主域名，不要单方面批量替换。
+- **域名**：站点统一用 `historicalweather.org`（index.html / canonical / 结构化数据 / sitemap / robots.txt 已对齐）。残留的 `support@historicaltemperature.org` 是联系邮箱（`i18n/locales/*.json` 的 `contact.email`），属内容决策，未改动。
 - **Mock 模式是“假”的**：`src/mock/config.ts` 无论城市/日期都返回同一份 `weather_cache_historical_big.json`，且只作用于 `getHistoricalWeather`（今日预报、逐小时、地理编码仍走真实网络）。mock 下的正确性只能验证渲染，不能验证多城市、日期过滤等逻辑。
 - **服务层重复**：`openMeteoService.geocodeCity` 与 `geocodingService.searchCities` 都能搜城市；页面数据优先用 `unifiedHistoricalService`，不要新代码再走 `weatherService` / `weatherAggregateService`（仅旧 `useWeatherData` 与 `/map` 使用）。
 - **未使用/半废弃文件**：`utils/concurrencyController.ts`、`utils/apiTester.ts`、`utils/historicalDataGenerator.ts`、`components/RateLimitingLoader.tsx` 当前没有实际引用；删除前先全局搜索确认。
@@ -294,7 +297,7 @@ npm test -- --watchAll=false --coverage                   # 覆盖率
 
 ## 9. 常见任务
 
-- **新增城市**：`src/data/cityMappings.ts` 添加 `Location` → `generateSitemap.js` 城市数组 → 运行生成脚本 → 确认 `getCityByName` 能命中 slug。
+- **新增城市**：国内城市不需要改代码（行政区索引已覆盖，`/city/{拼音 slug}` 自动可用）；只有**国外城市**或需要英文名/翻译时才在 `src/data/cityMappings.ts` 加 `Location` + `i18n/locales/*.json` 的 `cities.<id>`，然后 `npm run sitemap` 重新生成。
 - **新增分析维度**：先扩展 `AnalysisType` 与下拉选项，再写 `pages/HistoricalXxx.tsx`（复用 `unifiedHistoricalService` + `useYearRangeStore` + `useLocationStore`），最后接入首页与 CityPage 的 switch。
 - **改 API 参数**：只改 `openMeteoWeather.ts` 的参数拼接处，并同步 `cacheKeys`（key 必须包含新参数，否则会读到旧缓存）。
 - **调缓存时间**：统一改 `utils/cache.ts` 的 `CACHE_TTL` 或对应 service 的 timeout 常量，不要散落硬编码。

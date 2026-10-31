@@ -34,7 +34,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "data:china": "node scripts/build-china-districts.mjs",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "sitemap": "node scripts/build-sitemap.mjs"
   },
   "eslintConfig": {
     "extends": [
