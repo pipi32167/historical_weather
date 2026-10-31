@@ -278,16 +278,18 @@ node scripts/serve-build.mjs                     # 静态托管 build/ 于 :8088
 ego-browser nodejs < scripts/e2e/run-e2e.mjs      # 跑套件
 ```
 
-- 当前 **54 项断言**，覆盖所有路由与页面类型：
+- 当前 **60 项断言**，覆盖所有路由与页面类型：
   - 路由：`/`、`/city/:slug` 的 6 种形态（mapped `nanjing` / pinyin slug `kunshan` / adcode `320583` / 同音后缀 `suzhou-341300` / 省级 `guangdong` / 区县 `aba`）、`/about`、`/map`、`/city/999999`、未知路径 → 404
   - 六个分析维度（daily/weekly/monthly/quarterly/yearly/custom）**在首页和城市页各跑一遍**：断言 h1、图表/表格/输入框、无 ErrorBoundary、无 console 异常
   - 搜索：中文/拼音/首字母/自治州简称/同音/歧义，本地命中零网络；远程兜底产生 1 次请求、同名小村庄被过滤、重复搜索命中缓存；点击结果跳落地页
   - i18n：中英即时切换（h1/title/country/`<html lang>`）、定位地名跟随语言
   - 其它：canonical、°F 单位切换、历史数据写入本地缓存、运行中无异常
+  - 交互组件：年份范围选择器（10/20/30/50 年切换会改变表格行数、选「自定义」展开起止年份输入框）、关于页联系表单（打开/字段/提交按钮/关闭）、深色主题切换（`html.dark`）
   - 边界：定位被拒绝时，首页切换分析维度仍能回到 `/city/kunshan`（而不是 `/city/cn-320583` 这类 404）
 - **零外部请求**：通过 CDP `Page.addScriptToEvaluateOnNewDocument` 在应用脚本之前注入 fetch 拦截器，open-meteo（archive/forecast/geocoding）与 Nominatim 全部返回确定性数据（季节曲线 + 缓慢升温），未知域名直接 204；同时 stub `navigator.geolocation` 固定到上海。套件最后两条断言就是“无未 mock 请求”和“无外部域名资源”。
 - 这样跑多少次都不会消耗 API 配额，也不受网络/限流影响；改数据链路、路由、i18n 后先跑它，再用真实 API 手动抽查一两个页面。
 - 驱动脚本依赖本机的 `ego-browser`（agent 工具），逻辑与具体工具无关（注入 mock + 断言 DOM），后续可平移到 Playwright/Cypress。
+- `scripts/serve-build.mjs` 会为 `/_vercel/insights/*` 返回空 JS：该脚本只在 Vercel 上存在，本地 SPA fallback 会把 index.html 当 JS 返回，浏览器报 `Unexpected token '<'`，会把“无运行时异常”的断言带崩。
 - 写断言时的三个坑：① 导航后 `window.__e2e` 会重置，需要断言“累计请求数”时立即取；② `CityDropdown` 在桌面/移动菜单各渲染一份，选元素必须过滤 `getBoundingClientRect().width > 0`，否则会点到隐藏实例；③ header 里有两个 `aria-haspopup` 下拉（城市、分析维度），要按特征文本选中，不能用“排除法”或 DOM 顺序。
 - 想测“定位被拒绝”这类分支时，把开关放进 `localStorage`（`__e2e_geo_fail`），因为每次导航都会重新执行注入脚本，挂在 `window` 上的开关会丢。
 

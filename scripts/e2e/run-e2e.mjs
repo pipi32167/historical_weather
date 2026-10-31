@@ -626,6 +626,64 @@ check('定位被拒 + 首页切维度：回到城市页而不是 404',
   `storeId=${storedAfterDeny} path=${denyState.path} h1=${denyState.h1.slice(0, 16)}`);
 await page.evaluate(() => localStorage.removeItem('__e2e_geo_fail'));
 
+
+// 19. 年份范围选择器（城市页表格 + 自定义区间）
+await goto('/city/kunshan');
+await page.waitForTimeout(6000);
+const rowsBefore = await page.evaluate(() => document.querySelectorAll('tbody tr').length);
+await page.selectOption('select:has(option[value="custom"])', '10');
+await page.waitForTimeout(4000);
+const afterTen = await page.evaluate(() => ({
+  rows: document.querySelectorAll('tbody tr').length,
+  range: (document.body.innerText.match(/已选择范围:?\s*[^()\n]*/) || [])[0] || ''
+}));
+check('年份范围切「最近10年」→ 表格行数减少',
+  rowsBefore > 0 && afterTen.rows > 0 && afterTen.rows < rowsBefore,
+  `${rowsBefore} → ${afterTen.rows} 行 | ${afterTen.range.slice(0, 30)}`);
+
+await page.selectOption('select:has(option[value="custom"])', 'custom');
+await page.waitForTimeout(1500);
+const customInputs = await page.evaluate(() => document.querySelectorAll('input[type="number"]').length);
+check('切「自定义」→ 出现起止年份输入框', customInputs >= 2, `number inputs=${customInputs}`);
+await page.selectOption('select:has(option[value="custom"])', '20');
+await page.waitForTimeout(3000);
+
+// 20. 联系表单（关于页 → Email 弹窗）
+await goto('/about');
+await page.waitForTimeout(1500);
+await page.evaluate(() => {
+  const btn = Array.from(document.querySelectorAll('button'))
+    .find(b => /Email/.test(b.textContent || '') && b.getBoundingClientRect().width > 0);
+  if (btn) btn.click();
+});
+await page.waitForTimeout(1000);
+const contact = await page.evaluate(() => ({
+  hasClose: !!document.querySelector('button[aria-label="Close"]'),
+  inputs: document.querySelectorAll('div.fixed input').length,
+  textareas: document.querySelectorAll('div.fixed textarea').length,
+  hasSubmit: !!document.querySelector('div.fixed form button[type="submit"]')
+}));
+check('关于页联系表单可打开（字段 + 提交按钮）',
+  contact.hasClose && contact.inputs >= 3 && contact.textareas >= 1 && contact.hasSubmit,
+  JSON.stringify(contact));
+await page.evaluate(() => document.querySelector('button[aria-label="Close"]')?.click());
+await page.waitForTimeout(600);
+const modalClosed = await page.evaluate(() => !document.querySelector('button[aria-label="Close"]'));
+check('联系表单可关闭', modalClosed, String(modalClosed));
+
+// 21. 深色主题切换
+await goto('/');
+await page.waitForTimeout(5000);
+const themeBefore = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+await page.click('button[aria-label^="Switch to"]');
+await page.waitForTimeout(1000);
+const themeAfter = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+check('深色主题切换生效（html.dark）', themeBefore !== themeAfter, `dark: ${themeBefore} → ${themeAfter}`);
+await page.click('button[aria-label^="Switch to"]');
+await page.waitForTimeout(800);
+const themeRestored = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+check('再次点击恢复亮色主题', themeRestored === themeBefore, `dark=${themeRestored}`);
+
 // 16. 全站运行时异常
 const runtimeErrors = await page.evaluate(() => window.__e2e.errors.slice());
 check('关键页面无运行时异常', runtimeErrors.length === 0, runtimeErrors.slice(0, 3).join(' | '));

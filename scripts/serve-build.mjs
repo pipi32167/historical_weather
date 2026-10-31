@@ -37,6 +37,14 @@ const server = http.createServer(async (request, response) => {
   const pathname = decodeURIComponent(new URL(request.url, `http://localhost:${PORT}`).pathname);
   const filePath = path.join(ROOT, pathname);
 
+  // Vercel Analytics 的脚本只有部署在 Vercel 上才存在，本地托管时给个空实现，
+  // 否则 SPA fallback 会把 index.html 当成 JS 返回（浏览器报 Unexpected token '<'）
+  if (pathname.startsWith('/_vercel/insights/')) {
+    response.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' });
+    response.end('/* local analytics stub */');
+    return;
+  }
+
   try {
     const data = await readFile(filePath);
     response.writeHead(200, { 'Content-Type': MIME_TYPES[path.extname(filePath)] || 'application/octet-stream' });
@@ -44,6 +52,11 @@ const server = http.createServer(async (request, response) => {
     return;
   } catch {
     // SPA fallback
+  }
+
+  // 带扩展名的静态资源缺失时记录一条，避免 SPA fallback 把 404 掩盖成 JS 语法错误
+  if (path.extname(pathname)) {
+    console.warn(`[404] ${pathname} → 回退 index.html`);
   }
 
   try {

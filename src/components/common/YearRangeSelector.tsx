@@ -3,7 +3,7 @@
  * 提供预设的年份范围选项（10/20/30/50年）
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useYearRangeStore } from '../../store/yearRangeStore';
 
@@ -58,13 +58,19 @@ export const YearRangeSelector: React.FC<YearRangeSelectorProps> = ({
     return option ? option.value : 'custom';
   };
 
+  // 选择「自定义」时即使当前范围仍匹配预设，也要展开起止年份输入框
+  const [showCustomInputs, setShowCustomInputs] = useState(false);
+
   // 处理下拉选择变更
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     
     if (value === 'custom') {
-      return; // 自定义选项保持当前值
+      setShowCustomInputs(true);
+      return;
     }
+
+    setShowCustomInputs(false);
 
     const years = parseInt(value);
     const startYear = currentYear - years;
@@ -78,7 +84,7 @@ export const YearRangeSelector: React.FC<YearRangeSelectorProps> = ({
     return t('time.dateRangeDescription', { startDate, endDate });
   };
 
-  const currentOption = getCurrentOption();
+  const currentOption = showCustomInputs ? 'custom' : getCurrentOption();
 
   return (
     <div className={className}>
