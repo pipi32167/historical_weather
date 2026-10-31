@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BarChart3, MapPin, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { MonthlyTemperatureStats } from '../services/monthlyTemperatureService';
@@ -30,6 +30,14 @@ interface QuarterlyYearData {
   quarters: QuarterlyData[];
 }
 
+// 季度包含的月份（模块级常量，避免内联数组导致 useCallback 依赖不稳定）
+const QUARTER_MONTHS: number[][] = [
+  [1, 2, 3],    // Q1: 1-3月
+  [4, 5, 6],    // Q2: 4-6月
+  [7, 8, 9],    // Q3: 7-9月
+  [10, 11, 12]  // Q4: 10-12月
+];
+
 const HistoricalQuarterly: React.FC = () => {
   const { t } = useTranslation();
   const [data, setData] = useState<QuarterlyYearData[]>([]);
@@ -42,15 +50,13 @@ const HistoricalQuarterly: React.FC = () => {
   // 设置页面标题
   useHistoricalPageTitle('quarterly', currentLocation?.name);
 
-  const quarterNames = [t('time.firstQuarter'), t('time.secondQuarter'), t('time.thirdQuarter'), t('time.fourthQuarter')];
-  const quarterMonths = [
-    [1, 2, 3],    // Q1: 1-3月
-    [4, 5, 6],    // Q2: 4-6月
-    [7, 8, 9],    // Q3: 7-9月
-    [10, 11, 12]  // Q4: 10-12月
-  ];
+  const quarterNames = useMemo(
+    () => [t('time.firstQuarter'), t('time.secondQuarter'), t('time.thirdQuarter'), t('time.fourthQuarter')],
+    [t]
+  );
+  const quarterMonths = QUARTER_MONTHS;
 
-  const loadQuarterlyData = async () => {
+  const loadQuarterlyData = useCallback(async () => {
     if (!currentLocation) return;
 
     setLoading(true);
@@ -62,10 +68,10 @@ const HistoricalQuarterly: React.FC = () => {
       const quarterlyResults: QuarterlyYearData[] = [];
 
       // 获取当前季度的所有月份
-      const currentQuarterMonths = quarterMonths[selectedQuarter - 1];
+      const currentQuarterMonths = QUARTER_MONTHS[selectedQuarter - 1];
 
-      // 使用统一服务获取历史数据
-      const historicalData = await unifiedHistoricalService.getUnifiedHistoricalData(
+      // 使用统一服务获取历史数据（结果由服务内部缓存，这里只需要完成预热）
+      await unifiedHistoricalService.getUnifiedHistoricalData(
         currentLocation,
         yearRange.start
       );
@@ -182,13 +188,13 @@ const HistoricalQuarterly: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentLocation, selectedQuarter, yearRange, t, quarterNames]);
 
   useEffect(() => {
     if (currentLocation) {
-      loadQuarterlyData();
+      void loadQuarterlyData();
     }
-  }, [selectedQuarter, yearRange, currentLocation]);
+  }, [loadQuarterlyData, currentLocation]);
 
   const handleQuarterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedQuarter(parseInt(event.target.value));

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -68,30 +68,8 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
     }
   ].filter(continent => continent.cities.length > 0);
 
-  // Debounce search
-  useEffect(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-
-    if (activeTab === 'search' && searchQuery.trim().length >= 2) {
-      debounceTimeoutRef.current = setTimeout(() => {
-        searchCities(searchQuery.trim());
-      }, 300);
-    } else {
-      setSearchResults([]);
-      setIsSearching(false);
-    }
-
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, [searchQuery, activeTab]);
-
   // Search cities
-  const searchCities = async (query: string) => {
+  const searchCities = useCallback(async (query: string) => {
     setIsSearching(true);
     try {
       const language = i18n.language.startsWith('zh') ? 'zh' : 'en';
@@ -103,7 +81,29 @@ const CityDropdown: React.FC<CityDropdownProps> = ({ className = '' }) => {
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [i18n.language]);
+
+  // Debounce search
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    if (activeTab === 'search' && searchQuery.trim().length >= 2) {
+      debounceTimeoutRef.current = setTimeout(() => {
+        void searchCities(searchQuery.trim());
+      }, 300);
+    } else {
+      setSearchResults([]);
+      setIsSearching(false);
+    }
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, activeTab, searchCities]);
 
   // Handle city selection - directly navigate to city
   const handleCitySelect = (city: Location | OpenMeteoLocation) => {

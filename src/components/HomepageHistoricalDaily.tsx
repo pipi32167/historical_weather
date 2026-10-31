@@ -479,26 +479,37 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
     }
   }, [locationInitialized, overrideLocation, t]);
 
+  // effect 依赖项统一用原始值，避免对象 / 内联表达式导致重复请求
+  const activeLatitude = activeLocation?.latitude;
+  const activeLongitude = activeLocation?.longitude;
+  const activeLocationName = activeLocation?.name;
+  const hasActiveLocation = Boolean(activeLocation);
+  const hasOverrideLocation = Boolean(overrideLocation);
+  const selectedDateKey = selectedDate.toISOString().split('T')[0]; // 只使用日期部分
+  const yearRangeStart = yearRange.start;
+
   useEffect(() => {
     // Only load data after location is initialized
-    if ((locationInitialized && activeLocation) || (overrideLocation && activeLocation)) {
+    if (hasActiveLocation && (locationInitialized || hasOverrideLocation)) {
       console.log('🚀 位置已初始化，开始加载历史气温数据', {
-        locationName: activeLocation?.name,
+        locationName: activeLocationName,
         locationInitialized,
-        isOverride: !!overrideLocation
+        isOverride: hasOverrideLocation
       });
       doLoadData();
     } else {
-      console.log('⏳ 等待位置初始化...', { locationInitialized, hasLocation: !!activeLocation });
+      console.log('⏳ 等待位置初始化...', { locationInitialized, hasLocation: hasActiveLocation });
     }
   }, [
-    // 使用稳定的依赖项
-    selectedDate.toISOString().split('T')[0], // 只使用日期部分
-    yearRange.start,
-    activeLocation?.latitude,
-    activeLocation?.longitude,
+    // 使用稳定的原始值作依赖项（避免对象/数组字面量导致 effect 反复触发）
+    selectedDateKey,
+    yearRangeStart,
+    activeLatitude,
+    activeLongitude,
+    activeLocationName,
+    hasActiveLocation,
     locationInitialized,
-    !!overrideLocation,
+    hasOverrideLocation,
     doLoadData
   ]);
 
