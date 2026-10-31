@@ -269,6 +269,20 @@ npm test -- --watchAll=false --coverage                   # 覆盖率
 - 提交前：`npm test -- --watchAll=false` 全绿 + `npm run build` 通过（CI 环境下 warning 会 fail）。
 - 测试代码同样要 review：可读、无魔法数字、失败信息能直接定位问题。
 
+### 6.7 端到端回归套件（API 全 mock）
+
+```bash
+npm run build
+node scripts/serve-build.mjs                     # 静态托管 build/ 于 :8088（带 SPA fallback）
+ego-browser nodejs < scripts/e2e/run-e2e.mjs      # 跑套件
+```
+
+- 当前 **35 项断言**：首页渲染、中文/拼音/首字母/自治州简称/同音/歧义搜索、本地命中零网络、远程兜底与相关性过滤、远程缓存命中、点击结果跳落地页、6 条城市路由（mapped / pinyin slug / adcode / 同音后缀 / 省级 / 区县）、404、canonical、中英即时切换、`<html lang>`、定位地名 i18n、°F 单位切换、分析维度下拉、本地缓存写入。
+- **零外部请求**：通过 CDP `Page.addScriptToEvaluateOnNewDocument` 在应用脚本之前注入 fetch 拦截器，open-meteo（archive/forecast/geocoding）与 Nominatim 全部返回确定性数据（季节曲线 + 缓慢升温），未知域名直接 204；同时 stub `navigator.geolocation` 固定到上海。套件最后两条断言就是“无未 mock 请求”和“无外部域名资源”。
+- 这样跑多少次都不会消耗 API 配额，也不受网络/限流影响；改数据链路、路由、i18n 后先跑它，再用真实 API 手动抽查一两个页面。
+- 驱动脚本依赖本机的 `ego-browser`（agent 工具），逻辑与具体工具无关（注入 mock + 断言 DOM），后续可平移到 Playwright/Cypress。
+- 写断言时的两个坑：① 导航后 `window.__e2e` 会重置，需要断言“累计请求数”时立即取；② `CityDropdown` 在桌面/移动菜单各渲染一份，选元素必须过滤 `getBoundingClientRect().width > 0`，否则会点到隐藏实例。
+
 ## 7. 硬性开发约定
 
 1. **i18n**：所有用户可见文案必须使用 `t('...')`，并同时写入 `zh-CN.json` 与 `en-US.json`。禁止硬编码中英文。城市名用 `getCityLocalizedName`，天气现象用 `getWeatherConditionKey(code)` + `weather.conditions.*`。
