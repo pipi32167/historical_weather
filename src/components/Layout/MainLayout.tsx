@@ -1,11 +1,14 @@
 import React from 'react';
 import Header from './Header';
+import { useCanonicalSeo } from '../../hooks/useCanonicalSeo';
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  useCanonicalSeo();
+
   return (
     <div className="min-h-screen bg-primary">
       {/* Header */}

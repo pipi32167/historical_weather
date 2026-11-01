@@ -22,6 +22,12 @@ export interface OpenMeteoLocation {
   population?: number;
   /** GeoNames 要素码（PPLC/PPLA/PPL/MTS/ISL 等），用于结果相关性排序 */
   feature_code?: string;
+  /** 数据来源：离线行政区索引（可直达 /city/:slug 落地页） */
+  source?: 'china-districts';
+  /** 英文写法（离线索引提供；英文界面展示用） */
+  nameEn?: string;
+  admin1En?: string;
+  admin2En?: string;
 }
 
 export interface OpenMeteoCurrentWeather {
@@ -164,6 +170,13 @@ export class OpenMeteoWeatherService {
     const query = cityName.trim();
     if (!query) return [];
 
+    // 国内省/市/区县优先用离线行政区索引（中文、全拼、拼音首字母、英文写法都能命中）：
+    // - 零延迟、零配额、不依赖跨境网络
+    // - 不会被 GeoNames 的同名小村庄污染（搜「南京」不再出现云南的村庄）
+    // 索引里只有行政区，搜不到（街道/村/景区/国外城市）时再走远程。
+    const localResults = await this.lookupChinaPlaces(query, count);
+    if (localResults.length > 0) return localResults;
+
     // 上游的 language 参数同时决定搜索索引：中文查询用 en 会返回 0 条，
     // 所以搜索语言要跟随查询词语种，而不是界面语言。
     const searchLanguage = resolveGeocodeLanguage(query, language);
@@ -202,6 +215,41 @@ export class OpenMeteoWeatherService {
     } catch (error) {
       console.error('Open-Meteo地理编码失败:', error);
       throw new Error(`无法获取城市"${cityName}"的地理信息: ${error}`);
+    }
+  }
+
+  /**
+   * 国内行政区离线检索（动态加载 130KB 索引，不进入主包）
+   */
+  private async lookupChinaPlaces(query: string, count: number): Promise<OpenMeteoLocation[]> {
+    try {
+      const { searchChinaPlaces } = await import('../utils/chinaPlaceIndex');
+      const places = searchChinaPlaces(query, count);
+      if (places.length === 0) return [];
+
+      const country = 'China';
+
+      return places.map(place => ({
+        id: place.adcode,
+        name: place.name,
+        nameEn: place.englishName,
+        latitude: place.latitude,
+        longitude: place.longitude,
+        country,
+        country_code: 'CN',
+        admin1: place.province,
+        admin1En: place.provinceEn,
+        admin2: place.city,
+        admin2En: place.cityEn,
+        timezone: 'Asia/Shanghai',
+        // 要素码只用于远程结果的排序，这里保持与行政区级别一致
+        feature_code: place.level === 1 ? 'PPLC' : place.level === 2 ? 'PPLA2' : 'PPLA3',
+        source: 'china-districts' as const,
+      }));
+    } catch (error) {
+      // 索引加载失败（首屏网络异常等）不影响搜索，直接回退远程
+      console.warn('离线行政区索引不可用，回退到远程地理编码:', error);
+      return [];
     }
   }
 
