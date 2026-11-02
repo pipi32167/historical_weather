@@ -25,7 +25,7 @@ const About: React.FC = () => {
     type: 'WebPage',
     title: t('about.developer.name'),
     description: t('about.developer.bio'),
-    url: 'https://historicalweather.org/about',
+    url: 'https://historicaltemperature.org/about',
     keywords: ['historical weather', 'weather data', 'climate analysis', 'developer', 'about'],
     dateModified: new Date().toISOString()
   });

@@ -25,11 +25,12 @@ const OUT_FILE = path.join(ROOT, 'public/sitemap.xml');
 
 /**
  * 站点主域名。
- * 仓库里存在历史不一致：index.html / canonical / 结构化数据用 historicalweather.org，
- * 而旧的 sitemap / robots.txt 用 historicaltemperature.org。这里统一跟随 canonical，
- * 如需改回可用环境变量覆盖：SITE_ORIGIN=https://example.com npm run sitemap
+ * 以线上实际服务的域名为准（historicaltemperature.org 可解析并已在 Vercel 部署；
+ * 仓库里曾出现过 historicalweather.org 的写法，而该域名未注册）。
+ * 运行时 canonical 由 window.location.origin 推导，不依赖这里；
+ * 如需为其他域名生成 sitemap：SITE_ORIGIN=https://example.com npm run sitemap
  */
-const SITE_ORIGIN = process.env.SITE_ORIGIN || 'https://historicalweather.org';
+const SITE_ORIGIN = process.env.SITE_ORIGIN || 'https://historicaltemperature.org';
 
 /** 与 citySlug.ts 一致的同音 slug 规则 */
 function assignSlugs(rows) {

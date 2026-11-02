@@ -5,7 +5,7 @@
 
 ## 1. 项目定位
 
-历史气温查询与趋势分析平台，线上域名 `https://historicalweather.org`。
+历史气温查询与趋势分析平台，线上域名 `https://historicaltemperature.org`（`historicalweather.org` 未注册，勿再使用）。
 
 - 纯前端 SPA（无后端、无数据库），构建产物为静态文件，直接部署 `build/`。
 - 数据源：Open-Meteo（Archive / Forecast / Geocoding）+ OpenStreetMap Nominatim（反向地理编码、地名）。
@@ -205,7 +205,7 @@ localStorage 上限 50MB，超限淘汰最旧项；不可用时自动降级为�
 - **canonical / og:url 必须按路由更新**：`useCanonicalSeo()`（挂在 `MainLayout`）负责非城市路由，`CityPage` 负责 `/city/*`（它要异步解析 slug）。纯逻辑在 `src/utils/seo.ts`（`canonicalUrl` / `canonicalPathForLocation`），有单测。以前的坑：canonical 写死在 `index.html`，所有城市页都指向首页。
 - `public/sitemap.xml` 由 `npm run sitemap`（`scripts/build-sitemap.mjs`）生成，当前 **3299 个 URL**：首页 + /about + `cityMappings` 的 76 个手写城市（id 直接从 `cityMappings.ts` 正则解析，无需维护第二份清单）+ 行政区索引的 3237 个 slug。
 - sitemap 的 slug 规则与运行时 `citySlug.ts` 是两份实现（前者跑在 node，不能 import TS），由 `src/utils/sitemap.test.ts` 兜底：它会逐条 `resolveCitySlug` 校验，规则一漂移测试就红。
-- **主域名统一为 `https://historicalweather.org`**（与 index.html / canonical / 结构化数据一致）；sitemap 脚本支持 `SITE_ORIGIN=... npm run sitemap` 覆盖，`public/robots.txt` 里的 sitemap 地址需同步。旧的 `src/utils/generateSitemap.js` 已删除（它写死城市数组且用另一个域名）。
+- **主域名 `https://historicaltemperature.org`**（线上实际服务域名）；canonical 运行时由 `window.location.origin` 推导（见 `src/utils/seo.ts` 的 `resolveOrigin`），静态兜底写在 `SITE_ORIGIN` / `public/index.html` / `public/robots.txt` / sitemap 脚本里，四者要一致；sitemap 可用 `SITE_ORIGIN=... npm run sitemap` 覆盖。旧的 `src/utils/generateSitemap.js` 已删除（它写死城市数组且用另一个域名）。
 - 新增/调整行政区数据后：`npm run data:china` → `npm run sitemap` → 跑 `sitemap.test.ts`。
 
 ### 城市页 slug（`src/utils/citySlug.ts`）
@@ -309,7 +309,7 @@ ego-browser nodejs < scripts/e2e/run-e2e.mjs      # 跑套件
 ## 8. 已知陷阱 / 待清理项
 
 - **`CLAUDE.md` 有过时内容**：它仍称 `App.tsx` 是 CRA 默认模板、开发端口 3000、只用 npm。实际已是完整应用、端口 24587、默认 mock。
-- **域名**：站点统一用 `historicalweather.org`（index.html / canonical / 结构化数据 / sitemap / robots.txt 已对齐）。残留的 `support@historicaltemperature.org` 是联系邮箱（`i18n/locales/*.json` 的 `contact.email`），属内容决策，未改动。
+- **域名**：站点统一用 `historicaltemperature.org`（index.html / canonical / 结构化数据 / sitemap / robots.txt 已对齐；canonical 运行时跟随 `location.origin`）。残留的 `support@historicaltemperature.org` 是联系邮箱（`i18n/locales/*.json` 的 `contact.email`），属内容决策，未改动。
 - **Mock 模式是“假”的**：`src/mock/config.ts` 无论城市/日期都返回同一份 `weather_cache_historical_big.json`，且只作用于 `getHistoricalWeather`（今日预报、逐小时、地理编码仍走真实网络）。mock 下的正确性只能验证渲染，不能验证多城市、日期过滤等逻辑。
 - **服务层重复**：`openMeteoService.geocodeCity` 与 `geocodingService.searchCities` 都能搜城市；页面数据优先用 `unifiedHistoricalService`，不要新代码再走 `weatherService` / `weatherAggregateService`（仅旧 `useWeatherData` 与 `/map` 使用）。
 - **未使用/半废弃文件**：`utils/concurrencyController.ts`、`utils/apiTester.ts`、`utils/historicalDataGenerator.ts`、`components/RateLimitingLoader.tsx` 当前没有实际引用；删除前先全局搜索确认。

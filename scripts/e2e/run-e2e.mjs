@@ -401,7 +401,7 @@ for (const [path, expectedName, expectedCanonical] of routeCases) {
   const charts = await waitCharts(15000);
   check(`${path} → ${expectedName}（canonical + 图表）`,
     pageH1.includes(expectedName) && pageCanonical.endsWith(expectedCanonical) && charts > 0,
-    `h1=${pageH1} canonical=${pageCanonical.replace('https://historicalweather.org', '')} charts=${charts}`);
+    `h1=${pageH1} canonical=${pageCanonical.replace(/^https?:\/\/[^/]+/, '')} charts=${charts}`);
 }
 await goto('/city/999999');
 await page.waitForTimeout(1500);
@@ -484,7 +484,7 @@ await page.waitForTimeout(1200);
 const aboutState = { h1: await h1(), canonical: await canonical() };
 check('/about 渲染且 canonical=/about',
   aboutState.h1.length > 0 && aboutState.canonical.endsWith('/about'),
-  `h1=${aboutState.h1.slice(0, 20)} canonical=${aboutState.canonical.replace('https://historicalweather.org', '')}`);
+  `h1=${aboutState.h1.slice(0, 20)} canonical=${aboutState.canonical.replace(/^https?:\/\/[^/]+/, '')}`);
 
 await goto('/map');
 await page.waitForTimeout(2500);

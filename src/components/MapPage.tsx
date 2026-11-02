@@ -57,7 +57,7 @@ const MapPage: React.FC = () => {
     type: 'WebPage',
     title: t('navigation.map', { defaultValue: '地图' }),
     description: t('navigation.mapDescription', { defaultValue: '互动地图天气查询' }),
-    url: 'https://historicalweather.org/map',
+    url: 'https://historicaltemperature.org/map',
     keywords: ['interactive map', 'weather map', 'location selection', 'historical weather'],
     dateModified: new Date().toISOString()
   });

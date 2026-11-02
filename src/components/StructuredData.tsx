@@ -37,7 +37,7 @@ export const useStructuredData = ({
       publisher: {
         '@type': 'Person',
         name: 'Million',
-        url: 'https://historicalweather.org/'
+        url: 'https://historicaltemperature.org/'
       },
       mainEntityOfPage: {
         '@type': 'WebPage',
