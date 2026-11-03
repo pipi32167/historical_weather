@@ -8,6 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveCitySlug } from './citySlug';
+import { SITE_ORIGIN } from './seo';
 
 const ROOT = path.resolve(__dirname, '../..');
 const sitemapXml = fs.readFileSync(path.join(ROOT, 'public/sitemap.xml'), 'utf8');
@@ -27,21 +28,25 @@ describe('public/sitemap.xml', () => {
     expect(locs.every(loc => loc.startsWith('https://'))).toBe(true);
   });
 
-  it('域名与 canonical 一致（不再混用 historicaltemperature.org）', () => {
-    expect(locs.every(loc => loc.startsWith('https://historicalweather.org/'))).toBe(true);
-    expect(sitemapXml.includes('historicaltemperature.org')).toBe(false);
-    expect(robotsTxt).toContain('Sitemap: https://historicalweather.org/sitemap.xml');
+  it('域名统一为线上实际域名 historicaltemperature.org（与 canonical / robots 一致）', () => {
+    const origin = 'https://historicaltemperature.org';
+    expect(locs.every(loc => loc.startsWith(`${origin}/`))).toBe(true);
+    // historicalweather.org 未注册，任何地方都不应再出现
+    expect(sitemapXml.includes('historicalweather.org')).toBe(false);
+    expect(robotsTxt).toContain(`Sitemap: ${origin}/sitemap.xml`);
+    expect(robotsTxt.includes('historicalweather.org')).toBe(false);
+    expect(SITE_ORIGIN).toBe(origin);
   });
 
   it('包含首页、关于页与关键城市', () => {
-    expect(locs).toContain('https://historicalweather.org/');
-    expect(locs).toContain('https://historicalweather.org/about');
-    expect(locs).toContain('https://historicalweather.org/city/nanjing');
-    expect(locs).toContain('https://historicalweather.org/city/kunshan');
-    expect(locs).toContain('https://historicalweather.org/city/guangdong');
+    expect(locs).toContain('https://historicaltemperature.org/');
+    expect(locs).toContain('https://historicaltemperature.org/about');
+    expect(locs).toContain('https://historicaltemperature.org/city/nanjing');
+    expect(locs).toContain('https://historicaltemperature.org/city/kunshan');
+    expect(locs).toContain('https://historicaltemperature.org/city/guangdong');
     // 同音地名：苏州市占裸 slug，宿州市带 adcode
-    expect(locs).toContain('https://historicalweather.org/city/suzhou');
-    expect(locs).toContain('https://historicalweather.org/city/suzhou-341300');
+    expect(locs).toContain('https://historicaltemperature.org/city/suzhou');
+    expect(locs).toContain('https://historicaltemperature.org/city/suzhou-341300');
   });
 
   it('每个城市地址都能被运行时解析（slug 规则无漂移）', () => {

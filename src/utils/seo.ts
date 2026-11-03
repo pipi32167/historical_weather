@@ -9,13 +9,29 @@
  * 这里只做纯逻辑（便于测试），DOM 写入放在 applyCanonical。
  */
 
-/** 站点域名（与 index.html 里的 canonical 保持一致） */
-export const SITE_ORIGIN = 'https://historicalweather.org';
+/** 兜底站点域名（运行时优先用 window.location.origin，见 resolveOrigin） */
+export const SITE_ORIGIN = 'https://historicaltemperature.org';
+
+/**
+ * 当前实际服务的 origin。
+ *
+ * canonical 必须与真实访问的域名一致：仓库里曾经出现过 index.html 写
+ * historicalweather.org、robots/sitemap 写 historicaltemperature.org 的不一致，
+ * 而 historicalweather.org 当时并未注册（NXDOMAIN）—— 那样会让搜索引擎
+ * 收到指向不存在域名的 canonical。所以运行时以 location.origin 为准。
+ */
+export function resolveOrigin(): string {
+  if (typeof window !== 'undefined') {
+    const origin = window.location?.origin;
+    if (origin && /^https?:\/\//.test(origin)) return origin;
+  }
+  return SITE_ORIGIN;
+}
 
 /** 把任意路径规范成 absolute canonical URL */
-export function canonicalUrl(pathname: string): string {
+export function canonicalUrl(pathname: string, origin: string = resolveOrigin()): string {
   const path = normalizePath(pathname);
-  return path === '/' ? `${SITE_ORIGIN}/` : `${SITE_ORIGIN}${path}`;
+  return path === '/' ? `${origin}/` : `${origin}${path}`;
 }
 
 /**
