@@ -103,6 +103,36 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
     });
   }, [i18n.language]);
 
+  /**
+   * 逆地理编码得到的地名与语言绑定（Nominatim 只返回一种语言的名称，并按照语言 + 坐标缓存）。
+   * 定位解析只跑一次，所以切换语言或带着旧语言名称刷新时，需要按照新语言重新取一次；
+   * 同语言 + 同坐标只会解析一次（缓存命中不会真的发请求）。
+   */
+  const resolvedLocationLabelRef = useRef('');
+
+  useEffect(() => {
+    const location = currentLocation;
+    if (!location || location.id !== 'current-location') return;
+    if (!Number.isFinite(location.latitude) || !Number.isFinite(location.longitude)) return;
+
+    const signature = `${location.latitude.toFixed(3)},${location.longitude.toFixed(3)}@${i18n.language}`;
+    if (resolvedLocationLabelRef.current === signature) return;
+    resolvedLocationLabelRef.current = signature;
+
+    let cancelled = false;
+
+    (async () => {
+      const localizedName = await reverseGeocode(location.latitude, location.longitude);
+      if (cancelled || !localizedName || !localizedName.trim()) return;
+      if (localizedName === location.name) return;
+      setCurrentLocation({ ...location, name: localizedName });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentLocation, i18n.language, reverseGeocode, setCurrentLocation]);
+
   // Initialize location on component mount
   useEffect(() => {
     console.log('🔧 Location initialization effect triggered:', {
@@ -449,26 +479,37 @@ const HomepageHistoricalDaily: React.FC<HomepageHistoricalDailyProps> = ({ overr
     }
   }, [locationInitialized, overrideLocation, t]);
 
+  // effect 依赖项统一用原始值，避免对象 / 内联表达式导致重复请求
+  const activeLatitude = activeLocation?.latitude;
+  const activeLongitude = activeLocation?.longitude;
+  const activeLocationName = activeLocation?.name;
+  const hasActiveLocation = Boolean(activeLocation);
+  const hasOverrideLocation = Boolean(overrideLocation);
+  const selectedDateKey = selectedDate.toISOString().split('T')[0]; // 只使用日期部分
+  const yearRangeStart = yearRange.start;
+
   useEffect(() => {
     // Only load data after location is initialized
-    if ((locationInitialized && activeLocation) || (overrideLocation && activeLocation)) {
+    if (hasActiveLocation && (locationInitialized || hasOverrideLocation)) {
       console.log('🚀 位置已初始化，开始加载历史气温数据', {
-        locationName: activeLocation?.name,
+        locationName: activeLocationName,
         locationInitialized,
-        isOverride: !!overrideLocation
+        isOverride: hasOverrideLocation
       });
       doLoadData();
     } else {
-      console.log('⏳ 等待位置初始化...', { locationInitialized, hasLocation: !!activeLocation });
+      console.log('⏳ 等待位置初始化...', { locationInitialized, hasLocation: hasActiveLocation });
     }
   }, [
-    // 使用稳定的依赖项
-    selectedDate.toISOString().split('T')[0], // 只使用日期部分
-    yearRange.start,
-    activeLocation?.latitude,
-    activeLocation?.longitude,
+    // 使用稳定的原始值作依赖项（避免对象/数组字面量导致 effect 反复触发）
+    selectedDateKey,
+    yearRangeStart,
+    activeLatitude,
+    activeLongitude,
+    activeLocationName,
+    hasActiveLocation,
     locationInitialized,
-    !!overrideLocation,
+    hasOverrideLocation,
     doLoadData
   ]);
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, MapPin, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, getWeek, getYear } from 'date-fns';
+import { format, startOfWeek, endOfWeek, getWeek } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
 import { unifiedHistoricalService } from '../services/unifiedHistoricalService';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -23,15 +23,6 @@ interface WeeklyData {
   recordLow: number;
   totalPrecipitation: number;
   dataPoints: number;
-}
-
-interface DailyDataPoint {
-  date: string;
-  dayOfWeek: string;
-  maxTemp: number;
-  minTemp: number;
-  avgTemp: number;
-  precipitation: number;
 }
 
 const HistoricalWeekly: React.FC = () => {
@@ -90,10 +81,7 @@ const HistoricalWeekly: React.FC = () => {
         // 计算该年对应日期的那一周
         const targetDate = new Date(year, selectedDate.getMonth(), selectedDate.getDate());
         const { weekStart, weekEnd } = getWeekDateRange(targetDate);
-        
-        // 获取这一周的所有日期
-        const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
-        
+
         // 过滤出这一周的历史数据
         const weekData = unifiedHistoricalService.filterByWeek(
           historicalData,

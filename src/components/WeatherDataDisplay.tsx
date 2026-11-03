@@ -130,7 +130,7 @@ const WeatherDataDisplay: React.FC<WeatherDataDisplayProps> = ({
         abortControllerRef.current.abort();
       }
     };
-  }, [latitude, longitude, locationName, todayDateString, dataLoaded, loading]); // 使用稳定的依赖项
+  }, [latitude, longitude, locationName, location, todayDateString, dataLoaded, loading]); // 使用稳定的依赖项（location 由 useMemo 派生，恒等变化仅源于 lat/lng/name）
 
   // Reset data when location changes
   useEffect(() => {

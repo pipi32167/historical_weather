@@ -32,7 +32,7 @@ const HistoricalMonthly: React.FC = () => {
   // 设置页面标题
   useHistoricalPageTitle('monthly', currentLocation?.name);
 
-  const loadMonthlyData = async () => {
+  const loadMonthlyData = useCallback(async () => {
     if (!currentLocation) return;
 
     setLoading(true);
@@ -77,11 +77,11 @@ const HistoricalMonthly: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentLocation, selectedMonth, yearRange]);
 
   useEffect(() => {
-    loadMonthlyData();
-  }, [selectedMonth, yearRange, currentLocation]);
+    void loadMonthlyData();
+  }, [loadMonthlyData]);
 
   const handleMonthChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedMonth(parseInt(event.target.value));

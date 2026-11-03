@@ -27,6 +27,10 @@ export interface Location {
   admin1?: string;
   admin2?: string;
   displayName?: string; // 用于搜索结果的显示名称
+  /** 英文写法（离线行政区索引提供），英文界面显示用 */
+  nameEn?: string;
+  admin1En?: string;
+  admin2En?: string;
 }
 
 // 查询参数

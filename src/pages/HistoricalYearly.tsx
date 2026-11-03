@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LineChart, MapPin, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { MonthlyTemperatureStats } from '../services/monthlyTemperatureService';
@@ -36,7 +36,7 @@ const HistoricalYearly: React.FC = () => {
   // 设置页面标题
   useHistoricalPageTitle('yearly', currentLocation?.name);
 
-  const loadYearlyData = async () => {
+  const loadYearlyData = useCallback(async () => {
     if (!currentLocation) return;
 
     setLoading(true);
@@ -166,11 +166,11 @@ const HistoricalYearly: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentLocation, yearRange, t]);
 
   useEffect(() => {
-    loadYearlyData();
-  }, [yearRange, currentLocation]);
+    void loadYearlyData();
+  }, [loadYearlyData]);
 
 
   const getTemperatureColor = (temp: number) => {
